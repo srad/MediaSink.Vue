@@ -13,7 +13,7 @@ const routes = [
   { path: '/admin', name: 'Admin', component: AdminView },
   { path: '/jobs', name: 'Job', component: JobView },
   { path: '/streams/:channel?', name: 'Recording', component: Recording, props: true },
-  { path: '/latest', name: 'Latest', component: Latest, props: true },
+  { path: '/gallery/:type/:limit?', name: 'Gallery', component: Latest, props: true },
   { path: '/recordings/:channelName/:filename/:edit?', name: 'Video', component: Video, props: true },
   { path: '/logs', name: 'Log', component: Log },
   { path: '/bookmarks', name: 'Bookmark', component: Bookmark },

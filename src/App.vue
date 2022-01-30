@@ -19,10 +19,20 @@
             </li>
 
             <li class="nav-item">
-              <router-link to="/latest" :custom="true" exact-active-class="active"
+              <router-link to="/gallery/latest" :custom="true" exact-active-class="active"
                            v-slot="{ navigate, href, isActive }">
                 <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
                   Latest
+                </a>
+              </router-link>
+            </li>
+
+
+            <li class="nav-item">
+              <router-link to="/gallery/random" :custom="true" exact-active-class="active"
+                           v-slot="{ navigate, href, isActive }">
+                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
+                  Random
                 </a>
               </router-link>
             </li>

@@ -50,8 +50,8 @@ export class RecordingApi extends BaseApi {
     return this.axios.get(`/recordings`);
   }
 
-  getLatest(limit: number): Promise<AxiosResponse<RecordingResponse[]>> {
-    return this.axios.get(`/recordings/latest/${limit}`);
+  getGallery(type: string, limit: string | number): Promise<AxiosResponse<RecordingResponse[]>> {
+    return this.axios.get(`/recordings/${type}/${limit}`);
   }
 
   getBookmarks(): Promise<AxiosResponse<RecordingResponse[]>> {

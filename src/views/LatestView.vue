@@ -18,7 +18,7 @@
             :index="i+1"/>
         <div class="card-body bg-primary">
           <div class="card-title px-3 py-2 fw-bold text-white">
-             {{ recording.channelName }}
+            {{ recording.channelName }}
           </div>
         </div>
         <RecordInfo
@@ -47,7 +47,6 @@ import { defineComponent } from 'vue';
 import RecordInfo from '@/components/RecordInfo.vue';
 
 interface RecordingData {
-  placeHolderImage: string;
   baseUrl?: string;
   busy?: boolean;
   recordings: RecordingResponse[];
@@ -64,9 +63,13 @@ export default defineComponent({
   props: {
     limit: Number,
   },
+  watch: {
+    $route() {
+      this.fetch();
+    }
+  },
   data(): RecordingData {
     return {
-      placeHolderImage: 'https://via.placeholder.com/150x100?text=No+Preview', //process.env.VUE_APP_BASE + "/public/preview-placeholder.png",
       recordings: [],
       selectedFolder: '',
     };
@@ -100,6 +103,11 @@ export default defineComponent({
         params: recording
       });
     },
+    fetch() {
+      this.recordings = [];
+      const limit = this.$route.params.limit as string;
+      recordingApi.getGallery(this.$route.params.type as string, limit || 30).then(res => this.recordings = res.data);
+    },
     viewFolder(channel: string) {
       this.$router.push('/recordings/' + channel);
     },
@@ -122,10 +130,8 @@ export default defineComponent({
       });
     },
   },
-  created() {
-    recordingApi.getLatest(30).then(res => {
-      this.recordings = res.data;
-    });
+  mounted() {
+    this.fetch();
   }
 });
 </script>
