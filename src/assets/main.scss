@@ -1,0 +1,55 @@
+//@import '~bootstrap/scss/bootstrap';
+@import "./custom-bootstrap";
+@import "~bootstrap-icons/font/bootstrap-icons.css";
+
+.navbar {
+  background: #4b4e6d;
+}
+
+html {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body, #app {
+  height: 100%;
+}
+
+html {
+  padding-bottom: 2.7rem;
+}
+
+#stripe {
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
+#stripe img {
+}
+
+.blink {
+  animation: blinker 2s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+
+.w-80 {
+  width: 80%;
+}
+
+.w-20 {
+  width: 20%;
+}
+
+.w-10 {
+  width: 10%;
+}
+
+.w-90 {
+  width: 90%;
+}

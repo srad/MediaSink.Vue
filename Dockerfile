@@ -1,0 +1,31 @@
+# build stage
+FROM node:lts-alpine as build-stage
+
+# npm build dependencies
+RUN apk add --no-cache python3 py3-pip make g++
+
+WORKDIR /app
+
+COPY package*.json ./
+
+# install project dependencies
+RUN npm install --save-dev
+
+COPY . .
+
+ARG API_URL
+ARG APP_BASE
+
+ENV VUE_APP_APIURL $API_URL
+ENV VUE_APP_BASE $APP_BASE
+
+RUN npm run build
+
+# production stage
+FROM nginx:stable-alpine as production-stage
+
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

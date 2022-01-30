@@ -1,0 +1,297 @@
+<template>
+  <main>
+    <nav class="navbar navbar-expand-lg sticky-top shadow-sm m-0 d-flex text-white navbar-dark justify-content-between">
+      <div class="container-fluid">
+        <a class="navbar-brand d-none d-lg-block" href="/streams">
+          <span class="d-none d-lg-inline p-2">{{ title }}</span>
+          <i class="bi bi-water" style="color: deepskyblue"></i>
+        </a>
+
+        <div class="navbar-collapse collapse" :class="{'d-none': collapseNav}" id="collapsibleNavbar">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <router-link to="/streams" :custom="true" exact-active-class="active"
+                           v-slot="{ navigate, href, isActive }">
+                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
+                  Streams
+                </a>
+              </router-link>
+            </li>
+
+            <li class="nav-item">
+              <router-link to="/latest" :custom="true" exact-active-class="active"
+                           v-slot="{ navigate, href, isActive }">
+                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
+                  Latest
+                </a>
+              </router-link>
+            </li>
+
+            <li class="nav-item">
+              <router-link to="/bookmarks" :custom="true" exact-active-class="active"
+                           v-slot="{ navigate, href, isActive }">
+                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
+                  Bookmarked
+                </a>
+              </router-link>
+            </li>
+
+            <li class="nav-item">
+              <router-link to="/jobs" :custom="true" exact-active-class="active"
+                           v-slot="{ navigate, href, isActive }">
+                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
+                  Jobs
+                </a>
+              </router-link>
+            </li>
+
+            <li class="nav-item">
+              <router-link to="/admin" :custom="true" exact-active-class="active"
+                           v-slot="{ navigate, href, isActive }">
+                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
+                  Admin
+                </a>
+              </router-link>
+            </li>
+          </ul>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-warning" @click="showAddChannelModal">
+            Add Channel
+          </button>
+          <button v-if="recording===false" class="btn btn-success" @click="record(true)">
+            <i class="bi bi-record-fill"></i>
+            start
+          </button>
+          <button v-else class="btn btn-danger blink" @click="record(false)">
+            <i class="bi bi-stop-fill"></i>
+            stop
+          </button>
+        </div>
+
+        <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" @click="toggle" data-bs-target="#collapsibleNavbar" style="cursor:pointer" aria-expanded="false">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!--
+        <button class="navbar-toggler"
+                @click="toggle"
+                type="button"
+                aria-controls="navbarNavAltMarkup"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        -->
+      </div>
+    </nav>
+    <div class="container-fluid py-2">
+      <router-view v-slot="{ Component }">
+        <!--<keep-alive include="[StatusView,RecordingView,BookmarkView,LogView,VideoView]">-->
+        <component :is="Component"/>
+        <!--</keep-alive>-->
+      </router-view>
+    </div>
+
+    <div class="modal fade border-primary" ref="addChannelModal" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="exampleModalToggleLabel2">Add Stream</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="channel" class="form-label fw-bold">Channel name</label>
+              <input type="text" class="form-control" id="channel" v-model="channelName">
+              <div class="fs-6 my-2">Only <span class="badge bg-info">a-z</span> and
+                <span class="badge bg-info">_</span> allowed.
+                This will also be the parent folder name for all recordings of this service.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="url" class="form-label fw-bold">URL</label>
+              <input type="url" ref="url" class="form-control" id="url" v-model="url" @input="channelName=url.split('/').pop().trim().toLowerCase()">
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button class="btn btn-primary" @click="save">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</template>
+
+<script lang="ts">
+//import socket from "./socket";
+import { ChannelApi } from './services/api/v1/channelApi';
+import { RecordingApi } from './services/api/v1/recordingApi';
+import { Modal } from 'bootstrap';
+import { defineComponent } from 'vue';
+
+//import event from "./services/event";
+
+const channel = new ChannelApi();
+const recording = new RecordingApi();
+
+interface AppData {
+  title: string;
+  modal?: Modal;
+  channelName: string;
+  url: string;
+  shown: boolean;
+  recording: boolean;
+  online: boolean;
+  collapseNav: boolean;
+}
+
+export default defineComponent({
+  name: 'App',
+  data(): AppData {
+    return {
+      title: process.env.VUE_APP_NAME,
+      modal: undefined,
+      channelName: '',
+      url: '',
+      shown: true,
+      recording: false,
+      online: false,
+      collapseNav: true,
+    };
+  },
+  watch: {
+    $route() {
+      this.collapseNav = true;
+    }
+  },
+  methods: {
+    toggle() {
+      this.collapseNav = !this.collapseNav;
+    },
+    showAddChannelModal() {
+      this.channelName = '';
+      this.url = '';
+      this.modal?.show();
+      this.$nextTick(() => {
+        (this.$refs.url as HTMLInputElement).focus();
+      });
+    },
+    async save() {
+      if (/[a-z_]+/i.test(this.channelName)) {
+        channel.add({ channelName: this.channelName, url: this.url })
+            .then(() => {
+              this.modal?.hide();
+              // TODO: vuex add global channel data
+            })
+            .catch((err: Error) => alert(err));
+      }
+    },
+    record(start: boolean) {
+      if (start) {
+        if (window.confirm('Start recording?')) {
+          recording.resume().then(() => {
+            this.recording = true;
+          }).catch(err => {
+            alert(err);
+          });
+        }
+      } else {
+        if (window.confirm('Do you want to stop all recordings?')) {
+          recording.pause().then(() => {
+            this.recording = false;
+          }).catch(err => {
+            alert(err);
+          });
+        }
+      }
+    },
+
+  },
+  mounted() {
+    this.$nextTick(() => {
+      this.modal = new Modal(this.$refs.addChannelModal as HTMLElement);
+
+      recording.isRecording().then(res => {
+        this.recording = res.data;
+      });
+
+      // const url = 'ws://localhost:3000/api/v1/ws';
+      // const c = new WebSocket(url);
+      //
+      // const send = function (data: any) {
+      //   console.log('Send: ', data);
+      //   c.send(data);
+      // };
+      //
+      // c.onmessage = function (msg: any) {
+      //   console.log('Received', msg);
+      // };
+      //
+      // c.onopen = function () {
+      //   setInterval(
+      //       function () {
+      //         send('ping');
+      //       }
+      //       , 1000);
+      // };
+    });
+
+    // socket.on(event.system.metrics, data => {
+    //   this.cpu = data.cpu;
+    //   this.uptime = data.uptime;
+    //   this.memTotal = data.mem.totalMemMb;
+    //   this.memUsed = data.mem.usedMemMb;
+    //   this.netInput = data.net.speed.receiveBytes;
+    //   this.netOutput = data.net.speed.transmitBytes;
+    //   this.netInTraffic = data.net.volume.receiveTotalBytes;
+    //   this.netOutTraffic = data.net.volume.transmitTotalBytes;
+    //   this.diskUsed = data.disk.used;
+    //   this.diskTotal = data.disk.total;
+    // });
+
+    // socket.on(event.stream.start, text => {
+    //   this.log += text + "\n";
+    // });
+    //
+    // socket.on(event.stream.end, data => {
+    //   this.log += data.message + "\n";
+    // });
+    //
+    // socket.on(event.stream.preview, data => {
+    //   this.log += data.message + "\n";
+    // });
+    //
+    // socket.on(event.notify, message => {
+    //   alert(message);
+    // });
+    //
+    // socket.on("start-all", () => {
+    //   this.recording = true;
+    // });
+    //
+    // socket.on("stop-all", () => {
+    //   this.recording = false;
+    // });
+  },
+});
+</script>
+
+<style lang="scss">
+@import "./assets/main.scss";
+
+video.view {
+  height: 100%;
+  width: 100%;
+  max-height: 100%
+}
+
+video.edit {
+  height: 90%;
+  width: 100%;
+  max-height: 90%
+}
+</style>
