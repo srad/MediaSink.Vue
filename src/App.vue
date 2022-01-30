@@ -38,10 +38,10 @@
             </li>
 
             <li class="nav-item">
-              <router-link to="/bookmarks" :custom="true" exact-active-class="active"
+              <router-link to="/favs" :custom="true" exact-active-class="active"
                            v-slot="{ navigate, href, isActive }">
                 <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
-                  Bookmarked
+                  Favs
                 </a>
               </router-link>
             </li>

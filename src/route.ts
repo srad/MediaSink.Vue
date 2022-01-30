@@ -16,7 +16,7 @@ const routes = [
   { path: '/gallery/:type/:limit?', name: 'Gallery', component: Latest, props: true },
   { path: '/recordings/:channelName/:filename/:edit?', name: 'Video', component: Video, props: true },
   { path: '/logs', name: 'Log', component: Log },
-  { path: '/bookmarks', name: 'Bookmark', component: Bookmark },
+  { path: '/favs', name: 'Bookmark', component: Bookmark },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ];
 

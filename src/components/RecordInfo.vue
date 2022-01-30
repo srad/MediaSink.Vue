@@ -26,8 +26,8 @@
       <div class="justify-content-between d-flex">
         <div>
           <i class="bi bi-download text-dark fs-5 me-3" :href="url + '/download'"></i>
-          <i class="bi bi-heart-fill text-danger fs-5" @click="$emit('bookmarked', data, false)" v-if="bookmark"></i>
-          <i v-else class="bi bi-heart text-danger fs-5" @click="$emit('bookmarked', data, true)"></i>
+          <i class="bi bi-star-fill text-warning fs-5" @click="$emit('bookmarked', data, false)" v-if="bookmark"></i>
+          <i v-else class="bi bi-star text-warning fs-5" @click="$emit('bookmarked', data, true)"></i>
         </div>
         <div>
           <button class="btn btn-sm btn-secondary me-2" @click="$emit('preview')">

@@ -1,4 +1,14 @@
 <template>
+  <div>
+    <div class="row" v-if="$route.params.type==='random'">
+      <div class="col">
+        <button class="btn btn-primary" @click="fetch">
+          Refresh
+        </button>
+        <hr/>
+      </div>
+    </div>
+  </div>
   <div class="row">
     <div v-for="(recording, i) in recordings" :key="i" class="col-lg-4 col-xl-2 col-md-12">
       <div class="card bg-light mb-3 border-dark border shadow-sm">
@@ -51,6 +61,7 @@ interface RecordingData {
   busy?: boolean;
   recordings: RecordingResponse[];
   selectedFolder: string;
+  type: string;
 }
 
 const recordingApi = new RecordingApi();
@@ -72,6 +83,7 @@ export default defineComponent({
     return {
       recordings: [],
       selectedFolder: '',
+      type: this.$route.params.type as string,
     };
   },
   methods: {
