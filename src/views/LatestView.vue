@@ -1,10 +1,24 @@
 <template>
   <div>
-    <div class="row" v-if="$route.params.type==='random'">
+    <div class="row">
       <div class="col">
-        <button class="btn btn-primary" @click="fetch">
-          Refresh
-        </button>
+        <div class="d-flex justify-content-end">
+          <div class="d-flex justify-content-center me-3">
+            <div class="row g-3 align-items-center">
+              <div class="col-auto">
+                <label for="limit" class="col-form-label fw-bold">Limit</label>
+              </div>
+              <div class="col-auto">
+                <select id="limit" class="form-select" v-model="filterLimit" @change="fetch">
+                  <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" @click="fetch" v-if="$route.params.type==='random'">
+            Refresh
+          </button>
+        </div>
         <hr/>
       </div>
     </div>
@@ -62,6 +76,8 @@ interface RecordingData {
   recordings: RecordingResponse[];
   selectedFolder: string;
   type: string;
+  limits: number[];
+  filterLimit: string;
 }
 
 const recordingApi = new RecordingApi();
@@ -81,6 +97,13 @@ export default defineComponent({
   },
   data(): RecordingData {
     return {
+      filterLimit: this.$route.params.limit as string || '25',
+      limits: [
+        25,
+        50,
+        100,
+        200,
+      ],
       recordings: [],
       selectedFolder: '',
       type: this.$route.params.type as string,
@@ -117,8 +140,7 @@ export default defineComponent({
     },
     fetch() {
       this.recordings = [];
-      const limit = this.$route.params.limit as string;
-      recordingApi.getGallery(this.$route.params.type as string, limit || 30).then(res => this.recordings = res.data);
+      recordingApi.getGallery(this.$route.params.type as string, this.filterLimit).then(res => this.recordings = res.data);
     },
     viewFolder(channel: string) {
       this.$router.push('/recordings/' + channel);
