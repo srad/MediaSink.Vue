@@ -7,8 +7,8 @@
     </div>
     <div v-else v-for="(recording, i) in recordings" :key="i" class="col-lg-4 col-xl-2 col-md-12">
       <div class="card bg-light mb-3 border-dark border shadow-sm bg-light">
-        <Preview class="card-img-top" :data="recording" :place-holder-image="placeHolderImage"
-                 @selected="load" :preview-video="baseUrl + '/' + recording.previewVideo.replaceAll('\\', '/')"/>
+        <Preview class="card-img-top" :data="recording"
+                 @selected="load" :preview-video="baseUrl + '/' + recording.previewVideo"/>
 
         <div class="card-body">
           <div class="card-title p-1 bg-primary">
@@ -43,7 +43,6 @@ import RecordInfo from '@/components/RecordInfo.vue';
 interface BookmarkData {
   baseUrl?: string;
   apiUrl?: string;
-  placeHolderImage: string;
   recordings: RecordingResponse[];
 }
 
@@ -54,7 +53,6 @@ export default defineComponent({
   inject: ['baseUrl', 'apiUrl'],
   data(): BookmarkData {
     return {
-      placeHolderImage: 'https://via.placeholder.com/150x100?text=No+Preview', //process.env.VUE_APP_BASE + "/public/preview-placeholder.png",
       recordings: []
     };
   },

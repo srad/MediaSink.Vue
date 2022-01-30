@@ -33,12 +33,11 @@
             :editable="false"
             @bookmark="bookmark"
             @generate-preview="generatePreview"
-            :place-holder-image="placeHolderImage"
             @destroy="destroyRecording"
             @selected="load"
             :showDuration="false"
             :total="recordings.length"
-            :preview-video="baseUrl + '/' + recording.previewVideo.replaceAll('\\', '/')"
+            :preview-video="baseUrl + '/' + recording.previewVideo"
             :index="i+1"/>
         <div class="card-body bg-primary">
           <div class="card-title px-3 py-2 fw-bold text-white">

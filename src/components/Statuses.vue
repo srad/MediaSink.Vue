@@ -80,7 +80,6 @@ import { defineComponent } from 'vue';
 import { ChannelResponse } from '@/services/api/v1/channelApi';
 
 interface StatusData {
-  dataPlaceHolderImage: string;
   searchChannel: string;
   baseUrl: string;
 }
@@ -89,13 +88,11 @@ export default defineComponent({
   name: 'Statuses',
   data(): StatusData {
     return {
-      dataPlaceHolderImage: this.placeHolderImage,
       searchChannel: '',
       baseUrl: process.env.VUE_APP_BASE,
     };
   },
   props: {
-    placeHolderImage: { type: String, required: true },
     statuses: { type: Array, required: true }
   },
   computed: {
@@ -116,8 +113,6 @@ export default defineComponent({
   },
   methods: {
     errorLoadImage(element: HTMLImageElement) {
-      //@ts-ignore
-      element.src = this.placeHolderImage;
     },
     pauseResume(currentStatus: ChannelResponse, element: HTMLInputElement) {
       // Wait for the change until the actual data changes

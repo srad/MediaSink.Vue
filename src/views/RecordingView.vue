@@ -4,9 +4,9 @@
       <div v-for="(channel, i) in sortedChannels" :key="i" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
         <div class="card bg-light mb-3 border-primary border shadow-sm" :class="{'opacity-50': channel.isPaused}">
           <Preview class="card-img-top" @selected="viewFolder(channel.channelName)" :data="channel"
-                   :place-holder-image="placeHolderImage" :image="baseUrl +'/'+ channel.preview.replaceAll('\\', '/')"/>
+                   :image="baseUrl +'/'+ channel.preview"/>
           <div class="card-body">
-            <div class="card-title p-1" :class="{'bg-primary' : !channel.isOnline, 'bg-success': channel.isOnline}">
+            <div class="card-title p-1" :class="{'bg-primary' : !channel.isOnline, 'bg-success': channel.isOnline && !channel.isRecording, 'bg-danger': channel.isRecording}">
               <h6 class="p-2 m-0 text-white">
                 <a class="text-white" target="_blank" :href="channel.url">
                   {{ channel.channelName }}
@@ -17,7 +17,7 @@
           <ul class="list-group list-group-flush">
             <li class="list-group-item d-flex justify-content-between">
               <div>
-                <span class="badge me-2" :class="{'bg-danger text-white border border-danger': channel.isRecording, 'bg-light text-primary border-info border': !channel.isRecording}">Recording</span>
+                <span class="badge me-2" :class="{'bg-danger text-white border border-danger blink': channel.isRecording, 'bg-light text-primary border-info border': !channel.isRecording}">Recording</span>
                 <span class="badge" :class="{'bg-success text-white border border-success': channel.isOnline, 'bg-light text-primary border-info border': !channel.isOnline}">Online</span>
               </div>
             </li>
@@ -49,8 +49,8 @@
       </div>
       <div v-else v-for="(recording, i) in recordings" :key="i" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
         <div class="card bg-light mb-3 border-primary border shadow-sm bg-light">
-          <Preview class="card-img-top" :data="recording" :place-holder-image="placeHolderImage"
-                   @selected="load" :preview-video="baseUrl + '/' + recording.previewVideo.replaceAll('\\', '/')"/>
+          <Preview class="card-img-top" :data="recording"
+                   @selected="load" :preview-video="baseUrl + '/' + recording.previewVideo"/>
           <RecordInfo
               :url="apiUrl + '/recordings/' + recording.channelName + '/' + recording.filename"
               :index="i"
@@ -81,12 +81,10 @@ import { defineComponent } from 'vue';
 import RecordInfo from '@/components/RecordInfo.vue';
 
 interface RecordingData {
-  placeHolderImage: string;
   apiUrl?: string;
   baseUrl?: string;
   busy: boolean;
   recordings: RecordingResponse[];
-  channels: ChannelResponse[];
   selectedFolder: string;
 }
 
@@ -95,7 +93,7 @@ function boolToInt(bool: boolean): number {
 }
 
 const recordingApi = new RecordingApi();
-const channelApi = new ChannelApi();
+const channelService = new ChannelApi();
 
 export default defineComponent({
   name: 'Recording',
@@ -107,16 +105,14 @@ export default defineComponent({
   },
   data(): RecordingData {
     return {
-      placeHolderImage: 'https://via.placeholder.com/150x100?text=No+Preview', //process.env.VUE_APP_BASE + "/public/preview-placeholder.png",
       busy: false,
       recordings: [],
-      channels: [],
       selectedFolder: '',
     };
   },
   computed: {
     sortedChannels(): ChannelResponse[] {
-      return this.channels.slice()
+      return this.$store.state.channels.slice()
           .sort((a, b) => a.channelName.localeCompare(b.channelName))
           .sort((a, b) => boolToInt(b.isOnline) - boolToInt(a.isOnline))
           .sort((a, b) => boolToInt(a.isPaused) - boolToInt(b.isPaused))
@@ -125,7 +121,6 @@ export default defineComponent({
   },
   watch: {
     $route() {
-      this.channels = [];
       this.recordings = [];
     },
     '$route.params.channel': {
@@ -152,11 +147,11 @@ export default defineComponent({
           });
         } else {
           this.selectedFolder = '';
-          this.channels = [];
+          this.$store.commit('clearChannels');
           this.$nextTick(() => {
-            channelApi.getChannels().then(res => {
-              this.channels = res.data;
-            }).catch(console.error);
+            channelService.getChannels()
+                .then(res => res.data.forEach(channel => this.$store.commit('addChannel', channel)))
+                .catch(console.error);
           });
         }
       },
@@ -167,27 +162,15 @@ export default defineComponent({
   methods: {
     destroyChannel(channel: ChannelResponse) {
       if (window.confirm(`Do you want to remove the channel '${channel.channelName}'?`)) {
-        channelApi.destroy(channel.channelName).catch(() => {
-          for (let i = 0; i < this.channels.length; i += 1) {
-            if (this.channels[i].channelName === channel.channelName) {
-              this.channels.splice(i, 1);
-              break;
-            }
-          }
-        }).catch(err => alert(err));
+        channelService.destroy(channel.channelName)
+            .then(() => this.$store.commit('destroyChannel', channel))
+            .catch(err => alert(err));
       }
     },
     pause(channel: ChannelResponse) {
-      channelApi[channel.isPaused ? 'resume' : 'pause'](channel.channelName).then(() => {
-        for (let i = 0; i < this.channels.length; i++) {
-          if (this.channels[i].channelName === channel.channelName) {
-            this.channels[i].isPaused = !this.channels[i].isPaused;
-            break;
-          }
-        }
-      }).catch(err => {
-        alert(err);
-      });
+      channelService[channel.isPaused ? 'resume' : 'pause'](channel.channelName)
+          .then(() => this.$store.commit('pauseChannel', { channel, pause: !channel.isPaused }))
+          .catch(err => alert(err));
     },
     bookmark(recording: RecordingResponse, yesNo: boolean) {
       recordingApi.bookmark(recording.channelName, recording.filename, yesNo)

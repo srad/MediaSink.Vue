@@ -10,6 +10,7 @@
          @click="$emit('selected', data)"/>
     <video v-if="!image"
            style="user-select: none;"
+           @error="errorLoadImage"
            @contextmenu="context($event)"
            loop muted playsinline
            @click="$emit('selected', data)"
@@ -34,7 +35,6 @@ export default defineComponent({
     };
   },
   props: {
-    placeHolderImage: String,
     data: Object,
     image: String,
     previewVideo: String,
@@ -52,7 +52,7 @@ export default defineComponent({
       event.target.pause();
     },
     errorLoadImage() {
-      this.errorLoad = true;//(event!.target as HTMLImageElement).src = this.placeHolderImage || '';
+      this.errorLoad = true;
     },
   }
 });

@@ -113,16 +113,16 @@
           </div>
           <div class="modal-body">
             <div class="mb-3">
+              <label for="url" class="form-label fw-bold">URL</label>
+              <input type="url" ref="url" class="form-control" id="url" v-model="url" @input="recommendChannelName">
+            </div>
+            <div class="mb-3">
               <label for="channel" class="form-label fw-bold">Channel name</label>
               <input type="text" class="form-control" id="channel" v-model="channelName">
               <div class="fs-6 my-2">Only <span class="badge bg-info">a-z</span> and
                 <span class="badge bg-info">_</span> allowed.
                 This will also be the parent folder name for all recordings of this service.
               </div>
-            </div>
-            <div class="mb-3">
-              <label for="url" class="form-label fw-bold">URL</label>
-              <input type="url" ref="url" class="form-control" id="url" v-model="url" @input="channelName=url.split('/').pop().trim().toLowerCase()">
             </div>
           </div>
           <div class="modal-footer bg-light">
@@ -147,6 +147,8 @@ import { defineComponent } from 'vue';
 
 const channel = new ChannelApi();
 const recording = new RecordingApi();
+
+const channelParser = /^[a-z_0-9]+$/i;
 
 interface AppData {
   title: string;
@@ -179,6 +181,15 @@ export default defineComponent({
     }
   },
   methods: {
+    recommendChannelName() {
+      const find = this.url.toLowerCase()
+          .split('/')
+          .find(s => channelParser.test(s));
+
+      if (find) {
+        this.channelName = find;
+      }
+    },
     toggle() {
       this.collapseNav = !this.collapseNav;
     },
@@ -193,8 +204,9 @@ export default defineComponent({
     async save() {
       if (/[a-z_]+/i.test(this.channelName)) {
         channel.add({ channelName: this.channelName, url: this.url })
-            .then(() => {
+            .then(res => {
               this.modal?.hide();
+              this.$store.commit('addChannel', res.data);
               // TODO: vuex add global channel data
             })
             .catch((err: Error) => alert(err));
