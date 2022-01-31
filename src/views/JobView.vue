@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import {formatDate} from "@/lib/datetime";
+import {formatDate} from "@/utils/datetime";
 import {JobApi, JobResponse} from "@/services/api/v1/jobApi";
 import {defineComponent} from "vue";
 

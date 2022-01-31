@@ -30,7 +30,7 @@
         <td class="text-start border-end">
           <h6 class="mx-1">
             <a target="_blank" :href="channel.url"> {{ channel.channelName }}
-              ({{ channel.RecordingsCount }})</a>
+              ({{ channel.recordingsCount }})</a>
           </h6>
         </td>
         <td class="d-none d-md-table-cell">

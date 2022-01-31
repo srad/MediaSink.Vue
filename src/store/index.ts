@@ -4,15 +4,23 @@ import { ChannelResponse } from '@/services/api/v1/channelApi';
 
 export interface State {
   channels: ChannelResponse[];
+  loggedIn: boolean;
 }
 
 export const key: InjectionKey<Store<State>> = Symbol();
 
 export const store = createStore<State>({
   state: {
-    channels: []
+    channels: [],
+    loggedIn: false,
   },
   mutations: {
+    login(state: State) {
+      state.loggedIn = true;
+    },
+    logout(state: State) {
+      state.loggedIn = true;
+    },
     addChannel(state: State, channel: ChannelResponse) {
       state.channels.push(channel);
     },

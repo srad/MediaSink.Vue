@@ -6,6 +6,8 @@ import Video from './views/VideoView.vue';
 import Log from './views/LogView.vue';
 import JobView from './views/JobView.vue';
 import AdminView from './views/AdminView.vue';
+import LoginView from './views/LoginView.vue';
+import LogoutView from './views/LogoutView.vue';
 
 const routes = [
   { path: '', redirect: '/streams' },
@@ -16,6 +18,8 @@ const routes = [
   { path: '/gallery/:type/:limit?', name: 'Gallery', component: Latest, props: true },
   { path: '/recordings/:channelName/:filename/:edit?', name: 'Video', component: Video, props: true },
   { path: '/logs', name: 'Log', component: Log },
+  { path: '/login', name: 'Login', component: LoginView },
+  { path: '/logout', name: 'Logout', component: LogoutView },
   { path: '/favs', name: 'Bookmark', component: Bookmark },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ];

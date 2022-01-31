@@ -1,4 +1,4 @@
-import axios, {AxiosInstance, AxiosResponse} from "axios";
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
 export class BaseApi {
   axios: AxiosInstance;
@@ -8,6 +8,22 @@ export class BaseApi {
       baseURL: process.env.VUE_APP_APIURL,
       timeout: 10000,
     });
+
+    // this.axios.interceptors.request.use(req => {
+    //   const basicAuth = 'Basic ' + btoa(username + ':' + password);
+    //   req.headers.Authorization = basicAuth;
+    // });
+    //
+    // this.axios.interceptors.response.use((response) => {
+    //   return response;
+    // }, (error) => {
+    //   // Unauthorized
+    //   if (error.response.status === 401 && window.location.pathname !== '/login') {
+    //     window.location.assign('/login');
+    //     return;
+    //   }
+    //   throw error;
+    // });
   }
 
   startAll() {

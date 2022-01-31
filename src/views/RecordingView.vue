@@ -2,7 +2,8 @@
   <div class="row">
     <template v-if="selectedFolder===''">
       <div v-for="(channel, i) in sortedChannels" :key="i" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
-        <div class="card bg-light mb-3 border-primary border shadow-sm" :class="{'opacity-50': channel.isPaused}">
+        <div class="card bg-light mb-3 border shadow-sm"
+             :class="{'opacity-50': channel.isPaused, 'border-primary': !channel.isRecording, 'border-danger border-2': channel.isRecording}">
           <Preview class="card-img-top" @selected="viewFolder(channel.channelName)" :data="channel"
                    :image="baseUrl +'/'+ channel.preview"/>
           <div class="card-body">
@@ -24,7 +25,7 @@
             <li class="list-group-item d-flex justify-content-between">
               <span v-if="channel.isRecording">Recorded: {{ channel.minRecording.toFixed(1) }}min</span>
               <span v-else>&nbsp;</span>
-              <div>Videos: {{ channel.RecordingsCount }}</div>
+              <div>Videos: {{ channel.recordingsCount }}</div>
             </li>
             <li class="list-group-item bg-light d-flex justify-content-between">
               <span>
