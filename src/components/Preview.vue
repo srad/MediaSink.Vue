@@ -28,7 +28,8 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'Preview',
-  emits: ['selected', 'bookmark', 'generatePreview'],
+  inject: ['fileUrl'],
+  emits: ['selected'],
   data() {
     return {
       errorLoad: false

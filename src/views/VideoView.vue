@@ -10,7 +10,7 @@
                      ref="video"
                      @loadeddata="loaddata"
                      @timeupdate="timeupdate" muted controls>
-                <source :src="baseUrl + '/' + pathRelative" type="video/mp4">
+                <source :src="fileUrl + '/' + pathRelative" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
               <input v-if="false"
@@ -70,7 +70,8 @@ interface VideoData {
   timecode: number;
   duration: number;
   segments: any[],
-  baseUrl: string;
+  baseUrl?: string;
+  fileUrl?: string;
   playbackSpeed: number;
 }
 
@@ -78,6 +79,7 @@ const recording = new RecordingApi();
 
 export default defineComponent({
   components: { Stripe },
+  inject: ['fileUrl'],
   props: {
     channelName: String,
     filename: String,
@@ -94,7 +96,6 @@ export default defineComponent({
       timecode: 0,
       duration: 0,
       segments: [],
-      baseUrl: process.env.VUE_APP_BASE,
       playbackSpeed: 1.0,
     };
   },
@@ -122,7 +123,6 @@ export default defineComponent({
       (this.$refs.video as HTMLVideoElement).currentTime = end;
     },
     exportVideo() {
-      console.log(this.$route.params);
       if (window.confirm('Export selected segments?')) {
         const segments = this.markings.map(m => [m.timestart.toFixed(4), m.timeend.toFixed(4)].join(' ')).join(' ');
         recording.cut(

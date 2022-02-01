@@ -1,9 +1,9 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import Recording from './views/RecordingView.vue';
-import Latest from './views/LatestView.vue';
-import Bookmark from './views/BookmarkView.vue';
-import Video from './views/VideoView.vue';
-import Log from './views/LogView.vue';
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
+import RecordingView from './views/RecordingView.vue';
+import LatestView from './views/LatestView.vue';
+import BookmarkView from './views/BookmarkView.vue';
+import VideoView from './views/VideoView.vue';
+import LogView from './views/LogView.vue';
 import JobView from './views/JobView.vue';
 import AdminView from './views/AdminView.vue';
 import LoginView from './views/LoginView.vue';
@@ -14,15 +14,15 @@ const routes = [
   { path: '/', redirect: '/streams' },
   { path: '/admin', name: 'Admin', component: AdminView },
   { path: '/jobs', name: 'Job', component: JobView },
-  { path: '/streams/:channel?', name: 'Recording', component: Recording, props: true },
-  { path: '/gallery/:type/:limit?', name: 'Gallery', component: Latest, props: true },
-  { path: '/recordings/:channelName/:filename/:edit?', name: 'Video', component: Video, props: true },
-  { path: '/logs', name: 'Log', component: Log },
+  { path: '/streams/:channel?', name: 'Recording', component: RecordingView, props: true },
+  { path: '/gallery/:type/:limit?', name: 'Gallery', component: LatestView, props: true },
+  { path: '/recordings/:channelName/:filename', name: 'Video', component: VideoView, props: true },
+  { path: '/logs', name: 'Log', component: LogView },
   { path: '/login', name: 'Login', component: LoginView },
   { path: '/logout', name: 'Logout', component: LogoutView },
-  { path: '/favs', name: 'Bookmark', component: Bookmark },
+  { path: '/favs', name: 'Bookmark', component: BookmarkView },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ];
 
-const router = createRouter({ history: createWebHistory(), routes });
+const router = createRouter({ history: createWebHashHistory(), routes });
 export default router;

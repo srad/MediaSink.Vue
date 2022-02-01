@@ -4,7 +4,7 @@
       <div v-for="(channel, i) in sortedChannels" :key="i" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
         <div class="card bg-light mb-3 border shadow-sm"
              :class="{'opacity-50': channel.isPaused, 'border-primary': !channel.isRecording, 'border-danger border-2': channel.isRecording}">
-          <Preview class="card-img-top" @selected="viewFolder(channel.channelName)" :data="channel"
+          <Preview class="card-img-top" @selected="viewFolder(channel.channelName)" :data="{channelName: channel}"
                    :image="baseUrl +'/'+ channel.preview"/>
           <div class="card-body">
             <div class="card-title p-1" :class="{'bg-primary' : !channel.isOnline, 'bg-success': channel.isOnline && !channel.isRecording, 'bg-danger': channel.isRecording}">
@@ -51,7 +51,7 @@
       <div v-else v-for="(recording, i) in recordings" :key="i" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
         <div class="card bg-light mb-3 border-primary border shadow-sm bg-light">
           <Preview class="card-img-top" :data="recording"
-                   @selected="load" :preview-video="baseUrl + '/' + recording.previewVideo"/>
+                   @selected="load" :preview-video="fileUrl + '/' + recording.previewVideo"/>
           <RecordInfo
               :url="apiUrl + '/recordings/' + recording.channelName + '/' + recording.filename"
               :index="i"
@@ -100,7 +100,7 @@ export default defineComponent({
   name: 'Recording',
   components: { Preview, RecordInfo },
   emits: ['load'],
-  inject: ['baseUrl', 'apiUrl'],
+  inject: ['baseUrl', 'apiUrl', 'fileUrl'],
   props: {
     channel: String,
   },
@@ -126,27 +126,12 @@ export default defineComponent({
     },
     '$route.params.channel': {
       handler: function (channel) {
-        if (typeof channel === 'undefined') {
+        // routes away
+        if (channel !== '' && this.selectedFolder !== '') {
           return;
         }
 
-        if (channel !== '') {
-          this.selectedFolder = channel;
-          if (!channel || channel === '') {
-            this.recordings = [];
-            return;
-          }
-          this.$nextTick(() => {
-            recordingApi.getRecordings(this.selectedFolder || this.channel).then(res => {
-              this.recordings = res.data;
-              this.busy = false;
-              window.scrollTo(0, 0);
-            }).catch(err => {
-              this.busy = false;
-              alert(err);
-            });
-          });
-        } else {
+        if (channel === '') {
           this.selectedFolder = '';
           this.$store.commit('clearChannels');
           this.$nextTick(() => {
@@ -154,7 +139,20 @@ export default defineComponent({
                 .then(res => res.data.forEach(channel => this.$store.commit('addChannel', channel)))
                 .catch(console.error);
           });
+          return;
         }
+
+        this.$nextTick(() => {
+          this.selectedFolder = channel;
+          recordingApi.getRecordings(channel).then(res => {
+            this.recordings = res.data;
+            this.busy = false;
+            window.scrollTo(0, 0);
+          }).catch(err => {
+            this.busy = false;
+            alert(err);
+          });
+        });
       },
       deep: true,
       immediate: true

@@ -9,9 +9,22 @@ services:
       args:
         - API_URL=${VUE_APP_APIURL}
         - APP_BASE=${VUE_APP_BASE}
-        - VUE_APP_NAME=${VUE_APP_NAME}
-        - VUE_APP_SOCKETURL=${VUE_APP_SOCKETURL}
+        - APP_NAME=${VUE_APP_NAME}
+        - APP_FILEURL=${VUE_APP_FILEURL}
+        - APP_SOCKETURL=${VUE_APP_SOCKETURL}
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - '80:80'
+
+  static-files:
+    container_name: nginx
+    image: nginx
+    volumes:
+      - ./nginx.static.conf:/etc/nginx/nginx.conf:ro
+      - ${FILES}:/usr/share/nginx/html
+      #- ./templates:/etc/nginx/templates
+    ports:
+      - "4000:80"
+    environment:
+      - NGINX_PORT=80

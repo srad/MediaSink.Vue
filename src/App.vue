@@ -1,65 +1,19 @@
 <template>
   <main>
-    <nav class="navbar navbar-expand-lg sticky-top shadow-sm m-0 d-flex text-white navbar-dark justify-content-between">
+    <nav class="navbar navbar-expand-lg sticky-top shadow m-0 d-flex bg-primary justify-content-between">
       <div class="container-fluid">
-        <a class="navbar-brand d-none d-lg-block" href="/streams">
+        <a class="navbar-brand d-none d-lg-block text-white fw-bold" href="/streams">
           <span class="d-none d-lg-inline p-2">{{ title }}</span>
           <i class="bi bi-water" style="color: deepskyblue"></i>
         </a>
 
         <div class="navbar-collapse collapse" :class="{'d-none': collapseNav}" id="collapsibleNavbar">
           <ul class="navbar-nav">
-            <li class="nav-item">
-              <router-link to="/streams" :custom="true" exact-active-class="active"
+            <li class="nav-item" v-for="link in links" :key="link">
+              <router-link :to="link.url" :custom="true" exact-active-class="active"
                            v-slot="{ navigate, href, isActive }">
-                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
-                  Streams
-                </a>
-              </router-link>
-            </li>
-
-            <li class="nav-item">
-              <router-link to="/gallery/latest" :custom="true" exact-active-class="active"
-                           v-slot="{ navigate, href, isActive }">
-                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
-                  Latest
-                </a>
-              </router-link>
-            </li>
-
-
-            <li class="nav-item">
-              <router-link to="/gallery/random" :custom="true" exact-active-class="active"
-                           v-slot="{ navigate, href, isActive }">
-                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
-                  Random
-                </a>
-              </router-link>
-            </li>
-
-            <li class="nav-item">
-              <router-link to="/favs" :custom="true" exact-active-class="active"
-                           v-slot="{ navigate, href, isActive }">
-                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
-                  Favs
-                </a>
-              </router-link>
-            </li>
-
-            <li class="nav-item">
-              <router-link to="/jobs" :custom="true" exact-active-class="active"
-                           v-slot="{ navigate, href, isActive }">
-                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
-                  Jobs
-                </a>
-              </router-link>
-            </li>
-
-            <li class="nav-item">
-              <router-link to="/admin" :custom="true" exact-active-class="active"
-                           v-slot="{ navigate, href, isActive }">
-                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
-                  Admin
+                <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link text-white">
+                  {{ link.title }}
                 </a>
               </router-link>
             </li>
@@ -83,17 +37,6 @@
         <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" @click="toggle" data-bs-target="#collapsibleNavbar" style="cursor:pointer" aria-expanded="false">
           <span class="navbar-toggler-icon"></span>
         </button>
-
-        <!--
-        <button class="navbar-toggler"
-                @click="toggle"
-                type="button"
-                aria-controls="navbarNavAltMarkup"
-                aria-expanded="false"
-                aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        -->
       </div>
     </nav>
     <div class="container-fluid py-2">
@@ -159,6 +102,7 @@ interface AppData {
   recording: boolean;
   online: boolean;
   collapseNav: boolean;
+  links: { url: string, title: string }[];
 }
 
 export default defineComponent({
@@ -173,6 +117,14 @@ export default defineComponent({
       recording: false,
       online: false,
       collapseNav: true,
+      links: [
+        { url: '/streams', title: 'Streams' },
+        { url: '/gallery/latest', title: 'Latest' },
+        { url: '/gallery/random', title: 'Random' },
+        { url: '/favs', title: 'Favs' },
+        { url: '/jobs', title: 'Jobs' },
+        { url: '/admin', title: 'Admin' }
+      ]
     };
   },
   watch: {
