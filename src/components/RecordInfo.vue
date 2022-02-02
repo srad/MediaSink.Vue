@@ -34,7 +34,7 @@
           </a>
         </div>
         <div>
-          <button class="btn btn-sm btn-secondary me-2" @click="$emit('preview')">
+          <button class="btn btn-sm btn-secondary me-2" @click="$emit('preview', data)">
             <i class="bi bi-film"></i>
           </button>
           <button class="btn btn-sm btn-danger" @click="$emit('destroy', data)">Delete</button>

@@ -1,7 +1,10 @@
 <template>
   <div class="row">
     <template v-if="selectedFolder===''">
-      <div v-for="(channel, i) in sortedChannels" :key="i" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+      <div>
+        <input class="form-control mb-3" type="text" placeholder="search" v-model="searchVal">
+      </div>
+      <div v-for="channel in sortedChannels" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
         <div class="card bg-light mb-3 border shadow-sm"
              :class="{'opacity-50': channel.isPaused, 'border-primary': !channel.isRecording, 'border-danger border-2': channel.isRecording}">
           <Preview class="card-img-top" @selected="viewFolder(channel.channelName)" :data="{channelName: channel}"
@@ -48,13 +51,12 @@
           No Videos yet.
         </h3>
       </div>
-      <div v-else v-for="(recording, i) in recordings" :key="i" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+      <div v-else v-for="recording in recordings" :key="recording.filename" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
         <div class="card bg-light mb-3 border-primary border shadow-sm bg-light">
           <Preview class="card-img-top" :data="recording"
                    @selected="load" :preview-video="fileUrl + '/' + recording.previewVideo"/>
           <RecordInfo
               :url="apiUrl + '/recordings/' + recording.channelName + '/' + recording.filename"
-              :index="i"
               :duration="recording.duration"
               :size="recording.size"
               :bit-rate="recording.bitRate"
@@ -84,6 +86,7 @@ import RecordInfo from '@/components/RecordInfo.vue';
 interface RecordingData {
   apiUrl?: string;
   baseUrl?: string;
+  searchVal: string;
   busy: boolean;
   recordings: RecordingResponse[];
   selectedFolder: string;
@@ -106,6 +109,7 @@ export default defineComponent({
   },
   data(): RecordingData {
     return {
+      searchVal: '',
       busy: false,
       recordings: [],
       selectedFolder: '',
@@ -114,6 +118,12 @@ export default defineComponent({
   computed: {
     sortedChannels(): ChannelResponse[] {
       return this.$store.state.channels.slice()
+          .filter(row => {
+            if (this.searchVal !== '') {
+              return row.channelName.indexOf(this.searchVal) !== -1;
+            }
+            return true;
+          })
           .sort((a, b) => a.channelName.localeCompare(b.channelName))
           .sort((a, b) => boolToInt(b.isOnline) - boolToInt(a.isOnline))
           .sort((a, b) => boolToInt(a.isPaused) - boolToInt(b.isPaused))

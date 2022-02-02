@@ -1,6 +1,6 @@
 <template>
   <main>
-    <nav class="navbar navbar-expand-lg sticky-top shadow m-0 d-flex bg-primary justify-content-between">
+    <nav class="navbar navbar-expand-lg sticky-top shadow-sm m-0 d-flex bg-primary justify-content-between">
       <div class="container-fluid">
         <a class="navbar-brand d-none d-lg-block text-white fw-bold" href="/streams">
           <span class="d-none d-lg-inline p-2">{{ title }}</span>
@@ -57,11 +57,16 @@
           <div class="modal-body">
             <div class="mb-3">
               <label for="url" class="form-label fw-bold">URL</label>
-              <input type="url" ref="url" class="form-control" id="url" v-model="url" @input="recommendChannelName">
+              <div class="input-group mb-3">
+                <input type="url" autocomplete="off" ref="url" class="form-control" id="url" v-model="url" @input="recommendChannelName">
+                <button class="btn btn-outline-secondary" type="button" id="button-addon1" @click="paste">
+                  Paste
+                </button>
+              </div>
             </div>
             <div class="mb-3">
               <label for="channel" class="form-label fw-bold">Channel name</label>
-              <input type="text" class="form-control" id="channel" v-model="channelName">
+              <input type="text" autocomplete="off" class="form-control" id="channel" v-model="channelName">
               <div class="fs-6 my-2">Only <span class="badge bg-info">a-z</span> and
                 <span class="badge bg-info">_</span> allowed.
                 This will also be the parent folder name for all recordings of this service.
@@ -133,6 +138,10 @@ export default defineComponent({
     }
   },
   methods: {
+    async paste() {
+      this.url = await navigator.clipboard.readText();
+      this.recommendChannelName();
+    },
     recommendChannelName() {
       const find = this.url.toLowerCase()
           .split('/')

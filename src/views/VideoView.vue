@@ -23,7 +23,7 @@
           </div>
 
           <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative" style="height: 15%; overflow-x: auto">
-            <Stripe :src="baseUrl + '/' + previewStripe"
+            <Stripe :src="fileUrl + '/' + previewStripe"
                     :timecode="timecode"
                     :duration="duration"
                     @seek="seek"

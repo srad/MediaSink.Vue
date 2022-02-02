@@ -2,7 +2,6 @@ version: '3.7'
 services:
   streamsinkclient:
     container_name: streamsink-client
-    restart: always
     build:
       context: .
       dockerfile: Dockerfile
@@ -18,7 +17,8 @@ services:
       - '80:80'
 
   static-files:
-    container_name: nginx
+    container_name: static-recording
+    restart: always
     image: nginx
     volumes:
       - ./nginx.static.conf:/etc/nginx/nginx.conf:ro

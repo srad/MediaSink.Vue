@@ -24,7 +24,7 @@
     </div>
   </div>
   <div class="row">
-    <div v-for="(recording, i) in recordings" :key="i" class="col-lg-4 col-xl-2 col-md-12">
+    <div v-for="recording in recordings" :key="recording.filename" class="col-lg-4 col-xl-2 col-md-12">
       <div class="card bg-light mb-3 border-dark border shadow-sm">
         <Preview
             class="card-img-top"
@@ -37,16 +37,15 @@
             @selected="load"
             :showDuration="false"
             :total="recordings.length"
-            :preview-video="baseUrl + '/' + recording.previewVideo"
-            :index="i+1"/>
+            :preview-video="baseUrl + '/' + recording.previewVideo"/>
         <div class="card-body bg-primary">
           <div class="card-title px-3 py-2 fw-bold text-white">
             {{ recording.channelName }}
           </div>
         </div>
+
         <RecordInfo
             :url="apiUrl + '/recordings/' + recording.channelName + '/' + recording.filename"
-            :index="i"
             :duration="recording.duration"
             :size="recording.size"
             :bit-rate="recording.bitRate"
