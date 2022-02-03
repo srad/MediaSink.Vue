@@ -1,6 +1,6 @@
 <template>
   <div class="row">
-    <template v-if="selectedFolder===''">
+    <template v-if="selectedStream===''">
       <div>
         <input class="form-control mb-3" type="text" placeholder="search" v-model="searchVal">
       </div>
@@ -9,7 +9,7 @@
       </div>
     </template>
     <template v-else>
-      <h4><span class="text-danger">{{ selectedFolder }}</span>'s videos</h4>
+      <h4><span class="text-danger">{{ selectedStream }}</span>'s videos</h4>
       <hr/>
       <div v-if="recordings.length === 0" class="d-flex justify-content-center">
         <h3 class="text-dark">
@@ -38,7 +38,7 @@ interface RecordingData {
   searchVal: string;
   busy: boolean;
   recordings: RecordingResponse[];
-  selectedFolder: string;
+  selectedStream: string;
 }
 
 function boolToInt(bool: boolean): number {
@@ -60,7 +60,7 @@ export default defineComponent({
       searchVal: '',
       busy: false,
       recordings: [],
-      selectedFolder: '',
+      selectedStream: '',
     };
   },
   computed: {
@@ -85,31 +85,27 @@ export default defineComponent({
     '$route.params.channel': {
       handler: function (channel) {
         // routes away
-        if (channel !== '' && this.selectedFolder !== '') {
+        if (channel !== '' && this.selectedStream !== '') {
           return;
         }
 
         if (channel === '') {
-          this.selectedFolder = '';
+          this.selectedStream = '';
           this.$store.commit('clearChannels');
-          this.$nextTick(() => {
-            channelService.getChannels()
-                .then(res => res.data.forEach(channel => this.$store.commit('addChannel', channel)))
-                .catch(console.error);
-          });
+          channelService.getChannels()
+              .then(res => res.data.forEach(channel => this.$store.commit('addChannel', channel)))
+              .catch(console.error);
           return;
         }
 
-        this.$nextTick(() => {
-          this.selectedFolder = channel;
-          recordingApi.getRecordings(channel).then(res => {
-            this.recordings = res.data;
-            this.busy = false;
-            window.scrollTo(0, 0);
-          }).catch(err => {
-            this.busy = false;
-            alert(err);
-          });
+        this.selectedStream = channel;
+        recordingApi.getRecordings(channel).then(res => {
+          this.recordings = res.data;
+          this.busy = false;
+          window.scrollTo(0, 0);
+        }).catch(err => {
+          this.busy = false;
+          alert(err);
         });
       },
       deep: true,

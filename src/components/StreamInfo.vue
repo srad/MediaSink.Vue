@@ -46,7 +46,7 @@ export default {
   mounted() {
     if (this.channel.isRecording) {
       this.thread = setInterval(() => {
-        this.$nextTick(() => this.secRecording += 1);
+        this.secRecording += 1;
       }, 1000);
     }
   },

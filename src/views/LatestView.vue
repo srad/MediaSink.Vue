@@ -44,7 +44,7 @@ interface RecordingData {
   baseUrl?: string;
   busy?: boolean;
   recordings: RecordingResponse[];
-  selectedFolder: string;
+  selectedStream: string;
   type: string;
   limits: number[];
   filterLimit: string;
@@ -72,7 +72,7 @@ export default defineComponent({
         200,
       ],
       recordings: [],
-      selectedFolder: '',
+      selectedStream: '',
       type: this.$route.params.type as string,
     };
   },

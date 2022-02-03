@@ -172,14 +172,12 @@ export default defineComponent({
     window.removeEventListener('orientationchange', this.rotate);
   },
   mounted() {
-    this.$nextTick(() => {
-      //this.modal = new window.bootstrap.Modal(this.$refs.modalVideo);
-      (this.$refs.video as HTMLVideoElement).load();
-      (this.$refs.video as HTMLVideoElement).play();
-      window.addEventListener('orientationchange', this.rotate);
-      //this.modal.show();
-      this.show = true;
-    });
+    //this.modal = new window.bootstrap.Modal(this.$refs.modalVideo);
+    (this.$refs.video as HTMLVideoElement).load();
+    (this.$refs.video as HTMLVideoElement).play();
+    window.addEventListener('orientationchange', this.rotate);
+    //this.modal.show();
+    this.show = true;
   },
 });
 </script>

@@ -31,6 +31,7 @@ RUN npm run build
 FROM nginx:stable-alpine as production-stage
 
 COPY --from=build-stage /app/dist /usr/share/nginx/html
+COPY .htpasswd /etc/nginx
 
 EXPOSE 80
 
