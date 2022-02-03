@@ -42,6 +42,11 @@ export const store = createStore<State>({
     },
     clearChannels(state: State) {
       state.channels = [];
+    },
+    stopChannels(state: State) {
+      for (let i = 0; i < state.channels.length; i += 1) {
+        state.channels[i].isRecording = false;
+      }
     }
   }
 });

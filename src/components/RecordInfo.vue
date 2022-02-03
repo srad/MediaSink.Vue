@@ -1,7 +1,7 @@
 <template>
   <ul class="list-group list-group-flush border-top border-secondary">
     <li class="list-group-item d-flex justify-content-between">
-      <span>Length:</span> <span>{{ (duration / 60).toFixed(1) }}min</span>
+      <span>Length:</span> <span>{{ durationFormatted }}min</span>
     </li>
     <li class="list-group-item d-flex justify-content-between">
       <span>Size:</span> <span>{{ (size / 1000 / 1000 / 1000).toFixed(1) }}GB</span>
@@ -55,14 +55,19 @@ export default defineComponent({
     url: String,
     bookmark: Boolean,
     data: Object,
-    duration: Number,
+    duration: { type: Number, required: true },
     size: Number,
     bitRate: Number,
     width: Number,
     height: Number,
     createdAt: String,
   },
-  methods: {}
+  computed: {
+    durationFormatted() {
+      return (this.duration / 60).toFixed(2);
+    }
+  },
+  methods: {},
 });
 </script>
 

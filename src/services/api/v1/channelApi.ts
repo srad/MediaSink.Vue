@@ -3,7 +3,7 @@ import { AxiosResponse } from 'axios';
 
 export interface ChannelResponse {
   channelId: number;
-  RecordingsCount: number;
+  recordingsCount: number;
   channelName: string;
   isPaused: boolean;
   createdAt: string;

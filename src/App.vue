@@ -112,6 +112,7 @@ interface AppData {
 
 export default defineComponent({
   name: 'App',
+  inject: ['socketUrl'],
   data(): AppData {
     return {
       title: process.env.VUE_APP_NAME,
@@ -173,8 +174,8 @@ export default defineComponent({
             .catch((err: Error) => alert(err));
       }
     },
-    record(start: boolean) {
-      if (start) {
+    record(resume: boolean) {
+      if (resume) {
         if (window.confirm('Start recording?')) {
           recording.resume().then(() => {
             this.recording = true;
@@ -185,6 +186,7 @@ export default defineComponent({
       } else {
         if (window.confirm('Do you want to stop all recordings?')) {
           recording.pause().then(() => {
+            this.$store.commit('stopChannels');
             this.recording = false;
           }).catch(err => {
             alert(err);
@@ -202,63 +204,60 @@ export default defineComponent({
         this.recording = res.data;
       });
 
-      // const url = 'ws://localhost:3000/api/v1/ws';
-      // const c = new WebSocket(url);
+      //   //@ts-ignore
+      //   const c = new WebSocket(this.socketUrl);
       //
-      // const send = function (data: any) {
-      //   console.log('Send: ', data);
-      //   c.send(data);
-      // };
+      //   // const send = function (data: any) {
+      //   //   console.log('Send: ', data);
+      //   //   c.send(data);
+      //   // };
       //
-      // c.onmessage = function (msg: any) {
-      //   console.log('Received', msg);
-      // };
+      //   c.onmessage = function (msg: any) {
+      //     console.log('Received', msg);
+      //   };
       //
-      // c.onopen = function () {
-      //   setInterval(
-      //       function () {
-      //         send('ping');
-      //       }
-      //       , 1000);
-      // };
+      //   c.onopen = function () {
+      //     console.log('open ws');
+      //   };
+      // });
+
+      // socket.on(event.system.metrics, data => {
+      //   this.cpu = data.cpu;
+      //   this.uptime = data.uptime;
+      //   this.memTotal = data.mem.totalMemMb;
+      //   this.memUsed = data.mem.usedMemMb;
+      //   this.netInput = data.net.speed.receiveBytes;
+      //   this.netOutput = data.net.speed.transmitBytes;
+      //   this.netInTraffic = data.net.volume.receiveTotalBytes;
+      //   this.netOutTraffic = data.net.volume.transmitTotalBytes;
+      //   this.diskUsed = data.disk.used;
+      //   this.diskTotal = data.disk.total;
+      // });
+
+      // socket.on(event.stream.start, text => {
+      //   this.log += text + "\n";
+      // });
+      //
+      // socket.on(event.stream.end, data => {
+      //   this.log += data.message + "\n";
+      // });
+      //
+      // socket.on(event.stream.preview, data => {
+      //   this.log += data.message + "\n";
+      // });
+      //
+      // socket.on(event.notify, message => {
+      //   alert(message);
+      // });
+      //
+      // socket.on("start-all", () => {
+      //   this.recording = true;
+      // });
+      //
+      // socket.on("stop-all", () => {
+      //   this.recording = false;
+      // });
     });
-
-    // socket.on(event.system.metrics, data => {
-    //   this.cpu = data.cpu;
-    //   this.uptime = data.uptime;
-    //   this.memTotal = data.mem.totalMemMb;
-    //   this.memUsed = data.mem.usedMemMb;
-    //   this.netInput = data.net.speed.receiveBytes;
-    //   this.netOutput = data.net.speed.transmitBytes;
-    //   this.netInTraffic = data.net.volume.receiveTotalBytes;
-    //   this.netOutTraffic = data.net.volume.transmitTotalBytes;
-    //   this.diskUsed = data.disk.used;
-    //   this.diskTotal = data.disk.total;
-    // });
-
-    // socket.on(event.stream.start, text => {
-    //   this.log += text + "\n";
-    // });
-    //
-    // socket.on(event.stream.end, data => {
-    //   this.log += data.message + "\n";
-    // });
-    //
-    // socket.on(event.stream.preview, data => {
-    //   this.log += data.message + "\n";
-    // });
-    //
-    // socket.on(event.notify, message => {
-    //   alert(message);
-    // });
-    //
-    // socket.on("start-all", () => {
-    //   this.recording = true;
-    // });
-    //
-    // socket.on("stop-all", () => {
-    //   this.recording = false;
-    // });
   },
 });
 </script>

@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
-import RecordingView from './views/RecordingView.vue';
+import RecordingView from './views/StreamView.vue';
 import LatestView from './views/LatestView.vue';
 import BookmarkView from './views/BookmarkView.vue';
 import VideoView from './views/VideoView.vue';
@@ -15,7 +15,7 @@ const routes = [
   { path: '/admin', name: 'Admin', component: AdminView },
   { path: '/jobs', name: 'Job', component: JobView },
   { path: '/streams/:channel?', name: 'Recording', component: RecordingView, props: true },
-  { path: '/gallery/:type/:limit?', name: 'Gallery', component: LatestView, props: true },
+  { path: '/gallery/:type', name: 'Gallery', component: LatestView },
   { path: '/recordings/:channelName/:filename', name: 'Video', component: VideoView, props: true },
   { path: '/logs', name: 'Log', component: LogView },
   { path: '/login', name: 'Login', component: LoginView },
@@ -24,5 +24,5 @@ const routes = [
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ];
 
-const router = createRouter({ history: createWebHashHistory(), routes });
+const router = createRouter({ history: createWebHistory(), routes });
 export default router;
