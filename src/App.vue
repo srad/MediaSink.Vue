@@ -7,11 +7,10 @@
           <i class="bi bi-water" style="color: deepskyblue"></i>
         </a>
 
-        <div class="navbar-collapse collapse" :class="{'d-none': collapseNav}" id="collapsibleNavbar">
+        <div class="navbar-collapse collapse px-2 border-bottom border-info mb-2" :class="{'d-none': collapseNav}" id="collapsibleNavbar">
           <ul class="navbar-nav">
             <li class="nav-item" v-for="link in links" :key="link">
-              <router-link :to="link.url" :custom="true" exact-active-class="active"
-                           v-slot="{ navigate, href, isActive }">
+              <router-link :to="link.url" :custom="true" exact-active-class="active" v-slot="{ navigate, href, isActive }">
                 <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link text-white">
                   {{ link.title }}
                 </a>
@@ -21,25 +20,25 @@
         </div>
 
         <div class="btn-group">
-          <button class="btn btn-warning" @click="showAddChannelModal">
+          <button class="btn btn-info text-white" @click="showAddChannelModal">
             Add Channel
           </button>
-          <button v-if="recording===false" class="btn btn-success" @click="record(true)">
+          <button v-if="!recording" class="btn btn-success" @click="record(true)">
             <i class="bi bi-record-fill"></i>
             start
           </button>
-          <button v-else class="btn btn-danger blink" @click="record(false)">
+          <button v-else class="btn btn-warning blink" @click="record(false)">
             <i class="bi bi-stop-fill"></i>
             stop
           </button>
         </div>
 
-        <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" @click="toggle" data-bs-target="#collapsibleNavbar" style="cursor:pointer" aria-expanded="false">
-          <span class="navbar-toggler-icon"></span>
+        <button class="text-white fs-1 navbar-toggler collapsed" type="button" data-bs-toggle="collapse" @click="toggle" data-bs-target="#collapsibleNavbar" style="cursor:pointer" aria-expanded="false">
+          <span class="bi bi-list"></span>
         </button>
       </div>
     </nav>
-    <div class="container-fluid py-2">
+    <div class="container-fluid py-1">
       <router-view v-slot="{ Component }">
         <!--<keep-alive include="[StatusView,RecordingView,BookmarkView,LogView,VideoView]">-->
         <component :is="Component"/>

@@ -1,56 +1,75 @@
 <template>
   <div class="row">
-    <template v-if="selectedStream===''">
-      <div>
-        <input class="form-control mb-3" type="text" placeholder="search" v-model="searchVal">
+    <div class="col">
+      <input class="form-control my-3 bg-light border-info" type="text" placeholder="search" v-model="searchVal">
+
+      <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
+            Recording
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
+            Not recording
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab" aria-controls="contact" aria-selected="false">
+            Disabled
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content py-2" id="myTabContent">
+        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+          <div class="row">
+            <div v-for="channel in recordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+              <ChannelItem :channel="channel"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+          <div class="row">
+            <div v-for="channel in notRecordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+              <ChannelItem :channel="channel"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+          <div class="row">
+            <div v-for="channel in disabledStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+              <ChannelItem :channel="channel"/>
+            </div>
+          </div>
+        </div>
       </div>
-      <div v-for="channel in sortedChannels" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12 mb-3">
-        <ChannelItem :channel="channel"/>
-      </div>
-    </template>
-    <template v-else>
-      <h4><span class="text-danger">{{ selectedStream }}</span>'s videos</h4>
-      <hr/>
-      <div v-if="recordings.length === 0" class="d-flex justify-content-center">
-        <h3 class="text-dark">
-          No Videos
-        </h3>
-      </div>
-      <div v-else v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-4 col-xl-3 col-xxl-2 col-md-12">
-        <RecordingItem :recording="recording" @destroyed="destroyRecording"/>
-      </div>
-    </template>
+
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { RecordingApi, RecordingResponse } from '@/services/api/v1/recordingApi';
 import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
 //import socket from "@/socket";
 //import event from "@/services/event";
 import { defineComponent } from 'vue';
 import ChannelItem from '@/components/ChannelItem.vue';
-import RecordingItem from '@/components/RecordingItem.vue';
 
 interface RecordingData {
   apiUrl?: string;
   baseUrl?: string;
   searchVal: string;
   busy: boolean;
-  recordings: RecordingResponse[];
-  selectedStream: string;
 }
 
-function boolToInt(bool: boolean): number {
-  return bool ? 1 : 0;
-}
-
-const recordingApi = new RecordingApi();
 const channelService = new ChannelApi();
 
 export default defineComponent({
   name: 'Recording',
-  components: { RecordingItem, ChannelItem },
+  components: { ChannelItem },
   inject: ['baseUrl', 'apiUrl', 'fileUrl'],
   props: {
     channel: String,
@@ -59,77 +78,59 @@ export default defineComponent({
     return {
       searchVal: '',
       busy: false,
-      recordings: [],
-      selectedStream: '',
     };
   },
   computed: {
-    sortedChannels(): ChannelResponse[] {
+    notRecordingStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
+          .filter(row => !row.isRecording && !row.isPaused)
           .filter(row => {
             if (this.searchVal !== '') {
               return row.channelName.indexOf(this.searchVal) !== -1;
             }
             return true;
-          })
-          .sort((a, b) => a.channelName.localeCompare(b.channelName))
-          .sort((a, b) => boolToInt(b.isOnline) - boolToInt(a.isOnline))
-          .sort((a, b) => boolToInt(a.isPaused) - boolToInt(b.isPaused))
-          .sort((a, b) => boolToInt(b.isRecording) - boolToInt(a.isRecording));
+          });
+    },
+    disabledStreams(): ChannelResponse[] {
+      return this.$store.state.channels.slice()
+          .filter(row => row.isPaused)
+          .filter(row => {
+            if (this.searchVal !== '') {
+              return row.channelName.indexOf(this.searchVal) !== -1;
+            }
+            return true;
+          });
+    },
+    recordingStreams(): ChannelResponse[] {
+      return this.$store.state.channels.slice()
+          .filter(row => row.isRecording)
+          .filter(row => {
+            if (this.searchVal !== '') {
+              return row.channelName.indexOf(this.searchVal) !== -1;
+            }
+            return true;
+          });
     },
   },
-  watch: {
-    $route() {
-      this.recordings = [];
-    },
-    '$route.params.channel': {
-      handler: function (channel) {
-        // routes away
-        if (channel !== '' && this.selectedStream !== '') {
-          return;
-        }
-
-        if (channel === '') {
-          this.selectedStream = '';
-          this.$store.commit('clearChannels');
-          channelService.getChannels()
-              .then(res => res.data.forEach(channel => this.$store.commit('addChannel', channel)))
-              .catch(console.error);
-          return;
-        }
-
-        this.selectedStream = channel;
-        recordingApi.getRecordings(channel).then(res => {
-          this.recordings = res.data;
-          this.busy = false;
-          window.scrollTo(0, 0);
-        }).catch(err => {
-          this.busy = false;
-          alert(err);
-        });
-      },
-      deep: true,
-      immediate: true
-    }
+  methods: {},
+  created() {
+    this.$store.commit('clearChannels');
+    channelService.getChannels()
+        .then(res => res.data.forEach(channel => this.$store.commit('addChannel', channel)))
+        .catch(console.error);
   },
-  methods: {
-    destroyRecording(recording: RecordingResponse) {
-      for (let i = 0; i < this.recordings.length; i += 1) {
-        if (this.recordings[i].filename === recording.filename) {
-          this.recordings.splice(i, 1);
-          break;
-        }
-      }
-    }
-  },
-  beforeCreate() {
-    //socket.on(event.channel.add, data => {
-    //  this.channels.push(data.channel);
-    //});
-  }
+  //beforeCreate() {
+  //socket.on(event.channel.add, data => {
+  //  this.channels.push(data.channel);
+  //});
+  //}
 });
 </script>
 
-<style scoped>
-
+<style lang="scss" scoped>
+.nav-item .active {
+  background-color: #4b4e6d;
+  color: white;
+  border: 1px solid #4b4e6d;
+}
 </style>
