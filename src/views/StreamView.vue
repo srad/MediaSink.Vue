@@ -5,18 +5,27 @@
 
       <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
-            <span class="d-none d-lg-inline">Recording</span><span class="d-lg-none">Rec</span> ({{ recordingStreams.length }})
+          <button class="nav-link active d-flex justify-content-between" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
+            <span class="d-none d-lg-inline">Recording</span>
+            <span class="d-flex justify-content-between">
+              <span class="d-lg-none">Rec</span><span class="recording-number">({{ recordingStreams.length }})</span>
+            </span>
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
-            Inactive ({{ notRecordingStreams.length }})
+          <button class="nav-link d-flex justify-content-between" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
+            <span class="d-none d-lg-inline">Offline</span>
+            <span class="d-flex justify-content-between">
+              <span class="d-lg-none">Offline</span><span class="recording-number">({{ notRecordingStreams.length }})</span>
+            </span>
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab" aria-controls="contact" aria-selected="false">
-            Disabled ({{ disabledStreams.length }})
+          <button class="nav-link d-flex justify-content-between" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab" aria-controls="contact" aria-selected="false">
+            <span class="d-none d-lg-inline">Disabled</span>
+            <span class="d-flex justify-content-between">
+              <span class="d-lg-none">Disabled</span><span class="recording-number">({{ disabledStreams.length }})</span>
+            </span>
           </button>
         </li>
       </ul>
@@ -24,7 +33,10 @@
       <div class="tab-content py-2" id="myTabContent">
         <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
           <div class="row">
-            <div v-for="channel in recordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+            <div v-if="recordingStreams.length===0" class="justify-content-center d-flex">
+              <h5 class="m-5">No active streams</h5>
+            </div>
+            <div v-else v-for="channel in recordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
               <ChannelItem :channel="channel"/>
             </div>
           </div>
@@ -32,7 +44,10 @@
 
         <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
           <div class="row">
-            <div v-for="channel in notRecordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+            <div v-if="notRecordingStreams.length===0" class="justify-content-center d-flex">
+              <h5 class="m-5">Empty</h5>
+            </div>
+            <div v-else v-for="channel in notRecordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
               <ChannelItem :channel="channel"/>
             </div>
           </div>
@@ -40,7 +55,10 @@
 
         <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
           <div class="row">
-            <div v-for="channel in disabledStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+            <div v-if="disabledStreams.length===0" class="justify-content-center d-flex">
+              <h5 class="m-5">Empty</h5>
+            </div>
+            <div v-else v-for="channel in disabledStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
               <ChannelItem :channel="channel"/>
             </div>
           </div>
@@ -132,5 +150,9 @@ export default defineComponent({
   background-color: #4b4e6d;
   color: white;
   border: 1px solid #4b4e6d;
+}
+
+.recording-number {
+  font-size: 0.8em;
 }
 </style>

@@ -26,7 +26,7 @@
 import RecordInfo from '@/components/RecordInfo.vue';
 import Preview from '@/components/Preview.vue';
 import { RecordingApi, RecordingResponse } from '@/services/api/v1/recordingApi';
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 
 const recordingApi = new RecordingApi();
 
@@ -36,7 +36,7 @@ export default defineComponent({
   emits: ['destroyed', 'load'],
   inject: ['baseUrl', 'apiUrl', 'fileUrl'],
   props: {
-    recording: Object
+    recording: { type: Object as PropType<RecordingResponse>, required: true }
   },
   data() {
     return {
@@ -57,6 +57,7 @@ export default defineComponent({
       recordingApi.bookmark(recording.channelName, recording.filename, yesNo)
           .then(() => {
             recording.bookmark = yesNo;
+            this.$store.commit('pauseChannel', { channel: recording.channelName, pause: yesNo });
             this.busy = false;
           })
           .catch(err => {

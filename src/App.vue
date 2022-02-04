@@ -7,7 +7,7 @@
           <i class="bi bi-water" style="color: deepskyblue"></i>
         </a>
 
-        <div class="navbar-collapse collapse px-2 border-bottom border-info mb-2" :class="{'d-none': collapseNav}" id="collapsibleNavbar">
+        <div class="navbar-collapse collapse px-2 mb-1" :class="{'d-none': collapseNav}" id="collapsibleNavbar">
           <ul class="navbar-nav">
             <li class="nav-item" v-for="link in links" :key="link">
               <router-link :to="link.url" :custom="true" exact-active-class="active" v-slot="{ navigate, href, isActive }">
