@@ -1,7 +1,7 @@
 <template>
   <div class="row">
     <div class="col">
-      <input class="form-control my-3 bg-light border-info" type="text" placeholder="search" v-model="searchVal">
+      <input class="form-control mb-3 bg-light border-info" type="text" placeholder="search" v-model="searchVal">
 
       <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">

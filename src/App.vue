@@ -38,7 +38,7 @@
         </button>
       </div>
     </nav>
-    <div class="container-fluid py-1">
+    <div class="container-fluid py-3">
       <router-view v-slot="{ Component }">
         <!--<keep-alive include="[StatusView,RecordingView,BookmarkView,LogView,VideoView]">-->
         <component :is="Component"/>
