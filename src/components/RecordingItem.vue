@@ -58,8 +58,12 @@ export default defineComponent({
     load(recording: RecordingResponse) {
       this.$router.push({
         name: 'Video',
-        //@ts-ignore
-        params: recording
+        params: {
+          channelName: recording.channelName,
+          filename: recording.filename,
+          pathRelative: recording.pathRelative,
+          previewStripe: recording.previewStripe,
+        },
       });
     },
     bookmark(recording: RecordingResponse, yesNo: boolean) {

@@ -3,8 +3,7 @@
     <div class="modal-dialog modal-fullscreen p-0">
       <div class="modal-content">
         <div class="modal-body bg-light p-0" style="overflow: hidden">
-
-          <div class="d-flex flex-row w-100" style="height: 85%;">
+          <div class="d-flex flex-row w-100" style="height: 80%;">
             <div class="d-flex flex-column m-0 w-100">
               <video class="view"
                      ref="video"
@@ -22,12 +21,29 @@
             </div>
           </div>
 
-          <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative" style="height: 15%; overflow-x: auto">
+          <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative" style="height: 14%; overflow-x: auto">
             <Stripe :src="fileUrl + '/' + previewStripe"
                     :timecode="timecode"
                     :duration="duration"
                     @seek="seek"
                     @offset="offset"/>
+          </div>
+
+          <div class="d-flex p-1 justify-content-between" style="height: 6%;">
+            <button class="btn btn-danger btn-sm text-white p-1" @click="$emit('destroy', {channelName: channelName, filename: filename})">
+              Delete
+            </button>
+
+            <div class="btn-group-sm">
+              <button v-if="paused" class="btn btn-success" type="button" @click="play(true)">
+                <i class="bi bi-play-fill"></i>
+                Play
+              </button>
+              <button v-else class="btn btn-warning" type="button" @click="play(false)">
+                <i class="bi bi-pause-fill"></i>
+                Pause
+              </button>
+            </div>
           </div>
         </div>
 
@@ -83,9 +99,8 @@ export default defineComponent({
   props: {
     channelName: String,
     filename: String,
-    previewStripe: String,
-    previewVideo: String,
     pathRelative: String,
+    previewStripe: String,
   },
   data(): VideoData {
     return {
@@ -139,6 +154,9 @@ export default defineComponent({
       }
       this.paused = !startPlaying;
     },
+    isPaused() {
+      return (this.$refs.video as HTMLVideoElement).paused;
+    },
     seek(timecode: number) {
       (this.$refs.video as HTMLVideoElement).currentTime = timecode;
       // Timecode by clicking on image
@@ -148,14 +166,16 @@ export default defineComponent({
       // const selection = Math.floor(x / sections);
       // this.$refs.video.currentTime = this.$refs.video.duration / 64 * selection;
     },
-    offset() {
-      //this.$refs.stripeContainer.scrollLeft = pixel;
+    offset(pixel: number) {
+      if (!this.isPaused()) {
+        (this.$refs.stripeContainer as HTMLDivElement).scrollLeft = pixel - window.innerWidth / 2;
+      }
     },
     loaddata() {
-      this.paused = false;
-      this.loaded = true;
       this.duration = (this.$refs.video as HTMLVideoElement).duration;
       (this.$refs.video as HTMLVideoElement).play();
+      this.paused = false;
+      this.loaded = true;
     },
     timeupdate() {
       this.timecode = (this.$refs.video as HTMLVideoElement).currentTime;
@@ -173,8 +193,6 @@ export default defineComponent({
   },
   mounted() {
     //this.modal = new window.bootstrap.Modal(this.$refs.modalVideo);
-    (this.$refs.video as HTMLVideoElement).load();
-    (this.$refs.video as HTMLVideoElement).play();
     window.addEventListener('orientationchange', this.rotate);
     //this.modal.show();
     this.show = true;
