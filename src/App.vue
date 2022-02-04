@@ -27,7 +27,7 @@
             <i class="bi bi-record-fill"></i>
             start
           </button>
-          <button v-else class="btn btn-warning blink" @click="record(false)">
+          <button v-else class="btn btn-danger blink" @click="record(false)">
             <i class="bi bi-stop-fill"></i>
             stop
           </button>

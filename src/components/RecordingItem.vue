@@ -6,6 +6,15 @@
       <div class="loader"></div>
     </div>
     <Preview class="card-img-top" :data="recording" @selected="load(recording)" :preview-video="fileUrl + '/' + recording.previewVideo"/>
+    <div v-if="showTitle" class="card-body">
+      <div class="card-title p-1 bg-primary">
+        <h6 class="p-2 m-0 text-white">
+          <a class="text-white" target="_blank" @click="$router.push('/streams/' + recording.channelName)">
+            {{ recording.channelName }}
+          </a>
+        </h6>
+      </div>
+    </div>
     <RecordInfo
         :url="apiUrl + '/recordings/' + recording.channelName + '/' + recording.filename"
         :duration="recording.duration"
@@ -36,6 +45,7 @@ export default defineComponent({
   emits: ['destroyed', 'load'],
   inject: ['baseUrl', 'apiUrl', 'fileUrl'],
   props: {
+    showTitle: { type: Boolean, default: false },
     recording: { type: Object as PropType<RecordingResponse>, required: true }
   },
   data() {

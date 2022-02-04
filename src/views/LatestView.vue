@@ -30,7 +30,7 @@
       </h3>
     </div>
     <div v-else v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-4 col-xl-3 col-xxl-2 col-md-12">
-      <RecordingItem :recording="recording" @destroyed="destroyRecording"/>
+      <RecordingItem :show-title="true" :recording="recording" @destroyed="destroyRecording"/>
     </div>
   </div>
 </template>

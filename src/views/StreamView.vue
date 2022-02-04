@@ -8,7 +8,8 @@
           <button class="nav-link active d-flex justify-content-between" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
             <span class="d-none d-lg-inline">Recording</span>
             <span class="d-flex justify-content-between">
-              <span class="d-lg-none">Rec</span><span class="recording-number">({{ recordingStreams.length }})</span>
+              <span class="d-lg-none">Rec</span>
+              <span class="recording-number">{{ recordingStreams.length }}</span>
             </span>
           </button>
         </li>
@@ -16,7 +17,7 @@
           <button class="nav-link d-flex justify-content-between" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
             <span class="d-none d-lg-inline">Offline</span>
             <span class="d-flex justify-content-between">
-              <span class="d-lg-none">Offline</span><span class="recording-number">({{ notRecordingStreams.length }})</span>
+              <span class="d-lg-none">Offline</span><span class="recording-number">{{ notRecordingStreams.length }}</span>
             </span>
           </button>
         </li>
@@ -24,7 +25,7 @@
           <button class="nav-link d-flex justify-content-between" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab" aria-controls="contact" aria-selected="false">
             <span class="d-none d-lg-inline">Disabled</span>
             <span class="d-flex justify-content-between">
-              <span class="d-lg-none">Disabled</span><span class="recording-number">({{ disabledStreams.length }})</span>
+              <span class="d-lg-none">Disabled</span><span class="recording-number">{{ disabledStreams.length }}</span>
             </span>
           </button>
         </li>
