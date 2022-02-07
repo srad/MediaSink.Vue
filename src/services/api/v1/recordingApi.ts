@@ -31,7 +31,7 @@ export class RecordingApi extends BaseApi {
    * @param {object} data
    * @returns {Promise<AxiosResponse<any>>}
    */
-  cut(channelName: string, filename: string, data: any): Promise<AxiosResponse<void>> {
+  cut(channelName: string, filename: string, data: { starts: string[], ends: string[] }): Promise<AxiosResponse<void>> {
     return this.axios.post(`/recordings/${channelName}/${filename}/cut`, data);
   }
 

@@ -19,19 +19,30 @@
           </ul>
         </div>
 
-        <div class="btn-group">
-          <button class="btn btn-info text-white" @click="showAddChannelModal">
-            Add Channel
+        <div class="btn-group me-2">
+          <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-list-check"></i>
           </button>
-          <button v-if="!recording" class="btn btn-success" @click="record(true)">
-            <i class="bi bi-record-fill"></i>
-            start
-          </button>
-          <button v-else class="btn btn-danger blink" @click="record(false)">
-            <i class="bi bi-stop-fill"></i>
-            stop
-          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Action</a></li>
+            <li><a class="dropdown-item" href="#">Another action</a></li>
+            <li><a class="dropdown-item" href="#">Something else here</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#">Separated link</a></li>
+          </ul>
         </div>
+
+        <button v-if="!recording" class="btn btn-success" @click="record(true)">
+          <i class="bi bi-record-fill"></i>
+          start
+        </button>
+        <button v-else class="btn btn-danger blink" @click="record(false)">
+          <i class="bi bi-stop-fill"></i>
+          stop
+        </button>
+        <button class="btn btn-info text-white ms-2" @click="showAddChannelModal">
+          Add Stream
+        </button>
 
         <button class="text-white fs-1 navbar-toggler collapsed" type="button" data-bs-toggle="collapse" @click="toggle" data-bs-target="#collapsibleNavbar" style="cursor:pointer" aria-expanded="false">
           <span class="bi bi-list"></span>

@@ -1,5 +1,5 @@
-import {BaseApi} from "./base";
-import {AxiosResponse} from "axios";
+import { BaseApi } from './base';
+import { AxiosResponse } from 'axios';
 
 export interface DevStat {
   name: string;
@@ -9,10 +9,23 @@ export interface DevStat {
 }
 
 export interface InfoResponse {
-  cpuUsage: number[];
-  diskTotal: number;
-  diskFree: number;
-  network: DevStat;
+  cpuInfo: {
+    loadCpu: {
+      cpu: string;
+      load: number;
+    }[]
+  };
+  diskInfo: {
+    size: string;
+    used: string;
+    avail: string;
+    pcent: string;
+  };
+  netInfo: {
+    transmitBytes: number;
+    receiveBytes: number;
+    dev: string;
+  };
 }
 
 export class InfoApi extends BaseApi {

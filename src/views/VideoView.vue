@@ -3,12 +3,13 @@
     <div class="modal-dialog modal-fullscreen p-0">
       <div class="modal-content">
         <div class="modal-body bg-light p-0" style="overflow: hidden">
-          <div class="d-flex flex-row w-100" style="height: 80%;">
+          <div class="d-flex flex-row w-100" style="height: 90%;">
             <div class="d-flex flex-column m-0 w-100">
               <video class="view"
+                     @click="paused=!paused"
                      ref="video"
                      @loadeddata="loaddata"
-                     @timeupdate="timeupdate" muted controls>
+                     @timeupdate="timeupdate" muted autoplay controls>
                 <source :src="fileUrl + '/' + pathRelative" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
@@ -21,47 +22,38 @@
             </div>
           </div>
 
-          <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative" style="height: 14%; overflow-x: auto">
+          <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative" style="height: 10%; overflow-x: auto">
             <Stripe :src="fileUrl + '/' + previewStripe"
                     :timecode="timecode"
                     :duration="duration"
+                    :markings="markings"
+                    @update="(m) => markings=m"
                     @seek="seek"
+                    @scroll="scrollStripe"
                     @offset="offset"/>
-          </div>
-
-          <div class="d-flex p-1 justify-content-between" style="height: 6%;">
-            <button class="btn btn-danger btn-sm text-white p-1" @click="$emit('destroy', {channelName: channelName, filename: filename})">
-              Delete
-            </button>
-
-            <div class="btn-group-sm">
-              <button v-if="paused" class="btn btn-success" type="button" @click="play(true)">
-                <i class="bi bi-play-fill"></i>
-                Play
-              </button>
-              <button v-else class="btn btn-warning" type="button" @click="play(false)">
-                <i class="bi bi-pause-fill"></i>
-                Pause
-              </button>
-            </div>
           </div>
         </div>
 
-        <div class="modal-footer p-0 d-none">
+        <div class="modal-footer p-0">
           <div class="input-group m-0" v-if="pathRelative">
             <div class="btn-group m-1">
-              <button v-if="paused" class="btn btn-outline-success" type="button" @click="play(true)">
-                Play
-              </button>
-              <button v-else class="btn btn-outline-primary" type="button" @click="play(false)">Pause</button>
-              <button class="btn btn-outline-dark" type="button" @click="playbackSpeed=1.0">Reset</button>
-              <button v-if="markings.length > 0" class="btn btn-outline-warning" type="button" @click="exportVideo">
-                Export
+              <button class="btn btn-danger" @click="$emit('destroy', {channelName: channelName, filename: filename})">
+                Delete
               </button>
             </div>
             <input type="range" class="m-1 p-4 form-control form-range" v-model="playbackSpeed" step="0.1"
                    min="0.1"
                    max="5.0"/>
+            <div class="btn-group m-1">
+              <button v-if="paused" class="btn btn-success" type="button" @click="paused=false">
+                Play
+              </button>
+              <button v-else class="btn btn-primary" type="button" @click="paused=true">Pause</button>
+              <button class="btn btn-dark" type="button" @click="playbackSpeed=1.0">Reset</button>
+              <button v-if="markings.length > 0" class="btn btn-warning" type="button" @click="exportVideo">
+                Cut
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -72,9 +64,8 @@
 <script lang="ts">
 //import socket from "@/socket";
 //import event from "@/services/event";
-import { RecordingApi } from '../services/api/v1/recordingApi';
+import { RecordingApi } from '@/services/api/v1/recordingApi';
 import { defineComponent } from 'vue';
-import { RouteLocationNormalizedLoaded } from 'vue-router';
 import { Marking } from '@/components/Stripe.vue';
 import Stripe from '@/components/Stripe.vue';
 
@@ -101,12 +92,13 @@ export default defineComponent({
     filename: String,
     pathRelative: String,
     previewStripe: String,
+
   },
   data(): VideoData {
     return {
       markings: [],
       show: true,
-      loaded: true,
+      loaded: false,
       paused: true,
       timecode: 0,
       duration: 0,
@@ -120,11 +112,27 @@ export default defineComponent({
     },
   },
   watch: {
+    paused(val) {
+      if (val) {
+        (this.$refs.video as HTMLVideoElement).play();
+      } else {
+        (this.$refs.video as HTMLVideoElement).pause();
+      }
+    },
     playbackSpeed(newVal) {
       (this.$refs.video as HTMLVideoElement).playbackRate = newVal;
     },
   },
   methods: {
+    scrollStripe(event: WheelEvent) {
+      return (this.$refs.stripeContainer as HTMLDivElement).scrollLeft += event.deltaY;
+    },
+    play() {
+      this.paused = false;
+    },
+    pause() {
+      this.paused = true;
+    },
     rotate() {
       const mql = window.matchMedia('(orientation: portrait)');
 
@@ -139,25 +147,24 @@ export default defineComponent({
     },
     exportVideo() {
       if (window.confirm('Export selected segments?')) {
-        const segments = this.markings.map(m => [m.timestart.toFixed(4), m.timeend.toFixed(4)].join(' ')).join(' ');
+        const starts = this.markings.map(m => String(m.timestart.toFixed(4)));
+        const ends = this.markings.map(m => String(m.timeend.toFixed(4)));
+
         recording.cut(
-            (this.$route as RouteLocationNormalizedLoaded).params.channelName as string,
-            (this.$route as RouteLocationNormalizedLoaded).params.filename as string,
-            segments).then(() => this.markings = []);
+            this.$route.params.channelName as string,
+            this.$route.params.filename as string,
+            { starts, ends })
+            .then(() => {
+              this.markings = [];
+            })
+            .catch(err => alert(err));
       }
-    },
-    play(startPlaying: boolean) {
-      if (startPlaying) {
-        (this.$refs.video as HTMLVideoElement).play();
-      } else {
-        (this.$refs.video as HTMLVideoElement).pause();
-      }
-      this.paused = !startPlaying;
     },
     isPaused() {
       return (this.$refs.video as HTMLVideoElement).paused;
     },
     seek(timecode: number) {
+      this.paused = true;
       (this.$refs.video as HTMLVideoElement).currentTime = timecode;
       // Timecode by clicking on image
       // const bounds = stripe.getBoundingClientRect();
@@ -168,13 +175,13 @@ export default defineComponent({
     },
     offset(pixel: number) {
       if (!this.isPaused()) {
-        (this.$refs.stripeContainer as HTMLDivElement).scrollLeft = pixel - window.innerWidth / 2;
+        requestAnimationFrame(() => {
+          (this.$refs.stripeContainer as HTMLDivElement).scrollLeft = pixel - window.innerWidth / 2;
+        });
       }
     },
     loaddata() {
       this.duration = (this.$refs.video as HTMLVideoElement).duration;
-      (this.$refs.video as HTMLVideoElement).play();
-      this.paused = false;
       this.loaded = true;
     },
     timeupdate() {

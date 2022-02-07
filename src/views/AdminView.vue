@@ -20,20 +20,22 @@
             <table class="table table-sm p-0 m-0">
               <thead>
               <tr>
-                <th class="text-end" style="width: 10px">#</th>
-                <th>Load %</th>
+                <th class="text-end" style="width: 30px">CPU</th>
+                <th>Load</th>
+                <th class="text-end" style="width: 30px">%</th>
               </tr>
               </thead>
               <tbody>
-              <tr v-for="(cpu, i) in cpuUsage" :key="i">
-                <td class="text-end align-middle">{{ i }}</td>
+              <tr v-for="(cpu, i) in infoResponse.cpuInfo.loadCpu" :key="i">
+                <td class="text-end align-middle">{{ cpu.cpu }}</td>
                 <td class="align-middle">
                   <div class="progress m-2">
-                    <div class="progress-bar" role="progressbar" :style="{width: cpu + '%'}" aria-valuenow="0"
+                    <div class="progress-bar" role="progressbar" :style="{width: (cpu.load*100) + '%'}" aria-valuenow="0"
                          aria-valuemin="0"
                          aria-valuemax="100"></div>
                   </div>
                 </td>
+                <td class="text-end align-middle">{{ (cpu.load * 100).toFixed(0) }}%</td>
               </tr>
               </tbody>
             </table>
@@ -57,7 +59,7 @@
               <tr>
                 <td class="align-middle">
                   <div class="progress m-2">
-                    <div class="progress-bar" role="progressbar" :style="{width: diskPercent + '%'}" aria-valuenow="0"
+                    <div class="progress-bar" role="progressbar" :style="{width: infoResponse.diskInfo.pcent}" aria-valuenow="0"
                          aria-valuemin="0"
                          aria-valuemax="100"></div>
                   </div>
@@ -65,8 +67,8 @@
               </tr>
               <tr>
                 <td class="text-center">
-                  <span class="fs-5">{{ diskPercent }}%</span> |
-                  <span class="fs-5">Usage {{ diskFreeGB }}/{{ diskTotalDB }}GB</span>
+                  <span class="fs-5">{{ infoResponse.diskInfo.pcent }}%</span> |
+                  <span class="fs-5">Usage {{ infoResponse.diskInfo.used }}/{{ infoResponse.diskInfo.size }}GB</span>
                 </td>
               </tr>
               </tbody>
@@ -82,9 +84,13 @@
           </div>
           <div class="card-body p-2">
             <ul class="list-group">
-              <li class="list-group-item">Name: {{ network.name }}</li>
-              <li class="list-group-item">Received: {{ (network.receivedBytes / 1024 / 1024).toFixed(2) }}MB</li>
-              <li class="list-group-item">Transmitted: {{ (network.transmittedBytes / 1024 / 1024).toFixed(2) }}MB</li>
+              <li class="list-group-item">Name: {{ infoResponse.netInfo.dev }}</li>
+              <li class="list-group-item">
+                Received: {{ (infoResponse.netInfo.receiveBytes / 1024 / 1024).toFixed(2) }}MB
+              </li>
+              <li class="list-group-item">
+                Transmitted: {{ (infoResponse.netInfo.transmitBytes / 1024 / 1024).toFixed(2) }}MB
+              </li>
             </ul>
           </div>
         </div>
@@ -100,9 +106,10 @@ import { RecordingApi } from '@/services/api/v1/recordingApi';
 
 const api = new InfoApi();
 
-interface AdminData extends InfoResponse {
+interface AdminData {
   id: number;
   recordingApi: RecordingApi;
+  infoResponse: InfoResponse;
 }
 
 export default defineComponent({
@@ -111,27 +118,12 @@ export default defineComponent({
     return {
       recordingApi: new RecordingApi(),
       id: 0,
-      cpuUsage: [],
-      diskTotal: 0,
-      diskFree: 0,
-      network: {
-        name: '',
-        receivedBytes: 0,
-        transmittedBytes: 0,
-        measureSeconds: 0,
+      infoResponse: {
+        cpuInfo: { loadCpu: [] },
+        diskInfo: { avail: '', pcent: '', size: '', used: '' },
+        netInfo: { dev: '', receiveBytes: 0, transmitBytes: 0 },
       }
     };
-  },
-  computed: {
-    diskFreeGB(): string {
-      return (this.diskFree / 1024 / 1024 / 1024).toFixed(2);
-    },
-    diskTotalDB(): string {
-      return (this.diskTotal / 1024 / 1024 / 1024).toFixed(2);
-    },
-    diskPercent(): string {
-      return (this.diskFree / this.diskTotal * 100).toFixed(2);
-    },
   },
   methods: {
     updateInfo() {
@@ -142,24 +134,20 @@ export default defineComponent({
       }
     },
     fetch() {
-      api.fetch(2).then(res => {
-        this.cpuUsage = res.data.cpuUsage;
-        this.diskTotal = res.data.diskTotal;
-        this.diskFree = res.data.diskFree;
-        this.network.name = res.data.network.name;
-        this.network.receivedBytes = res.data.network.receivedBytes;
-        this.network.transmittedBytes = res.data.network.transmittedBytes;
-        this.network.measureSeconds = res.data.network.measureSeconds;
-        console.log('Update');
+      api.fetch(1).then(res => {
+        this.infoResponse.netInfo = res.data.netInfo;
+        this.infoResponse.diskInfo = res.data.diskInfo;
+        this.infoResponse.cpuInfo = res.data.cpuInfo;
+      }).catch(err => {
+        alert('Error: \n\n' + err.response.data);
       });
     }
   },
   beforeRouteLeave() {
     clearInterval(this.id);
   },
-  mounted() {
-    this.fetch();
-    this.id = setInterval(() => this.fetch, 3000);
+  created() {
+    this.id = setInterval(this.fetch, 2500);
   }
 });
 </script>
