@@ -9,7 +9,11 @@
     <li class="list-group-item d-flex justify-content-between">
       <span v-if="channel.isRecording">Recorded: {{ minutes }}:{{ seconds }}min</span>
       <span v-else>&nbsp;</span>
-      <div>Videos: {{ channel.recordingsCount }}</div>
+      <div>
+        <span><i class="bi bi-device-hdd"></i> {{ (channel.recordingsSize / 1000 / 1000 / 1000).toFixed(1) }}GB</span>
+        |
+        <span>Videos: {{ channel.recordingsCount }}</span>
+      </div>
     </li>
     <li class="list-group-item bg-light d-flex justify-content-between">
       <div class="form-check form-switch">
