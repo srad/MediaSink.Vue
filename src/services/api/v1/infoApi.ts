@@ -8,6 +8,19 @@ export interface DevStat {
   measureSeconds: number;
 }
 
+export interface NetInfo {
+  transmitBytes: number;
+  receiveBytes: number;
+  dev: string;
+}
+
+export interface DiskInfo {
+  size: string;
+  used: string;
+  avail: string;
+  pcent: string;
+}
+
 export interface InfoResponse {
   cpuInfo: {
     loadCpu: {
@@ -15,17 +28,8 @@ export interface InfoResponse {
       load: number;
     }[]
   };
-  diskInfo: {
-    size: string;
-    used: string;
-    avail: string;
-    pcent: string;
-  };
-  netInfo: {
-    transmitBytes: number;
-    receiveBytes: number;
-    dev: string;
-  };
+  diskInfo: DiskInfo;
+  netInfo: NetInfo;
 }
 
 export class InfoApi extends BaseApi {
@@ -35,5 +39,9 @@ export class InfoApi extends BaseApi {
 
   fetch(seconds: number): Promise<AxiosResponse<InfoResponse>> {
     return this.axios.get(`/info/${seconds}`);
+  }
+
+  disk(): Promise<AxiosResponse<DiskInfo>> {
+    return this.axios.get(`/info/disk`);
   }
 }

@@ -19,6 +19,19 @@
           </ul>
         </div>
 
+        <div class="text-white d-flex justify-content-between align-middle me-3 d-none d-lg-flex">
+          <span class="fw-bold me-2 ">Disk ({{ diskInfo.pcent }})</span>
+          <span class="progress m-1" style="min-width: 120px">
+            <span class="progress-bar bg-info progress-bar-striped"
+                  role="progressbar"
+                  :style="{width: diskInfo.pcent}"
+                  :aria-valuenow="parseInt(diskInfo.pcent)"
+                  aria-valuemin="0"
+                  aria-valuemax="100">
+            </span>
+          </span>
+        </div>
+
         <div class="btn-group me-2">
           <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-list-check"></i>
@@ -27,22 +40,26 @@
             <li><a class="dropdown-item" href="#">Action</a></li>
             <li><a class="dropdown-item" href="#">Another action</a></li>
             <li><a class="dropdown-item" href="#">Something else here</a></li>
-            <li><hr class="dropdown-divider"></li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
             <li><a class="dropdown-item" href="#">Separated link</a></li>
           </ul>
         </div>
 
-        <button v-if="!recording" class="btn btn-success" @click="record(true)">
-          <i class="bi bi-record-fill"></i>
-          start
-        </button>
-        <button v-else class="btn btn-danger blink" @click="record(false)">
-          <i class="bi bi-stop-fill"></i>
-          stop
-        </button>
-        <button class="btn btn-info text-white ms-2" @click="showAddChannelModal">
-          Add Stream
-        </button>
+        <div>
+          <button v-if="!recording" class="btn btn-success" @click="record(true)">
+            <i class="bi bi-record-fill"></i>
+            start
+          </button>
+          <button v-else class="btn btn-danger blink" @click="record(false)">
+            <i class="bi bi-stop-fill"></i>
+            stop
+          </button>
+          <button class="btn btn-info text-white ms-2" @click="showAddChannelModal">
+            Add Stream
+          </button>
+        </div>
 
         <button class="text-white fs-1 navbar-toggler collapsed" type="button" data-bs-toggle="collapse" @click="toggle" data-bs-target="#collapsibleNavbar" style="cursor:pointer" aria-expanded="false">
           <span class="bi bi-list"></span>
@@ -96,15 +113,16 @@
 
 <script lang="ts">
 //import socket from "./socket";
+//import event from "./services/event";
 import { ChannelApi } from './services/api/v1/channelApi';
 import { RecordingApi } from './services/api/v1/recordingApi';
+import { DiskInfo, InfoApi } from '@/services/api/v1/infoApi';
 import { Modal } from 'bootstrap';
 import { defineComponent } from 'vue';
 
-//import event from "./services/event";
-
 const channel = new ChannelApi();
 const recording = new RecordingApi();
+const info = new InfoApi();
 
 const channelParser = /^[a-z_0-9]+$/i;
 
@@ -118,6 +136,7 @@ interface AppData {
   online: boolean;
   collapseNav: boolean;
   links: { url: string, title: string }[];
+  diskInfo: DiskInfo;
 }
 
 export default defineComponent({
@@ -125,6 +144,7 @@ export default defineComponent({
   inject: ['socketUrl'],
   data(): AppData {
     return {
+      diskInfo: { avail: '', pcent: '', size: '', used: '' },
       title: process.env.VUE_APP_NAME,
       modal: undefined,
       channelName: '',
@@ -210,6 +230,10 @@ export default defineComponent({
     recording.isRecording().then(res => {
       this.recording = res.data;
     });
+
+    const getDskInfo = () => info.disk().then(res => this.diskInfo = res.data);
+    getDskInfo();
+    setInterval(getDskInfo, 60 * 1000);
 
     //   //@ts-ignore
     //   const c = new WebSocket(this.socketUrl);
