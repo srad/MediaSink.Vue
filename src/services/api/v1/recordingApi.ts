@@ -10,6 +10,7 @@ export interface RecordingResponse {
   height: number;
   size: number;
   duration: number;
+  videoType: string;
   bookmark: boolean;
   createdAt: string;
   previewStripe: string;

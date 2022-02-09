@@ -6,7 +6,8 @@ export interface JobResponse {
   channelName: string;
   filename: string;
   status: string;
-  args: string,
+  args: string;
+  progress: string;
   createdAt: string;
 }
 
