@@ -1,6 +1,6 @@
 <template>
-  <div class="row py-2">
-    <h4>Stream: <span class="text-danger">{{ $route.params.channel }}</span></h4>
+  <div class="row">
+    <h4 class="py-0"><span class="text-primary">{{ $route.params.channel }}</span></h4>
     <hr/>
     <div v-if="recordings.length === 0" class="d-flex justify-content-center">
       <h3 class="text-dark">

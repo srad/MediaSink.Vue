@@ -2,31 +2,50 @@
   <div class="modal show" tabindex="-1" ref="modalVideo" style="display: block !important;">
     <div class="modal-dialog modal-fullscreen p-0">
       <div class="modal-content">
-        <div class="modal-body bg-light p-0" style="overflow: hidden">
-          <div class="d-flex flex-row w-100" style="height: 90%;">
-            <div class="d-flex flex-column m-0 w-100">
+        <div class="modal-body bg-light p-1" style="overflow: hidden">
+
+          <div class="d-flex flex-row" style="height: 90%;">
+
+            <div class="d-flex flex-column m-0" :class="{'w-80': markings.length > 0, 'w-100': markings.length===0}">
               <video class="view"
                      @click="paused=!paused"
+                     @touchstart="paused=!paused"
                      ref="video"
                      @loadeddata="loaddata"
-                     @timeupdate="timeupdate" muted autoplay controls>
+                     @timeupdate="timeupdate" muted autoplay>
                 <source :src="fileUrl + '/' + pathRelative" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
-              <input v-if="false"
-                     class="w-100 p-0 m-0"
-                     type="range"
-                     min="0"
-                     v-model="timecode"
-                     :max="duration">
             </div>
+
+            <div v-if="markings.length > 0" class="d-flex flex-column m-0 px-1" :class="{'w-20': markings.length > 0}">
+              <ul class="list-group fw-6 fw-bold">
+                <li class="list-group-item d-flex text-white bg-info justify-content-between w-100 align-middle">
+                  <span>Start</span>
+                  <span>End</span>
+                  <span>Del</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between w-100 align-middle" :class="{'bg-secondary': marking.selected}" @click="selectMarking(marking)" :key="String(marking.timestart)+String(marking.timeend)" v-for="marking in markings">
+                    <span class="p-1">{{ (marking.timestart / 60).toFixed(1) }}min</span>
+                    <span class="p-1">{{ (marking.timeend / 60).toFixed(1) }}min</span>
+                    <button @click="destroyMarking(marking)" class="btn btn-sm btn-danger">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                </li>
+              </ul>
+              <button class="btn btn-info mt-2">
+                Play Cut
+              </button>
+            </div>
+
           </div>
 
-          <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative" style="height: 10%; overflow-x: auto">
+          <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative overflow-hidden" style="height: 10%;">
             <Stripe :src="fileUrl + '/' + previewStripe"
                     :timecode="timecode"
                     :duration="duration"
                     :markings="markings"
+                    @selecting="paused=true"
                     @update="(m) => markings=m"
                     @seek="seek"
                     @scroll="scrollStripe"
@@ -35,21 +54,41 @@
         </div>
 
         <div class="modal-footer p-0">
-          <div class="input-group m-0" v-if="pathRelative">
+          <div class="d-flex input-group m-0" v-if="pathRelative">
             <div class="btn-group m-1">
               <button class="btn btn-danger" @click="$emit('destroy', {channelName: channelName, filename: filename})">
                 Delete
               </button>
             </div>
+            <div class="m-1 rounded-1 fw-6 px-1 py-3 border-info border">
+              {{ (timecode / 60).toFixed(2) }}min
+            </div>
+            <input class="m-1 p-4 form-control form-range"
+                   type="range"
+                   v-model="timecode"
+                   step="1"
+                   @input="customSeek($event)"
+                   min="0"
+                   :max="duration">
+            <!--
             <input type="range" class="m-1 p-4 form-control form-range" v-model="playbackSpeed" step="0.1"
                    min="0.1"
                    max="5.0"/>
+                   -->
             <div class="btn-group m-1">
-              <button v-if="paused" class="btn btn-success" type="button" @click="paused=false">
+              <!--<button class="btn btn-dark" type="button" @click="playbackSpeed=1.0">Reset</button>-->
+
+              <button v-if="!muted" class="btn btn-warning" type="button" @click="muted=true">
+                Mute
+              </button>
+              <button v-else class="btn btn-info" type="button" @click="muted=false">
+                Unmute
+              </button>
+
+              <button v-if="paused" class="btn btn-primary" type="button" @click="paused=false">Pause</button>
+              <button v-else class="btn btn-success" type="button" @click="paused=true">
                 Play
               </button>
-              <button v-else class="btn btn-primary" type="button" @click="paused=true">Pause</button>
-              <button class="btn btn-dark" type="button" @click="playbackSpeed=1.0">Reset</button>
               <button v-if="markings.length > 0" class="btn btn-warning" type="button" @click="exportVideo">
                 Cut
               </button>
@@ -78,6 +117,7 @@ interface VideoData {
   duration: number;
   segments: any[],
   baseUrl?: string;
+  muted: boolean;
   fileUrl?: string;
   playbackSpeed: number;
 }
@@ -103,6 +143,7 @@ export default defineComponent({
       timecode: 0,
       duration: 0,
       segments: [],
+      muted: true,
       playbackSpeed: 1.0,
     };
   },
@@ -112,6 +153,9 @@ export default defineComponent({
     },
   },
   watch: {
+    muted(val) {
+      (this.$refs.video as HTMLVideoElement).muted = val;
+    },
     paused(val) {
       if (val) {
         (this.$refs.video as HTMLVideoElement).play();
@@ -124,7 +168,32 @@ export default defineComponent({
     },
   },
   methods: {
+    resetSelection() {
+      for (let i = 0; i < this.markings.length; i++) {
+        this.markings[i].selected = false;
+      }
+    },
+    selectMarking(marking: Marking) {
+      this.resetSelection();
+      (this.$refs.video as HTMLVideoElement).currentTime = marking.timestart;
+      marking.selected = true;
+    },
+    destroyMarking(marking: Marking) {
+      for (let i = 0; i < this.markings.length; i++) {
+        if (this.markings[i].timestart === marking.timestart && this.markings[i].timeend === marking.timeend) {
+          this.markings.splice(i, 1);
+          break;
+        }
+      }
+    },
+    customSeek(event: InputEvent) {
+      this.paused = !this.paused;
+      //@ts-ignore
+      (this.$refs.video as HTMLVideoElement).currentTime = event.target.value;
+      this.paused = !this.paused;
+    },
     scrollStripe(event: WheelEvent) {
+      (this.$refs.video as HTMLVideoElement).currentTime += event.deltaY / 10;
       return (this.$refs.stripeContainer as HTMLDivElement).scrollLeft += event.deltaY;
     },
     play() {
@@ -174,11 +243,9 @@ export default defineComponent({
       // this.$refs.video.currentTime = this.$refs.video.duration / 64 * selection;
     },
     offset(pixel: number) {
-      if (!this.isPaused()) {
-        requestAnimationFrame(() => {
-          (this.$refs.stripeContainer as HTMLDivElement).scrollLeft = pixel - window.innerWidth / 2;
-        });
-      }
+      requestAnimationFrame(() => {
+        (this.$refs.stripeContainer as HTMLDivElement).scrollLeft = pixel - window.innerWidth / 2;
+      });
     },
     loaddata() {
       this.duration = (this.$refs.video as HTMLVideoElement).duration;

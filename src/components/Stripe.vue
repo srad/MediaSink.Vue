@@ -150,6 +150,8 @@ export default defineComponent({
       event.preventDefault();
       event.cancelBubble = true;
 
+      this.$emit("selecting", true);
+
       this.showBar = false;
       window.addEventListener('mousemove', this.move);
       this.left = this.getMouseX(event);

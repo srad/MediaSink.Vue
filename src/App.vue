@@ -48,7 +48,7 @@
         </div>
 
         <div>
-          <button v-if="!recording" class="btn btn-success" @click="record(true)">
+          <button v-if="!recording" class="btn btn-secondary" @click="record(true)">
             <i class="bi bi-record-fill"></i>
             start
           </button>
