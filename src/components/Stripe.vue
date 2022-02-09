@@ -147,14 +147,34 @@ export default defineComponent({
       this.mouseOffsetX = this.getMouseX(event);
     },
     down(event: MouseEvent) {
+      event.preventDefault();
+      event.cancelBubble = true;
+
       this.showBar = false;
       window.addEventListener('mousemove', this.move);
       this.left = this.getMouseX(event);
+    },
+    overlaps(xs: number[]) {
+      for (let i = 0; i < this.markings.length; i++) {
+        const start = this.markings[i].start;
+        const end = this.markings[i].end;
+
+        for (let j=0; j < xs.length; j++) {
+          if (xs[j] >= start && xs[j] <= end) {
+            return true;
+          }
+        }
+      }
+      return false;
     },
     up(event: MouseEvent) {
       this.showBar = true;
       const startX = this.left as number;
       const endX = this.getMouseX(event);
+
+      if (this.overlaps([startX, endX])) {
+        return
+      }
 
       if ((this.getMouseX(event) - startX) > 10) {
         this.markings.push({
@@ -175,6 +195,7 @@ export default defineComponent({
       if (!this.markings[index]) {
         return;
       }
+
       // Only one at a time
       this.markings.forEach(m => m.selected = false);
 
@@ -221,7 +242,7 @@ export default defineComponent({
 
 .bar {
   height: 100%;
-  width: 3px;
+  width: 2px;
   background: white;
   opacity: 1;
   cursor: col-resize;
