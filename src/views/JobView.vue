@@ -7,7 +7,7 @@
         <th style="width: 50px">Channel</th>
         <th class="align-bottom" style="width: 50px">File</th>
         <th class="align-bottom d-none d-lg-table-cell" style="width: 60px">Status</th>
-        <th class="align-bottom" style="width:70px">Args</th>
+        <th class="align-bottom" style="width:70px">Progress</th>
         <th class="align-bottom" style="width:110px">Created</th>
       </tr>
       </thead>
@@ -22,7 +22,11 @@
         <td>{{ job.channelName }}</td>
         <td>{{ job.filename }}</td>
         <td>{{ job.status }}</td>
-        <td>{{ job.args }}</td>
+        <td>
+          <div v-if="job.active" class="progress">
+            <div class="progress-bar progress-bar-striped bg-info progress-bar-animated" role="progressbar" :style="'width:'+ job.progress + '%'" :aria-valuenow="job.progress" aria-valuemin="0" :aria-valuemax="100"></div>
+          </div>
+        </td>
         <td>{{ job.createdAt }}</td>
       </tr>
       <tr v-if="jobs.length === 0">
