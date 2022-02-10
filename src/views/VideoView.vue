@@ -12,7 +12,7 @@
                      @touchstart="paused=!paused"
                      ref="video"
                      @loadeddata="loaddata"
-                     @timeupdate="timeupdate" muted autoplay>
+                     @timeupdate="timeupdate" muted autoplay controls>
                 <source :src="fileUrl + '/' + pathRelative" type="video/mp4">
                 Your browser does not support the video tag.
               </video>

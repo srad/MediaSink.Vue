@@ -12,10 +12,10 @@ import StreamItemView from './views/StreamItemView.vue';
 
 const routes = [
   { path: '', redirect: '/streams' },
-  { path: '/', redirect: '/streams' },
+  { path: '/', redirect: '/streams/live/tab' },
   { path: '/admin', name: 'Admin', component: AdminView },
   { path: '/jobs', name: 'Job', component: JobView },
-  { path: '/streams', name: 'Stream', component: StreamView },
+  { path: '/streams/:tab/tab', name: 'Stream', component: StreamView },
   { path: '/streams/:channel', name: 'StreamItem', component: StreamItemView, props: true },
   { path: '/gallery/:type', name: 'Gallery', component: LatestView },
   { path: '/recordings/:channelName/:filename', name: 'Video', component: VideoView, props: true },
@@ -23,7 +23,7 @@ const routes = [
   { path: '/login', name: 'Login', component: LoginView },
   { path: '/logout', name: 'Logout', component: LogoutView },
   { path: '/favs', name: 'Bookmark', component: BookmarkView },
-  { path: '/:pathMatch(.*)*', redirect: '/' },
+  { path: '/:pathMatch(.*)*', redirect: '/streams/live/tab' },
 ];
 
 const router = createRouter({ history: createWebHashHistory(), routes });

@@ -11,19 +11,19 @@
          @mousedown="down"
          @mouseup="up($event)"/>
 
-    <div :key="marking.start" @click="markingSelect(i)"
-         :class="{'selected': marking.selected, 'unselected': !marking.selected}" class="marking position-absolute"
-         draggable="false" v-for="(marking, i) in markings"
+    <div :key="marking.start"
+         @click="markingSelect(i)"
+         :class="{'selected': marking.selected, 'unselected': !marking.selected}"
+         class="marking position-absolute"
+         draggable="false"
+         v-for="(marking, i) in markings"
          :style="{left: marking.start+'px', width: (marking.end-marking.start)+'px'}">
       <span class="bar bar-start position-absolute"
             draggable="false"
-            @mousedown="markerDown($event, marking, i, 'start')"></span>
-      <span class="bar bar-end position-absolute"
-            @mousedown="markerDown($event, marking, i, 'end')"
-            draggable="false"></span>
-      <button @click="destroyMarking(i)" class="btn btn-danger btn-sm marking-destroy position-absolute">
-        x
-      </button>
+            @mousedown="markerDown($event, marking, i, 'start')">
+      </span>
+      <span class="bar bar-end position-absolute" @mousedown="markerDown($event, marking, i, 'end')" draggable="false"></span>
+      <button @click="destroyMarking(i)" class="btn btn-danger btn-sm marking-destroy position-absolute">x</button>
     </div>
     <div v-if="showBar" class="timecode position-absolute" :style="{left: `${offset}px`}"></div>
   </div>
@@ -150,7 +150,7 @@ export default defineComponent({
       event.preventDefault();
       event.cancelBubble = true;
 
-      this.$emit("selecting", true);
+      this.$emit('selecting', true);
 
       this.showBar = false;
       window.addEventListener('mousemove', this.move);
@@ -161,7 +161,7 @@ export default defineComponent({
         const start = this.markings[i].start;
         const end = this.markings[i].end;
 
-        for (let j=0; j < xs.length; j++) {
+        for (let j = 0; j < xs.length; j++) {
           if (xs[j] >= start && xs[j] <= end) {
             return true;
           }
@@ -175,7 +175,7 @@ export default defineComponent({
       const endX = this.getMouseX(event);
 
       if (this.overlaps([startX, endX])) {
-        return
+        return;
       }
 
       if ((this.getMouseX(event) - startX) > 10) {
