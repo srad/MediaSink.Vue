@@ -56,6 +56,7 @@ interface StripeData {
   markerX: number;
   inserted: boolean;
   showBar: boolean;
+  clientX: number;
 }
 
 export default defineComponent({
@@ -76,6 +77,7 @@ export default defineComponent({
       markerX: 0,
       inserted: false,
       showBar: true,
+      clientX: 10,
     };
   },
   computed: {
@@ -90,11 +92,13 @@ export default defineComponent({
   },
   watch: {
     timecode() {
-      this.$emit('offset', this.offset);
+      this.$emit('offset', {offset: this.offset, clientX: this.clientX});
     },
   },
   methods: {
     seek(event: MouseEvent) {
+      //this.$emit('seek', this.getMouseX(event) / this.width * this.duration);
+      this.clientX = this.getX(event);
       this.$emit('seek', this.getMouseX(event) / this.width * this.duration);
     },
     moveMarker(event: MouseEvent) {
@@ -138,10 +142,15 @@ export default defineComponent({
       this.markings.splice(index, 1);
       this.$emit('update', this.markings);
     },
-    getMouseX(event: MouseEvent) {
+    getMouseX(event: MouseEvent): number {
       const stripe = this.$refs.stripe as HTMLImageElement;
       const bounds = stripe.getBoundingClientRect();
       return stripe.scrollLeft + event.clientX - bounds.left;
+    },
+    getX(event: MouseEvent) {
+      const stripe = this.$refs.stripe as HTMLImageElement;
+      const bounds = stripe.getBoundingClientRect();
+      return event.clientX - bounds.left;
     },
     move(event: MouseEvent) {
       this.mouseOffsetX = this.getMouseX(event);

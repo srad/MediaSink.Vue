@@ -26,11 +26,11 @@
                   <span>Del</span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between w-100 align-middle" :class="{'bg-secondary': marking.selected}" @click="selectMarking(marking)" :key="String(marking.timestart)+String(marking.timeend)" v-for="marking in markings">
-                    <span class="p-1">{{ (marking.timestart / 60).toFixed(1) }}min</span>
-                    <span class="p-1">{{ (marking.timeend / 60).toFixed(1) }}min</span>
-                    <button @click="destroyMarking(marking)" class="btn btn-sm btn-danger">
-                      <i class="bi bi-trash"></i>
-                    </button>
+                  <span class="p-1">{{ (marking.timestart / 60).toFixed(1) }}min</span>
+                  <span class="p-1">{{ (marking.timeend / 60).toFixed(1) }}min</span>
+                  <button @click="destroyMarking(marking)" class="btn btn-sm btn-danger">
+                    <i class="bi bi-trash"></i>
+                  </button>
                 </li>
               </ul>
               <button class="btn btn-info mt-2">
@@ -158,9 +158,9 @@ export default defineComponent({
     },
     paused(val) {
       if (val) {
-        (this.$refs.video as HTMLVideoElement).play();
-      } else {
         (this.$refs.video as HTMLVideoElement).pause();
+      } else {
+        (this.$refs.video as HTMLVideoElement).play();
       }
     },
     playbackSpeed(newVal) {
@@ -235,16 +235,11 @@ export default defineComponent({
     seek(timecode: number) {
       this.paused = true;
       (this.$refs.video as HTMLVideoElement).currentTime = timecode;
-      // Timecode by clicking on image
-      // const bounds = stripe.getBoundingClientRect();
-      // const x = stripe.scrollLeft + event.clientX - bounds.left;
-      // const sections = img.clientWidth / 64;
-      // const selection = Math.floor(x / sections);
-      // this.$refs.video.currentTime = this.$refs.video.duration / 64 * selection;
     },
-    offset(pixel: number) {
+    offset({ offset, clientX }: { offset: number, clientX: number }) {
       requestAnimationFrame(() => {
-        (this.$refs.stripeContainer as HTMLDivElement).scrollLeft = pixel - window.innerWidth / 2;
+        //(this.$refs.stripeContainer as HTMLDivElement).scrollLeft = left - window.innerWidth / 2;
+        (this.$refs.stripeContainer as HTMLDivElement).scrollLeft = offset - clientX;
       });
     },
     loaddata() {
