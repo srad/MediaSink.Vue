@@ -66,7 +66,7 @@
         </button>
       </div>
     </nav>
-    <div class="container-fluid py-3">
+    <div class="container-fluid py-3" style="overflow-y: scroll">
       <router-view v-slot="{ Component }">
         <!--<keep-alive include="[StatusView,RecordingView,BookmarkView,LogView,VideoView]">-->
         <component :is="Component"/>
