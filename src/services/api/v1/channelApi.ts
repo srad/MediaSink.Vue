@@ -10,6 +10,7 @@ export interface ChannelResponse {
   isRecording: boolean;
   isOnline: boolean;
   preview: string;
+  fav: boolean;
   url: string;
   tags: string;
   minRecording: number;
@@ -38,6 +39,14 @@ export class ChannelApi extends BaseApi {
 
   resume(channelName: string): Promise<AxiosResponse<void>> {
     return this.axios.post(`/channels/${channelName}/resume`);
+  }
+
+  fav(channelName: string): Promise<AxiosResponse<void>> {
+    return this.axios.post(`/channels/${channelName}/fav`);
+  }
+
+  unfav(channelName: string): Promise<AxiosResponse<void>> {
+    return this.axios.post(`/channels/${channelName}/unfav`);
   }
 
   tags(channelName: string, tags: string[]): Promise<AxiosResponse<void>> {

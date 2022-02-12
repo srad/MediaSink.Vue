@@ -42,6 +42,14 @@ export const store = createStore<State>({
         }
       }
     },
+    fav(state: State, channel: ChannelResponse) {
+      const i = state.channels.findIndex(ch => ch.channelName === channel.channelName);
+      state.channels[i].fav = true;
+    },
+    unfav(state: State, channel: ChannelResponse) {
+      const i = state.channels.findIndex(ch => ch.channelName === channel.channelName);
+      state.channels[i].fav = false;
+    },
     clearChannels(state: State) {
       state.channels = [];
     },

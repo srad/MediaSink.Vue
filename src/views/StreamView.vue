@@ -1,6 +1,6 @@
 <template>
-  <div class="row">
-    <div class="col">
+  <div>
+    <div class="row">
       <div class="d-flex">
         <input list="datalistOptions" class="form-control mb-3 bg-light border-info" type="text" placeholder="search" v-model="searchVal">
         <datalist id="datalistOptions">
@@ -10,73 +10,90 @@
           <option value=""></option>
           <option :key="tag" v-for="tag in tags" :value="tag">{{ tag }}</option>
         </select>
+        <i v-if="favs" class="bi bi-star-fill text-warning fs-4 ms-2" @click="favs=false"></i>
+        <i v-else class="bi bi-star text-warning fs-4 ms-2" @click="favs=true"></i>
+      </div>
+    </div>
+    <div class="row">
+
+      <div v-if="searchVal !== '' || favs" class="col">
+        <div class="row">
+          <div v-if="searchResults.length===0" class="justify-content-center d-flex">
+            <h5 class="m-5">No results...</h5>
+          </div>
+          <div v-else v-for="channel in searchResults" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+            <ChannelItem :channel="channel"/>
+          </div>
+        </div>
       </div>
 
-      <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'live'}" @click="$router.push('/streams/live/tab')" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
-            <span class="d-none d-lg-inline">Live</span>
-            <span class="d-flex justify-content-between">
+      <div v-else class="col">
+        <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'live'}" @click="$router.push('/streams/live/tab')" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
+              <span class="d-none d-lg-inline">Live</span>
+              <span class="d-flex justify-content-between">
               <span class="d-lg-none">Rec</span>
               <span class="recording-number">{{ recordingStreams.length }}</span>
             </span>
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'offline'}" @click="$router.push('/streams/offline/tab')" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
-            <span class="d-none d-lg-inline">Offline</span>
-            <span class="d-flex justify-content-between">
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'offline'}" @click="$router.push('/streams/offline/tab')" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
+              <span class="d-none d-lg-inline">Offline</span>
+              <span class="d-flex justify-content-between">
               <span class="d-lg-none">Offline</span><span class="recording-number">{{
-                notRecordingStreams.length
-              }}</span>
+                  notRecordingStreams.length
+                }}</span>
             </span>
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'disabled'}" @click="$router.push('/streams/disabled/tab')" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab" aria-controls="contact" aria-selected="false">
-            <span class="d-none d-lg-inline">Disabled</span>
-            <span class="d-flex justify-content-between">
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'disabled'}" @click="$router.push('/streams/disabled/tab')" id="disabled-tab" data-bs-toggle="tab" data-bs-target="#disabled" type="button" role="tab" aria-controls="disabled" aria-selected="false">
+              <span class="d-none d-lg-inline">Disabled</span>
+              <span class="d-flex justify-content-between">
               <span class="d-lg-none">Disabled</span><span class="recording-number">{{ disabledStreams.length }}</span>
             </span>
-          </button>
-        </li>
-      </ul>
+            </button>
+          </li>
+        </ul>
 
-      <div class="tab-content py-2" id="myTabContent">
-        <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'live'}" id="home" role="tabpanel" aria-labelledby="home-tab">
-          <div class="row">
-            <div v-if="recordingStreams.length===0" class="justify-content-center d-flex">
-              <h5 class="m-5">No active streams</h5>
+        <div class="tab-content py-2" id="myTabContent">
+          <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'live'}" id="home" role="tabpanel" aria-labelledby="home-tab">
+            <div class="row">
+              <div v-if="recordingStreams.length===0" class="justify-content-center d-flex">
+                <h5 class="m-5">No active streams</h5>
+              </div>
+              <div v-else v-for="channel in recordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+                <ChannelItem :channel="channel"/>
+              </div>
             </div>
-            <div v-else v-for="channel in recordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
-              <ChannelItem :channel="channel"/>
+          </div>
+
+          <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'offline'}" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+            <div class="row">
+              <div v-if="notRecordingStreams.length===0" class="justify-content-center d-flex">
+                <h5 class="m-5">Empty</h5>
+              </div>
+              <div v-else v-for="channel in notRecordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+                <ChannelItem :channel="channel"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'disabled'}" id="disabled" role="tabpanel" aria-labelledby="disabled-tab">
+            <div class="row">
+              <div v-if="disabledStreams.length===0" class="justify-content-center d-flex">
+                <h5 class="m-5">Empty</h5>
+              </div>
+              <div v-else v-for="channel in disabledStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+                <ChannelItem :channel="channel"/>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'offline'}" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-          <div class="row">
-            <div v-if="notRecordingStreams.length===0" class="justify-content-center d-flex">
-              <h5 class="m-5">Empty</h5>
-            </div>
-            <div v-else v-for="channel in notRecordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
-              <ChannelItem :channel="channel"/>
-            </div>
-          </div>
-        </div>
-
-        <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'disabled'}" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-          <div class="row">
-            <div v-if="disabledStreams.length===0" class="justify-content-center d-flex">
-              <h5 class="m-5">Empty</h5>
-            </div>
-            <div v-else v-for="channel in disabledStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
-              <ChannelItem :channel="channel"/>
-            </div>
-          </div>
-        </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -92,6 +109,8 @@ function filter(row: ChannelResponse, search: string, tag: string): boolean {
   return row.channelName.indexOf(search) !== -1 && row.tags.indexOf(tag) !== -1;
 }
 
+function sort(a: ChannelResponse, b: ChannelResponse) { return a.channelName.localeCompare(b.channelName); }
+
 interface RecordingData {
   apiUrl?: string;
   baseUrl?: string;
@@ -99,6 +118,7 @@ interface RecordingData {
   thread: number;
   busy: boolean;
   tagFilter: string;
+  favs: boolean;
 }
 
 const channelService = new ChannelApi();
@@ -112,6 +132,7 @@ export default defineComponent({
   },
   data(): RecordingData {
     return {
+      favs: false,
       thread: 0,
       searchVal: '',
       busy: false,
@@ -132,17 +153,35 @@ export default defineComponent({
     notRecordingStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => !row.isRecording && !row.isPaused)
-          .filter(row  => filter(row, this.search, this.tagFilter));
+          .filter(row => filter(row, this.search, this.tagFilter))
+          .filter(row => this.favs ? row.fav : true)
+          .sort(sort);
     },
     disabledStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => row.isPaused)
-          .filter(row  => filter(row, this.search, this.tagFilter));
+          .filter(row => filter(row, this.search, this.tagFilter))
+          .filter(row => this.favs ? row.fav : true)
+          .sort(sort);
     },
     recordingStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => row.isRecording)
-          .filter(row  => filter(row, this.search, this.tagFilter));
+          .filter(row => filter(row, this.search, this.tagFilter))
+          .filter(row => this.favs ? row.fav : true)
+          .sort(sort);
+    },
+    favStreams(): ChannelResponse[] {
+      return this.$store.state.channels.slice()
+          .filter(row => row.fav)
+          .filter(row => this.favs ? row.fav : true)
+          .sort(sort);
+    },
+    searchResults(): ChannelResponse[] {
+      return this.$store.state.channels.slice()
+          .filter(row => filter(row, this.search, this.tagFilter))
+          .filter(row => this.favs ? row.fav : true)
+          .sort(sort);
     },
   },
   methods: {

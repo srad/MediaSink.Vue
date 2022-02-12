@@ -18,7 +18,12 @@
         </h6>
       </div>
     </div>
-    <StreamInfo :channel="channel" @pause="pause" @destroy="destroyChannel"/>
+    <StreamInfo :channel="channel"
+                :fav="channel.fav"
+                @fav="fav"
+                @unfav="unfav"
+                @pause="pause"
+                @destroy="destroyChannel"/>
   </div>
 </template>
 
@@ -44,6 +49,12 @@ export default defineComponent({
     };
   },
   methods: {
+    fav(channel: ChannelResponse) {
+      channelService.fav(channel.channelName).then(() => this.$store.commit("fav", channel));
+    },
+    unfav(channel: ChannelResponse) {
+      channelService.unfav(channel.channelName).then(() => this.$store.commit("unfav", channel));
+    },
     destroyChannel(channel: ChannelResponse) {
       this.busy = true;
       if (window.confirm(`Do you want to remove the channel '${channel.channelName}'?`)) {

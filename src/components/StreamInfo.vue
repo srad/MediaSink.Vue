@@ -30,9 +30,15 @@
       </span>
     </li>
     <li class="list-group-item bg-light d-flex justify-content-between">
-      <div class="form-check form-switch">
-        <input @click="$emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" id="flexSwitchCheckDefault">
-        <label class="form-check-label" for="flexSwitchCheckDefault">Record</label>
+      <div class="d-flex">
+        <span class="form-check form-switch py-1 me-2">
+          <input @click="$emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" id="flexSwitchCheckDefault">
+          <label class="form-check-label" for="flexSwitchCheckDefault">Record</label>
+        </span>
+        <span>
+          <i class="bi bi-star-fill text-warning fs-5" @click="$emit('unfav', channel)" v-if="fav"></i>
+          <i v-else class="bi bi-star text-warning fs-5" @click="$emit('fav', channel)"></i>
+        </span>
       </div>
       <button class="btn btn-sm btn-danger float-end" @click="$emit('destroy', channel)">Delete</button>
     </li>
@@ -57,6 +63,7 @@ interface ChannelItemData {
 export default defineComponent({
   name: 'StreamInfo',
   props: {
+    fav: Boolean,
     channel: { type: Object as PropType<ChannelResponse>, required: true }
   },
   watch: {
