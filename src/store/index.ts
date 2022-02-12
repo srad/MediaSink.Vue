@@ -22,7 +22,9 @@ export const store = createStore<State>({
       state.loggedIn = true;
     },
     addChannel(state: State, channel: ChannelResponse) {
-      state.channels.push(channel);
+      if (!state.channels.some(c => c.channelName === channel.channelName)) {
+        state.channels.push(channel);
+      }
     },
     destroyChannel(state: State, channel: ChannelResponse) {
       for (let i = 0; i < state.channels.length; i += 1) {

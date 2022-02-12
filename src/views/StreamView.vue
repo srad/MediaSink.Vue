@@ -1,7 +1,10 @@
 <template>
   <div class="row">
     <div class="col">
-      <input class="form-control mb-3 bg-light border-info" type="text" placeholder="search" v-model="searchVal">
+      <input list="datalistOptions" class="form-control mb-3 bg-light border-info" type="text" placeholder="search" v-model="searchVal">
+      <datalist id="datalistOptions">
+        <option v-for="channel in $store.state.channels" :key="channel.channelName" :value="channel.channelName"/>
+      </datalist>
 
       <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
@@ -17,7 +20,9 @@
           <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'offline'}" @click="$router.push('/streams/offline/tab')" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
             <span class="d-none d-lg-inline">Offline</span>
             <span class="d-flex justify-content-between">
-              <span class="d-lg-none">Offline</span><span class="recording-number">{{ notRecordingStreams.length }}</span>
+              <span class="d-lg-none">Offline</span><span class="recording-number">{{
+                notRecordingStreams.length
+              }}</span>
             </span>
           </button>
         </li>
@@ -81,6 +86,7 @@ interface RecordingData {
   apiUrl?: string;
   baseUrl?: string;
   searchVal: string;
+  thread: number;
   busy: boolean;
 }
 
@@ -95,49 +101,47 @@ export default defineComponent({
   },
   data(): RecordingData {
     return {
+      thread: 0,
       searchVal: '',
       busy: false,
     };
   },
   computed: {
+    search() {
+      return this.searchVal.trim().toLowerCase();
+    },
     notRecordingStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => !row.isRecording && !row.isPaused)
-          .filter(row => {
-            if (this.searchVal !== '') {
-              return row.channelName.indexOf(this.searchVal) !== -1;
-            }
-            return true;
-          });
+          .filter(row => row.channelName.indexOf(this.search) !== -1);
     },
     disabledStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => row.isPaused)
-          .filter(row => {
-            if (this.searchVal !== '') {
-              return row.channelName.indexOf(this.searchVal) !== -1;
-            }
-            return true;
-          });
+          .filter(row => row.channelName.indexOf(this.search) !== -1);
     },
     recordingStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => row.isRecording)
-          .filter(row => {
-            if (this.searchVal !== '') {
-              return row.channelName.indexOf(this.searchVal) !== -1;
-            }
-            return true;
-          });
+          .filter(row => row.channelName.indexOf(this.search) !== -1);
     },
   },
-  methods: {},
-  created() {
-    this.$store.commit('clearChannels');
-    channelService.getChannels()
-        .then(res => res.data.forEach(channel => this.$store.commit('addChannel', channel)))
-        .catch(console.error);
+  methods: {
+    query() {
+      //this.$store.commit('clearChannels');
+      channelService.getChannels()
+          .then(res => res.data.forEach(channel => {
+            this.$store.commit('addChannel', channel);
+          }));
+    }
   },
+  mounted() {
+    this.query();
+    this.thread = setInterval(this.query, 10 * 1000);
+  },
+  beforeRouteLeave() {
+    clearInterval(this.thread);
+  }
   //beforeCreate() {
   //socket.on(event.channel.add, data => {
   //  this.channels.push(data.channel);

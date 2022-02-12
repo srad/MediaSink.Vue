@@ -223,17 +223,16 @@ export default defineComponent({
       }
     },
 
+    query() {
+      recording.isRecording().then(res => this.recording = res.data);
+      info.disk().then(res => this.diskInfo = res.data);
+    }
   },
   mounted() {
     this.modal = new Modal(this.$refs.addChannelModal as HTMLElement);
 
-    recording.isRecording().then(res => {
-      this.recording = res.data;
-    });
-
-    const getDskInfo = () => info.disk().then(res => this.diskInfo = res.data);
-    getDskInfo();
-    setInterval(getDskInfo, 60 * 1000);
+    this.query();
+    setInterval(this.query, 60 * 1000);
 
     //   //@ts-ignore
     //   const c = new WebSocket(this.socketUrl);
