@@ -106,10 +106,16 @@ export default defineComponent({
       const i = this.markerDownIndex;
 
       if (this.markerPos === 'start') {
+        if (x > this.markings[i].end - 50) {
+          return
+        }
         this.markings[i].start = x;
         this.markings[i].timestart = this.markings[i].start / this.width * this.duration;
         this.$emit('seek', this.markings[i].timestart);
       } else {
+        if (x < this.markings[i].start + 50) {
+          return
+        }
         this.markings[i].end = x;
         this.markings[i].timeend = this.markings[i].end / this.width * this.duration;
         this.$emit('seek', this.markings[i].timeend);
@@ -215,13 +221,36 @@ export default defineComponent({
     },
     scroll(event: WheelEvent) {
       this.$emit('scroll', event);
+    },
+    resizePreview(event: WheelEvent) {
+      const el = this.$refs.stripeimage as HTMLImageElement;
+
+      const resizeBy = event.deltaY * 3;
+      const oldWidth = el.width;
+
+      el.width += resizeBy;
+
+      if (el.width < window.innerWidth * 3 / 4) {
+        el.width = oldWidth;
+        return;
+      }
+
+      const factor = el.width / oldWidth;
+      this.width = el.width;
+
+      // Linear transformation on all x coordinates
+      this.markings.forEach(m => {
+        m.start *= factor;
+        m.end *= factor;
+      });
+      //this.$emit('scroll', event);
     }
   },
   unmounted() {
-    (this.$refs.stripe as HTMLDivElement).removeEventListener('wheel', this.scroll);
+    (this.$refs.stripe as HTMLDivElement).removeEventListener('wheel', this.resizePreview, true);
   },
   mounted() {
-    (this.$refs.stripe as HTMLDivElement).addEventListener('wheel', this.scroll);
+    (this.$refs.stripe as HTMLDivElement).addEventListener('wheel', this.resizePreview, true);
   }
 });
 </script>
@@ -253,10 +282,10 @@ export default defineComponent({
 
 .bar {
   height: 100%;
-  width: 2px;
+  width: 3px;
   background: white;
   opacity: 1;
-  cursor: col-resize;
+  cursor: ew-resize;
   user-select: none;
 }
 
