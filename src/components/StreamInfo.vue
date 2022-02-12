@@ -16,16 +16,16 @@
       </div>
     </li>
     <li class="list-group-item">
-      <template v-if="!showTagInput && channel.tags !== '' && tagArray.length > 0">
-        <span class="badge bg-secondary text-dark me-1" :key="tag" v-for="tag in tagArray">{{ tag }}
+      <template v-if="!showTagInput && tagArray.length > 0">
+        <span v-for="tag in tagArray" class="badge bg-secondary text-dark me-1" :key="tag">{{ tag }}
           <span @click="destroyTag(tag)" class="bi bi-x"></span>
         </span>
       </template>
-      <div v-if="showTagInput" class="input-group input-group-sm">
-        <input type="text" class="form-control form-control-sm" v-model.lazy="tagVal">
+      <div v-show="showTagInput" class="input-group input-group-sm">
+        <input type="text" class="form-control form-control-sm" ref="tagInput" v-model.lazy="tagVal">
         <button class="btn btn-sm btn-success" @click="addTag">save</button>
       </div>
-      <span v-else class="badge bg-success" @click="showTagInput=true">
+      <span v-show="!showTagInput" class="badge bg-success" @click="showTagInput=true">
           <span class="bi bi-plus"></span>
       </span>
     </li>
@@ -42,21 +42,29 @@
 <script lang="ts">
 import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
 import { PropType, defineComponent } from 'vue';
+import { parseTags } from '@/utils/parser';
 
 const channelApi = new ChannelApi();
 
 interface ChannelItemData {
-  tagArray: string[];
   tagVal: string;
   showTagInput: boolean;
   thread: number;
   secRecording: number;
+  tagArray: string[];
 }
 
 export default defineComponent({
   name: 'StreamInfo',
   props: {
     channel: { type: Object as PropType<ChannelResponse>, required: true }
+  },
+  watch: {
+    showTagInput(val) {
+      if (val) {
+        (this.$refs.tagInput as HTMLInputElement).focus();
+      }
+    }
   },
   computed: {
     minutes(): string {
@@ -65,11 +73,11 @@ export default defineComponent({
     seconds(): string {
       let x = (this.secRecording % 60).toFixed(0);
       return (x.length < 10 ? '0' + String(x) : x);
-    }
+    },
   },
   data(): ChannelItemData {
     return {
-      tagArray: this.channel.tags !== '' ? this.channel.tags.split(',') : [],
+      tagArray: parseTags(this.channel.tags),
       tagVal: '',
       showTagInput: false,
       thread: 0,
@@ -91,14 +99,22 @@ export default defineComponent({
         return;
       }
 
-      const newTags = [...this.tagArray];
-      newTags.push(tag);
-      channelApi.tags(this.channel.channelName, newTags)
-          .then(() => {
-            this.tagArray.push(tag);
-            this.showTagInput = false;
-            this.tagVal = '';
-          });
+      try {
+        const parsed = parseTags(tag);
+        const newTags = [...this.tagArray];
+        newTags.push(parsed[0]);
+
+        channelApi.tags(this.channel.channelName, newTags)
+            .then(() => {
+              this.tagArray = newTags;
+              this.showTagInput = false;
+              this.tagVal = '';
+            });
+      } catch (e) {
+        alert(e.message);
+        this.tagVal = '';
+        return;
+      }
     }
   },
   mounted() {
