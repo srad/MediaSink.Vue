@@ -1,10 +1,16 @@
 <template>
   <div class="row">
     <div class="col">
-      <input list="datalistOptions" class="form-control mb-3 bg-light border-info" type="text" placeholder="search" v-model="searchVal">
-      <datalist id="datalistOptions">
-        <option v-for="channel in $store.state.channels" :key="channel.channelName" :value="channel.channelName"/>
-      </datalist>
+      <div class="d-flex">
+        <input list="datalistOptions" class="form-control mb-3 bg-light border-info" type="text" placeholder="search" v-model="searchVal">
+        <datalist id="datalistOptions">
+          <option v-for="channel in $store.state.channels" :key="channel.channelName" :value="channel.channelName"/>
+        </datalist>
+        <select class="form-select mb-3 ms-3 bg-light border-info w-20" v-model="tagFilter">
+          <option value=""></option>
+          <option :key="tag" v-for="tag in tags" :value="tag">{{ tag }}</option>
+        </select>
+      </div>
 
       <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
@@ -82,12 +88,17 @@ import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
 import { defineComponent } from 'vue';
 import ChannelItem from '@/components/ChannelItem.vue';
 
+function filter(row: ChannelResponse, search: string, tag: string): boolean {
+  return row.channelName.indexOf(search) !== -1 && row.tags.indexOf(tag) !== -1;
+}
+
 interface RecordingData {
   apiUrl?: string;
   baseUrl?: string;
   searchVal: string;
   thread: number;
   busy: boolean;
+  tagFilter: string;
 }
 
 const channelService = new ChannelApi();
@@ -104,26 +115,34 @@ export default defineComponent({
       thread: 0,
       searchVal: '',
       busy: false,
+      tagFilter: '',
     };
   },
   computed: {
+    tags(): string[] {
+      const unionTags: { [key: string]: boolean; } = {};
+      this.$store.state.channels.map<string[]>(channel => channel.tags !== '' ? channel.tags.split(',') : [])
+          .forEach(tags => tags.forEach(tag => unionTags[tag] = true));
+
+      return Object.keys(unionTags);
+    },
     search() {
       return this.searchVal.trim().toLowerCase();
     },
     notRecordingStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => !row.isRecording && !row.isPaused)
-          .filter(row => row.channelName.indexOf(this.search) !== -1);
+          .filter(row  => filter(row, this.search, this.tagFilter));
     },
     disabledStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => row.isPaused)
-          .filter(row => row.channelName.indexOf(this.search) !== -1);
+          .filter(row  => filter(row, this.search, this.tagFilter));
     },
     recordingStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => row.isRecording)
-          .filter(row => row.channelName.indexOf(this.search) !== -1);
+          .filter(row  => filter(row, this.search, this.tagFilter));
     },
   },
   methods: {

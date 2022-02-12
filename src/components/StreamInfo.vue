@@ -15,6 +15,20 @@
         <span>Videos: {{ channel.recordingsCount }}</span>
       </div>
     </li>
+    <li class="list-group-item">
+      <template v-if="!showTagInput && channel.tags !== '' && tagArray.length > 0">
+        <span class="badge bg-secondary text-dark me-1" :key="tag" v-for="tag in tagArray">{{ tag }}
+          <span @click="destroyTag(tag)" class="bi bi-x"></span>
+        </span>
+      </template>
+      <div v-if="showTagInput" class="input-group input-group-sm">
+        <input type="text" class="form-control form-control-sm" v-model.lazy="tagVal">
+        <button class="btn btn-sm btn-success" @click="addTag">save</button>
+      </div>
+      <span v-else class="badge bg-success" @click="showTagInput=true">
+          <span class="bi bi-plus"></span>
+      </span>
+    </li>
     <li class="list-group-item bg-light d-flex justify-content-between">
       <div class="form-check form-switch">
         <input @click="$emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" id="flexSwitchCheckDefault">
@@ -25,27 +39,67 @@
   </ul>
 </template>
 
-<script>
+<script lang="ts">
+import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
+import { PropType, defineComponent } from 'vue';
 
-export default {
-  name: "StreamInfo",
+const channelApi = new ChannelApi();
+
+interface ChannelItemData {
+  tagArray: string[];
+  tagVal: string;
+  showTagInput: boolean;
+  thread: number;
+  secRecording: number;
+}
+
+export default defineComponent({
+  name: 'StreamInfo',
   props: {
-    channel: Object
+    channel: { type: Object as PropType<ChannelResponse>, required: true }
   },
   computed: {
-    minutes() {
+    minutes(): string {
       return (this.secRecording / 60).toFixed(0);
     },
-    seconds() {
+    seconds(): string {
       let x = (this.secRecording % 60).toFixed(0);
-      return (x < 10 ? "0" + String(x) : x);
+      return (x.length < 10 ? '0' + String(x) : x);
     }
   },
-  data() {
+  data(): ChannelItemData {
     return {
+      tagArray: this.channel.tags !== '' ? this.channel.tags.split(',') : [],
+      tagVal: '',
+      showTagInput: false,
       thread: 0,
       secRecording: this.channel.minRecording * 60
     };
+  },
+  methods: {
+    destroyTag(tag: string) {
+      const removeTag = this.tagArray.filter(t => t !== tag);
+      channelApi.tags(this.channel.channelName, removeTag)
+          .then(() => this.tagArray = removeTag);
+    },
+    addTag() {
+      const tag = this.tagVal.trim().toLowerCase();
+
+      // No value, cancel
+      if (tag === '') {
+        this.showTagInput = false;
+        return;
+      }
+
+      const newTags = [...this.tagArray];
+      newTags.push(tag);
+      channelApi.tags(this.channel.channelName, newTags)
+          .then(() => {
+            this.tagArray.push(tag);
+            this.showTagInput = false;
+            this.tagVal = '';
+          });
+    }
   },
   mounted() {
     if (this.channel.isRecording) {
@@ -59,7 +113,7 @@ export default {
       clearInterval(this.thread);
     }
   }
-};
+});
 </script>
 
 <style scoped>

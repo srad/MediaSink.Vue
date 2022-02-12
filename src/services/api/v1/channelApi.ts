@@ -11,6 +11,7 @@ export interface ChannelResponse {
   isOnline: boolean;
   preview: string;
   url: string;
+  tags: string;
   minRecording: number;
 }
 
@@ -37,6 +38,10 @@ export class ChannelApi extends BaseApi {
 
   resume(channelName: string): Promise<AxiosResponse<void>> {
     return this.axios.post(`/channels/${channelName}/resume`);
+  }
+
+  tags(channelName: string, tags: string[]): Promise<AxiosResponse<void>> {
+    return this.axios.post(`/channels/${channelName}/tags`, { tags });
   }
 
   write(channelName: string): Promise<AxiosResponse<void>> {
