@@ -42,6 +42,7 @@
 
           <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative overflow-hidden" style="height: 10%;">
             <Stripe :src="fileUrl + '/' + previewStripe"
+                    :paused="paused"
                     :timecode="timecode"
                     :duration="duration"
                     :markings="markings"

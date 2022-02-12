@@ -89,6 +89,7 @@ export default defineComponent({
     src: { type: String, required: true },
     timecode: { type: Number, required: true },
     duration: { type: Number, required: true },
+    paused: { type: Boolean, required: true },
   },
   watch: {
     timecode() {
@@ -122,6 +123,10 @@ export default defineComponent({
       }
     },
     markerUp() {
+      if (!this.paused) {
+        return
+      }
+
       this.markerDownIndex = 0;
       this.markerPos = '';
       document.body.style.cursor = 'default';
@@ -129,6 +134,10 @@ export default defineComponent({
       window.removeEventListener('mouseup', this.markerUp);
     },
     markerDown(event: MouseEvent, marker: Object, i: number, pos: string) {
+      if (!this.paused) {
+        return
+      }
+
       event.preventDefault();
       event.cancelBubble = true;
       if (this.markerDownIndex !== 0) {
@@ -162,6 +171,9 @@ export default defineComponent({
       this.mouseOffsetX = this.getMouseX(event);
     },
     down(event: MouseEvent) {
+      if (!this.paused) {
+        return
+      }
       event.preventDefault();
       event.cancelBubble = true;
 
@@ -185,6 +197,10 @@ export default defineComponent({
       return false;
     },
     up(event: MouseEvent) {
+      if (!this.paused) {
+        return
+      }
+
       this.showBar = true;
       const startX = this.left as number;
       const endX = this.getMouseX(event);
