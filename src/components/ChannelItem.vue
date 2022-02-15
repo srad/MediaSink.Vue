@@ -8,7 +8,7 @@
     <Preview class="card-img-top"
              @selected="viewFolder(channel.channelName)"
              :data="{channelName: channel}"
-             :image="baseUrl +'/'+ channel.preview"/>
+             :image="baseUrl +'/'+ channel.preview + (channel.previewUpdate ? '?' + String(channel.previewUpdate.getTime()) : '')"/>
     <div class="card-body">
       <div class="card-title p-1" :class="{'bg-primary' : !channel.isOnline, 'bg-success': channel.isOnline && !channel.isRecording, 'bg-danger': channel.isRecording}">
         <h6 class="p-2 m-0 text-white">

@@ -10,6 +10,7 @@ export interface ChannelResponse {
   isRecording: boolean;
   isOnline: boolean;
   preview: string;
+  previewUpdate: Date;
   fav: boolean;
   url: string;
   tags: string;

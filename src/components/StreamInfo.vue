@@ -79,7 +79,7 @@ export default defineComponent({
     },
     seconds(): string {
       let x = (this.secRecording % 60).toFixed(0);
-      return (x.length < 10 ? '0' + String(x) : x);
+      return (x.length < 2 ? '0' + String(x) : x);
     },
   },
   data(): ChannelItemData {

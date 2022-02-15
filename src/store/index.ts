@@ -15,6 +15,27 @@ export const store = createStore<State>({
     loggedIn: false,
   },
   mutations: {
+    online(state: State, channelName: string) {
+      const i = state.channels.findIndex(ch => ch.channelName === channelName);
+      state.channels[i].isOnline = true;
+    },
+    offline(state: State, channelName: string) {
+      const i = state.channels.findIndex(ch => ch.channelName === channelName);
+      state.channels[i].isOnline = false;
+      state.channels[i].isRecording = false;
+    },
+    thumbnail(state: State, channelName: string) {
+      const i = state.channels.findIndex(ch => ch.channelName === channelName);
+      state.channels[i].previewUpdate = new Date();
+    },
+    start(state: State, channelName: string) {
+      const i = state.channels.findIndex(ch => ch.channelName === channelName);
+      state.channels[i].isRecording = true;
+      state.channels[i].isOnline = true;
+    },
+    destroyJob(state: State, channelName: string) {
+      console.log('TODO: implement destroyJob');
+    },
     login(state: State) {
       state.loggedIn = true;
     },

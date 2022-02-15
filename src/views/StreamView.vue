@@ -126,7 +126,7 @@ const channelService = new ChannelApi();
 export default defineComponent({
   name: 'Recording',
   components: { ChannelItem },
-  inject: ['baseUrl', 'apiUrl', 'fileUrl'],
+  inject: ['baseUrl', 'apiUrl', 'fileUrl', 'socketUrl'],
   props: {
     channel: String,
   },
@@ -184,27 +184,37 @@ export default defineComponent({
           .sort(sort);
     },
   },
-  methods: {
-    query() {
-      //this.$store.commit('clearChannels');
-      channelService.getChannels()
-          .then(res => res.data.forEach(channel => {
-            this.$store.commit('addChannel', channel);
-          }));
-    }
-  },
+  methods: {},
   mounted() {
-    this.query();
-    this.thread = setInterval(this.query, 10 * 1000);
+    channelService.getChannels()
+        .then(res => res.data.forEach(channel => {
+          this.$store.commit('addChannel', channel);
+        }));
   },
   beforeRouteLeave() {
     clearInterval(this.thread);
+  },
+  created() {
+    //@ts-ignore
+    const c = new WebSocket(this.socketUrl);
+
+    // const send = function (data: any) {
+    //   c.send(JSON.stringify(data));
+    // };
+
+    c.onmessage = (msg: any) => {
+      const data = JSON.parse(msg.data) as { tag: string, message: string };
+      this.$store.commit(data.tag, data.message);
+    };
+
+    c.onopen = function () {
+      console.log('open ws');
+    };
+
+    c.onerror = (ev: Event) => {
+      console.error(ev);
+    };
   }
-  //beforeCreate() {
-  //socket.on(event.channel.add, data => {
-  //  this.channels.push(data.channel);
-  //});
-  //}
 });
 </script>
 

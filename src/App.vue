@@ -222,7 +222,6 @@ export default defineComponent({
         }
       }
     },
-
     query() {
       recording.isRecording().then(res => this.recording = res.data);
       info.disk().then(res => this.diskInfo = res.data);
@@ -230,63 +229,8 @@ export default defineComponent({
   },
   mounted() {
     this.modal = new Modal(this.$refs.addChannelModal as HTMLElement);
-
     this.query();
-    setInterval(this.query, 60 * 1000);
-
-    //   //@ts-ignore
-    //   const c = new WebSocket(this.socketUrl);
-    //
-    //   // const send = function (data: any) {
-    //   //   console.log('Send: ', data);
-    //   //   c.send(data);
-    //   // };
-    //
-    //   c.onmessage = function (msg: any) {
-    //     console.log('Received', msg);
-    //   };
-    //
-    //   c.onopen = function () {
-    //     console.log('open ws');
-    //   };
-    // });
-
-    // socket.on(event.system.metrics, data => {
-    //   this.cpu = data.cpu;
-    //   this.uptime = data.uptime;
-    //   this.memTotal = data.mem.totalMemMb;
-    //   this.memUsed = data.mem.usedMemMb;
-    //   this.netInput = data.net.speed.receiveBytes;
-    //   this.netOutput = data.net.speed.transmitBytes;
-    //   this.netInTraffic = data.net.volume.receiveTotalBytes;
-    //   this.netOutTraffic = data.net.volume.transmitTotalBytes;
-    //   this.diskUsed = data.disk.used;
-    //   this.diskTotal = data.disk.total;
-    // });
-
-    // socket.on(event.stream.start, text => {
-    //   this.log += text + "\n";
-    // });
-    //
-    // socket.on(event.stream.end, data => {
-    //   this.log += data.message + "\n";
-    // });
-    //
-    // socket.on(event.stream.preview, data => {
-    //   this.log += data.message + "\n";
-    // });
-    //
-    // socket.on(event.notify, message => {
-    //   alert(message);
-    // });
-    //
-    // socket.on("start-all", () => {
-    //   this.recording = true;
-    // });
-    //
-    // socket.on("stop-all", () => {
-    //   this.recording = false;
-    // });
+    setInterval(this.query, 10 * 1000);
   },
 });
 </script>
