@@ -1,5 +1,6 @@
 import { BaseApi } from './base';
-import { AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
+import { RecordingResponse } from '@/services/api/v1/recordingApi';
 
 export interface ChannelResponse {
   channelId: number;
@@ -56,5 +57,15 @@ export class ChannelApi extends BaseApi {
 
   write(channelName: string): Promise<AxiosResponse<void>> {
     return this.axios.post(`/channels/${channelName}/write`);
+  }
+
+  upload(channelName: string, file: File, progress: (pcent: number) => void): Promise<AxiosResponse<RecordingResponse>> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.axios.post(`/channels/${channelName}/upload`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: progressEvent => progress(progressEvent.loaded / progressEvent.total)
+    });
   }
 }

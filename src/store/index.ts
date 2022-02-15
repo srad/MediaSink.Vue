@@ -1,10 +1,18 @@
 import { InjectionKey } from 'vue';
 import { createStore, Store } from 'vuex';
 import { ChannelResponse } from '@/services/api/v1/channelApi';
+import { JobResponse } from '@/services/api/v1/jobApi';
 
 export interface State {
   channels: ChannelResponse[];
+  jobs: JobMessage[];
   loggedIn: boolean;
+}
+
+export interface JobMessage {
+  channelName: string;
+  filename: string;
+  type: string;
 }
 
 export const key: InjectionKey<Store<State>> = Symbol();
@@ -12,29 +20,40 @@ export const key: InjectionKey<Store<State>> = Symbol();
 export const store = createStore<State>({
   state: {
     channels: [],
+    jobs: [],
     loggedIn: false,
   },
   mutations: {
-    online(state: State, channelName: string) {
-      const i = state.channels.findIndex(ch => ch.channelName === channelName);
+    'job:preview:done'(state: State, data: JobMessage) {
+      console.log('Job done', data);
+    },
+    'job:preview:progress'(state: State, data) {
+      console.log('Progrss: ', data);
+    },
+    'job:create'(state: State, data: JobMessage) {
+      state.jobs.push(data);
+    },
+    'job:destroy'(state: State, data: JobMessage) {
+      const i = state.jobs.findIndex(j => j.filename === data.channelName);
+      state.jobs.splice(i, 1);
+    },
+    'channel:online'(state: State, data: { channelName: string }) {
+      const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
       state.channels[i].isOnline = true;
     },
-    offline(state: State, channelName: string) {
-      const i = state.channels.findIndex(ch => ch.channelName === channelName);
+    'channel:offline'(state: State, data: { channelName: string }) {
+      const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
       state.channels[i].isOnline = false;
       state.channels[i].isRecording = false;
     },
-    thumbnail(state: State, channelName: string) {
-      const i = state.channels.findIndex(ch => ch.channelName === channelName);
+    'channel:thumbnail'(state: State, data: { channelName: string }) {
+      const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
       state.channels[i].previewUpdate = new Date();
     },
-    start(state: State, channelName: string) {
-      const i = state.channels.findIndex(ch => ch.channelName === channelName);
+    'channel:start'(state: State, data: { channelName: string }) {
+      const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
       state.channels[i].isRecording = true;
       state.channels[i].isOnline = true;
-    },
-    destroyJob(state: State, channelName: string) {
-      console.log('TODO: implement destroyJob');
     },
     login(state: State) {
       state.loggedIn = true;

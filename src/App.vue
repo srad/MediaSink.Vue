@@ -37,13 +37,8 @@
             <i class="bi bi-list-check"></i>
           </button>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Action</a></li>
-            <li><a class="dropdown-item" href="#">Another action</a></li>
-            <li><a class="dropdown-item" href="#">Something else here</a></li>
-            <li>
-              <hr class="dropdown-divider">
+            <li :key="job.filename" v-for="job in $store.jobs"><a class="dropdown-item" href="#">{{ job.filename }}</a>
             </li>
-            <li><a class="dropdown-item" href="#">Separated link</a></li>
           </ul>
         </div>
 
@@ -119,6 +114,7 @@ import { RecordingApi } from './services/api/v1/recordingApi';
 import { DiskInfo, InfoApi } from '@/services/api/v1/infoApi';
 import { Modal } from 'bootstrap';
 import { defineComponent } from 'vue';
+import socket from '@/utils/socket';
 
 const channel = new ChannelApi();
 const recording = new RecordingApi();
@@ -232,6 +228,12 @@ export default defineComponent({
     this.query();
     setInterval(this.query, 10 * 1000);
   },
+  created() {
+    socket.on('job:create', data => this.$store.commit('job:create', data));
+    socket.on('job:destroy', data => this.$store.commit('job:destroy', data));
+    socket.on('job:preview:done', data => this.$store.commit('job:preview:done', data));
+    socket.on('job:preview:progress', data => this.$store.commit('job:preview:progress', data));
+  }
 });
 </script>
 

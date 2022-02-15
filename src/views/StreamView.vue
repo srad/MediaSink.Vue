@@ -99,8 +99,7 @@
 </template>
 
 <script lang="ts">
-//import socket from "@/socket";
-//import event from "@/services/event";
+import socket from '@/utils/socket';
 import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
 import { defineComponent } from 'vue';
 import ChannelItem from '@/components/ChannelItem.vue';
@@ -195,25 +194,10 @@ export default defineComponent({
     clearInterval(this.thread);
   },
   created() {
-    //@ts-ignore
-    const c = new WebSocket(this.socketUrl);
-
-    // const send = function (data: any) {
-    //   c.send(JSON.stringify(data));
-    // };
-
-    c.onmessage = (msg: any) => {
-      const data = JSON.parse(msg.data) as { tag: string, message: string };
-      this.$store.commit(data.tag, data.message);
-    };
-
-    c.onopen = function () {
-      console.log('open ws');
-    };
-
-    c.onerror = (ev: Event) => {
-      console.error(ev);
-    };
+    socket.on('channel:online', data => this.$store.commit('channel:online', data));
+    socket.on('channel:offline', data => this.$store.commit('channel:offline', data));
+    socket.on('channel:thumbnail', data => this.$store.commit('channel:thumbnail', data));
+    socket.on('channel:start', data => this.$store.commit('channel:start', data));
   }
 });
 </script>
