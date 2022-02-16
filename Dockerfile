@@ -32,6 +32,7 @@ FROM nginx:stable-alpine as production-stage
 
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 COPY .htpasswd /etc/nginx
+RUN mkdir -p /recordings
 
 EXPOSE 80
 
