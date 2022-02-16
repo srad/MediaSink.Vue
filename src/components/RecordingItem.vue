@@ -1,11 +1,17 @@
 <template>
   <div style="z-index: 10"
-       class="card bg-light border-primary border position-relative shadow-sm bg-light"
+       class="card bg-light border-info border position-relative shadow-sm bg-light"
        :class="{'animate__animated animate__zoomOut': destroyed,}">
     <div v-if="busy" class="bg-dark opacity-50 position-absolute w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 100">
       <div class="loader"></div>
     </div>
     <div class="position-relative">
+      <span class="badge bg-success position-absolute" style="user-select: none; z-index: 10; top: 10px; left: 10px">
+        <span v-if="recording.width===1920">1080</span>
+        <span v-else-if="recording.width===1280">720</span>
+        <span v-else-if="recording.width===3840">4k</span>
+        <span v-else>{{ recording.width }}x{{ recording.height }}</span>
+      </span>
       <span v-if="recording.videoType==='cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
       <Preview class="card-img-top" :data="recording" @selected="load(recording)" :preview-video="fileUrl + '/' + recording.previewVideo"/>
     </div>

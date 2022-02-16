@@ -61,7 +61,8 @@
         </button>
       </div>
     </nav>
-    <div class="container-fluid py-3" style="overflow-y: scroll">
+
+    <div class="container-fluid py-3">
       <router-view v-slot="{ Component }">
         <!--<keep-alive include="[StatusView,RecordingView,BookmarkView,LogView,VideoView]">-->
         <component :is="Component"/>
@@ -119,7 +120,6 @@ import socket from '@/utils/socket';
 const channel = new ChannelApi();
 const recording = new RecordingApi();
 const info = new InfoApi();
-
 const channelParser = /^[a-z_0-9]+$/i;
 
 interface AppData {
