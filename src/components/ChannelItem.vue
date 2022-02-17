@@ -1,5 +1,5 @@
 <template>
-  <div class="card bg-light mb-3 border shadow-sm position-relative"
+  <div class="card bg-light mb-3 border shadow-sm position-relative zoom"
        :class="{'animate__animated animate__zoomOut': destroyed, 'opacity-50': channel.isPaused, 'border-primary': !channel.isRecording, 'border-danger border-2': channel.isRecording}">
     <div v-if="busy" class="bg-dark opacity-50 position-absolute w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 100">
       <div class="loader"></div>
@@ -92,5 +92,4 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
 </style>

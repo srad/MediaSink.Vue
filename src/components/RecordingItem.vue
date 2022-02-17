@@ -1,6 +1,6 @@
 <template>
   <div style="z-index: 10"
-       class="card bg-light border-info border position-relative shadow-sm bg-light"
+       class="card bg-light border-info border position-relative shadow-sm bg-light zoom"
        :class="{'animate__animated animate__zoomOut': destroyed,}">
     <div v-if="busy" class="bg-dark opacity-50 position-absolute w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 100">
       <div class="loader"></div>

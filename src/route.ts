@@ -15,7 +15,7 @@ const routes = [
   { path: '/', redirect: '/streams/live/tab' },
   { path: '/admin', name: 'Admin', component: AdminView },
   { path: '/jobs', name: 'Job', component: JobView },
-  { path: '/streams/:tab/tab', name: 'Stream', component: StreamView },
+  { path: '/streams/:tab/tab/:tag?', name: 'Stream', component: StreamView },
   { path: '/streams/:channel', name: 'StreamItem', component: StreamItemView, props: true },
   { path: '/gallery/:type', name: 'Gallery', component: LatestView },
   { path: '/recordings/:channelName/:filename', name: 'Video', component: VideoView, props: true },

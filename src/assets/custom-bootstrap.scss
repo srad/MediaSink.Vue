@@ -1,7 +1,20 @@
-// scss-docs-start import-stack
-// Configuration
+$white: #ffffff;
+
+$theme-colors: (
+    "primary": #4b4e6d,
+    "secondary": #dcdcdd,
+    "success": #197278,
+    "info": #ab9db4,
+    "warning": #e9c46a,
+    "danger": #990d35,
+    "light": #f4f3ee,
+    "dark": #180f1d,
+);
+
 @import "~bootstrap/scss/functions";
+
 @import "./variables";
+
 @import "~bootstrap/scss/mixins";
 @import "~bootstrap/scss/utilities";
 

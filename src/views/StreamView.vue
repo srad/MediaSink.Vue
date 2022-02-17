@@ -30,7 +30,7 @@
       <div v-else class="col">
         <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
           <li class="nav-item" role="presentation">
-            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'live'}" @click="$router.push('/streams/live/tab')" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
+            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'live'}" @click="tab('live')" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
               <span class="d-none d-lg-inline">Live</span>
               <span class="d-flex justify-content-between">
               <span class="d-lg-none">Rec</span>
@@ -39,7 +39,7 @@
             </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'offline'}" @click="$router.push('/streams/offline/tab')" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
+            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'offline'}" @click="tab('offline')" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
               <span class="d-none d-lg-inline">Offline</span>
               <span class="d-flex justify-content-between">
               <span class="d-lg-none">Offline</span><span class="recording-number">{{
@@ -49,7 +49,7 @@
             </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'disabled'}" @click="$router.push('/streams/disabled/tab')" id="disabled-tab" data-bs-toggle="tab" data-bs-target="#disabled" type="button" role="tab" aria-controls="disabled" aria-selected="false">
+            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'disabled'}" @click="tab('disabled')" id="disabled-tab" data-bs-toggle="tab" data-bs-target="#disabled" type="button" role="tab" aria-controls="disabled" aria-selected="false">
               <span class="d-none d-lg-inline">Disabled</span>
               <span class="d-flex justify-content-between">
               <span class="d-lg-none">Disabled</span><span class="recording-number">{{ disabledStreams.length }}</span>
@@ -135,8 +135,14 @@ export default defineComponent({
       thread: 0,
       searchVal: '',
       busy: false,
-      tagFilter: '',
+      //@ts-ignore
+      tagFilter: this.$route.params.tag || '',
     };
+  },
+  watch: {
+    tagFilter(val) {
+      this.$router.replace({params:{tag:  val}});
+    }
   },
   computed: {
     tags(): string[] {
@@ -183,7 +189,11 @@ export default defineComponent({
           .sort(sort);
     },
   },
-  methods: {},
+  methods: {
+    tab(tab: string) {
+      this.$router.push({name: "Stream", params: {tag: this.tagFilter, tab}});
+    }
+  },
   mounted() {
     channelService.getChannels()
         .then(res => res.data.forEach(channel => {
