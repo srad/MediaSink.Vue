@@ -1,5 +1,5 @@
 import { BaseApi } from './base';
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse, CancelTokenSource } from 'axios';
 import { RecordingResponse } from '@/services/api/v1/recordingApi';
 
 export interface ChannelResponse {
@@ -59,13 +59,15 @@ export class ChannelApi extends BaseApi {
     return this.axios.post(`/channels/${channelName}/write`);
   }
 
-  upload(channelName: string, file: File, progress: (pcent: number) => void): Promise<AxiosResponse<RecordingResponse>> {
+  upload(channelName: string, file: File, progress: (pcent: number) => void): [Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource] {
+    const source = axios.CancelToken.source();
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.axios.post(`/channels/${channelName}/upload`, formData, {
+    return [this.axios.post(`/channels/${channelName}/upload`, formData, {
+      cancelToken: source.token,
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: progressEvent => progress(progressEvent.loaded / progressEvent.total)
-    });
+    }), source]
   }
 }
