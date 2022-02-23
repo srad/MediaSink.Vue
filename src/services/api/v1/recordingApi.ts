@@ -60,18 +60,18 @@ export class RecordingApi extends BaseApi {
   }
 
   updateInfo(): Promise<AxiosResponse<void>> {
-    return this.axios.post(`/recordings/updateinfo`);
+    return this.axios.post(`/recorder/updateinfo`);
   }
 
   isRecording(): Promise<AxiosResponse<boolean>> {
-    return this.axios.get(`/recording`);
+    return this.axios.get(`/recorder`);
   }
 
   resume(): Promise<AxiosResponse<void>> {
-    return this.axios.post(`/recordings/resume`);
+    return this.axios.post(`/recorder/resume`);
   }
 
   pause(): Promise<AxiosResponse<void>> {
-    return this.axios.post(`/recordings/pause`);
+    return this.axios.post(`/recorder/pause`);
   }
 }

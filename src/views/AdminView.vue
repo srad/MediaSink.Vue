@@ -1,5 +1,18 @@
 <template>
   <div class="container-fluid pt-2">
+    <!--
+    <div class="row">
+      <div class="col">
+        <network-chart/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <c-p-u-chart/>
+      </div>
+    </div>
+
     <div class="row">
       <div class="col">
         <button class="btn btn-warning me-2" @click="updateInfo">
@@ -9,6 +22,7 @@
     </div>
 
     <hr/>
+    -->
 
     <div class="row">
       <div class="col">
@@ -103,6 +117,8 @@
 import { InfoApi, InfoResponse } from '@/services/api/v1/infoApi';
 import { defineComponent } from 'vue';
 import { RecordingApi } from '@/services/api/v1/recordingApi';
+//import CPUChart from '@/components/charts/CPUChart.vue';
+//import NetworkChart from '@/components/charts/NetworkChart.vue';
 
 const api = new InfoApi();
 
@@ -110,12 +126,47 @@ interface AdminData {
   id: number;
   recordingApi: RecordingApi;
   infoResponse: InfoResponse;
+  cpuData: {
+    labels: string[],
+    datasets: {
+      label: string,
+      backgroundColor: string,
+      data: any[]
+    }[]
+  } | null;
+  options: any;
+}
+
+function getRandomInt(): number {
+  return Math.floor(Math.random() * (50 - 5 + 1)) + 5;
 }
 
 export default defineComponent({
   name: 'AdminView',
+  //components: { CPUChart, NetworkChart },
   data(): AdminData {
     return {
+      cpuData: {
+        labels: ['A', 'B'],
+        datasets: [
+          {
+            backgroundColor: 'rgb(77, 186, 135)',
+            label: 'Game Overs',
+            data: []
+          }
+        ]
+      },
+      options: {
+        scales: {
+          yAxes: [
+            {
+              ticks: {
+                beginAtZero: true
+              }
+            }
+          ]
+        }
+      },
       recordingApi: new RecordingApi(),
       id: 0,
       infoResponse: {
@@ -126,6 +177,22 @@ export default defineComponent({
     };
   },
   methods: {
+    fillData() {
+      this.cpuData = {
+        labels: ['A', 'B'],
+        datasets: [
+          {
+            label: 'Data One',
+            backgroundColor: '#f87979',
+            data: [getRandomInt(), getRandomInt()]
+          }, {
+            label: 'Data One',
+            backgroundColor: '#f87979',
+            data: [getRandomInt(), getRandomInt()]
+          }
+        ]
+      };
+    },
     updateInfo() {
       if (window.confirm('Check all durations and update in database?')) {
 
@@ -148,7 +215,10 @@ export default defineComponent({
   },
   created() {
     this.id = setInterval(this.fetch, 2500);
-  }
+  },
+  mounted() {
+    this.fillData();
+  },
 });
 </script>
 
