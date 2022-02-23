@@ -6,7 +6,7 @@ export class BaseApi {
   constructor() {
     this.axios = axios.create({
       baseURL: process.env.VUE_APP_APIURL,
-      timeout: 10000,
+      timeout: 10 * 60 * 1000,
     });
 
     // this.axios.interceptors.request.use(req => {

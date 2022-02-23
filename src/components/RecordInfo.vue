@@ -2,13 +2,15 @@
   <ul class="list-group list-group-flush border-top border-secondary">
     <li class="list-group-item d-flex justify-content-center">
       <span>
-        <i class="bi bi-watch"></i>
         {{ durationFormatted }}min
       </span>
       <span class="text-secondary px-2">/</span>
       <span>
-        <i class="bi bi-device-hdd"></i>
         {{ (size / 1000 / 1000 / 1000).toFixed(1) }}GB
+      </span>
+      <span class="text-secondary px-2">/</span>
+      <span>
+        {{ago}}
       </span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between">
@@ -56,6 +58,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 //import { RecordingResponse } from '@/services/api/v1/recordingApi';
+import moment from 'moment';
 
 export default defineComponent({
   name: 'RecordInfo',
@@ -79,6 +82,7 @@ export default defineComponent({
   data() {
     return {
       expand: false,
+      ago: moment(this.createdAt).fromNow()
     };
   },
   methods: {},

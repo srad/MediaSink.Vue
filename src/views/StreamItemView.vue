@@ -24,8 +24,8 @@
 
     <nav class="navbar fixed-bottom navbar-light bg-light border-info border-top">
       <div class="container-fluid justify-content-end w-100">
-        <button class="btn btn-danger me-3">
-          Delete Stream
+        <button class="btn btn-danger me-3" @click="deleteChannel">
+          Delete Channel
         </button>
 
         <button class="btn btn-info text-white" @click="$refs.file.click()">
@@ -92,6 +92,12 @@ export default defineComponent({
     };
   },
   methods: {
+    deleteChannel() {
+      if (window.confirm(`Delete channel "${this.channelName}"?`)) {
+        channelApi.destroy(this.channelName);
+        this.$router.back();
+      }
+    },
     cancelUpload() {
       if (this.cancellationToken) {
         this.cancellationToken.cancel();

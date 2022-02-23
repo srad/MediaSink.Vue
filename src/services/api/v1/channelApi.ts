@@ -9,6 +9,7 @@ export interface ChannelResponse {
   isPaused: boolean;
   createdAt: string;
   isRecording: boolean;
+  recordingsSize: number;
   isOnline: boolean;
   preview: string;
   previewUpdate: Date;
