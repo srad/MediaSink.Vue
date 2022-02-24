@@ -2,10 +2,13 @@
   <div>
     <div class="row">
       <div class="d-flex">
-        <input list="datalistOptions" class="form-control mb-3 bg-light border-info" type="text" placeholder="search" v-model="searchVal">
+        <input autocapitalize="off" class="form-control mb-3 bg-light border-info" type="text" placeholder="search" v-model="searchVal">
+        <!--
+        slow...
         <datalist id="datalistOptions">
           <option v-for="channel in $store.state.channels" :key="channel.channelName" :value="channel.channelName"/>
         </datalist>
+        -->
         <select class="form-select mb-3 ms-3 bg-light border-info w-20" v-model="tagFilter">
           <option value=""></option>
           <option :key="tag" v-for="tag in tags" :value="tag">{{ tag }}</option>

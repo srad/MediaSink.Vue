@@ -16,6 +16,10 @@ export class JobApi extends BaseApi {
     super();
   }
 
+  term(pid: number): Promise<AxiosResponse<number>> {
+    return this.axios.post(`/jobs/stop/${pid}`);
+  }
+
   fetch(): Promise<AxiosResponse<JobResponse[]>> {
     return this.axios.get(`/jobs`);
   }
