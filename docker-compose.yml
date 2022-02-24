@@ -2,6 +2,7 @@ version: '3.7'
 services:
   streamsinkclient:
     container_name: streamsink-client
+    restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
     build:
