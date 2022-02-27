@@ -5,7 +5,7 @@ import { JobResponse } from '@/services/api/v1/jobApi';
 
 export interface State {
   channels: ChannelResponse[];
-  jobs: JobMessage[];
+  jobs: JobResponse[];
   loggedIn: boolean;
 }
 
@@ -31,7 +31,8 @@ export const store = createStore<State>({
       console.log('Progrss: ', data);
     },
     'job:create'(state: State, data: JobMessage) {
-      state.jobs.push(data);
+      // TODO
+      //state.jobs.push({ channelName: data.channelName, filename: data.filename, jobId: 0 });
     },
     'job:destroy'(state: State, data: JobMessage) {
       const i = state.jobs.findIndex(j => j.filename === data.channelName);
@@ -60,6 +61,9 @@ export const store = createStore<State>({
     },
     logout(state: State) {
       state.loggedIn = true;
+    },
+    addJob(state: State, job: JobResponse) {
+      state.jobs.push(job);
     },
     addChannel(state: State, channel: ChannelResponse) {
       if (!state.channels.some(c => c.channelName === channel.channelName)) {

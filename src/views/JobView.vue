@@ -48,20 +48,15 @@
 </template>
 
 <script lang="ts">
-import {JobApi, JobResponse} from "@/services/api/v1/jobApi";
 import {defineComponent} from "vue";
-import moment from 'moment';
-
+import { JobApi, JobResponse } from '@/services/api/v1/jobApi';
 const jobApi = new JobApi();
 
-interface JobData {
-  jobs: JobResponse[];
-}
-
 export default defineComponent({
-  data(): JobData {
+  data(): {jobs: JobResponse[]} {
     return {
-      jobs: []
+      //@ts-ignore
+      jobs: this.$store.state.jobs,
     };
   },
   methods: {
@@ -69,14 +64,6 @@ export default defineComponent({
       jobApi.term(pid)
     }
   },
-  created() {
-    jobApi.fetch().then(result => {
-      this.jobs = result.data.map((job: JobResponse) => {
-        job.createdAt = moment(job.createdAt).fromNow();
-        return job;
-      });
-    }).catch(err => console.log(err));
-  }
 });
 </script>
 

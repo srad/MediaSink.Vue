@@ -20,7 +20,10 @@
         </div>
 
         <div class="text-white d-flex justify-content-between align-middle me-3 d-none d-lg-flex">
-          <span class="fw-bold me-2 ">Disk ({{ diskInfo.pcent }})</span>
+          <span class="fw-bold me-2 ">
+            {{ diskInfo.pcent }}
+            <i class="bi bi-hdd"></i>
+          </span>
           <span class="progress m-1" style="min-width: 120px">
             <span class="progress-bar bg-info progress-bar-striped"
                   role="progressbar"
@@ -32,13 +35,20 @@
           </span>
         </div>
 
-        <div class="btn-group me-2">
-          <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-list-check"></i>
+        <div class="dropdown">
+          <button :disabled="jobs.length === 0" type="button" class="position-relative me-2 btn btn-warning dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            Jobs
+            <span v-if="jobs.length > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+              {{ jobs.length }}
+              <span class="visually-hidden">open jobs</span>
+            </span>
           </button>
           <ul class="dropdown-menu">
-            <li :key="job.filename" v-for="job in $store.jobs"><a class="dropdown-item" href="#">{{ job.filename }}</a>
-            </li>
+            <template :key="job.filename" v-for="job in jobs">
+              <li v-if="job.status!=='recording'">
+                <a class="dropdown-item" href="#">{{ job.filename }} ({{ job.status }})</a>
+              </li>
+            </template>
           </ul>
         </div>
 
@@ -51,7 +61,7 @@
             <i class="bi bi-stop-fill"></i>
             stop
           </button>
-          <button class="btn btn-info text-white ms-2" @click="showAddChannelModal">
+          <button class="btn btn-success text-white ms-2" @click="showAddChannelModal">
             Add Stream
           </button>
         </div>
@@ -121,6 +131,8 @@ const channel = new ChannelApi();
 const recording = new RecordingApi();
 const info = new InfoApi();
 const channelParser = /^[a-z_0-9]+$/i;
+const jobApi = new JobApi();
+import { JobApi, JobResponse } from '@/services/api/v1/jobApi';
 
 interface AppData {
   title: string;
@@ -158,6 +170,12 @@ export default defineComponent({
         { url: '/admin', title: 'Admin' }
       ]
     };
+  },
+  computed: {
+    jobs() {
+      //@ts-ignore
+      return this.$store.state.jobs.slice().filter(job => job.status !== 'recording');
+    }
   },
   watch: {
     $route() {
@@ -233,6 +251,9 @@ export default defineComponent({
     socket.on('job:destroy', data => this.$store.commit('job:destroy', data));
     socket.on('job:preview:done', data => this.$store.commit('job:preview:done', data));
     socket.on('job:preview:progress', data => this.$store.commit('job:preview:progress', data));
+    jobApi.fetch()
+        .then(result => result.data.forEach((job: JobResponse) => this.$store.commit('addJob', job)))
+        .catch(err => console.log(err));
   }
 });
 </script>
