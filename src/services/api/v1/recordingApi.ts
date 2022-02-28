@@ -74,4 +74,8 @@ export class RecordingApi extends BaseApi {
   pause(): Promise<AxiosResponse<void>> {
     return this.axios.post(`/recorder/pause`);
   }
+
+  posters(): Promise<AxiosResponse<void>> {
+    return this.axios.post(`/recordings/generate/posters`);
+  }
 }

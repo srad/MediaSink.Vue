@@ -7,12 +7,13 @@
       </div>
     </li>
     <li class="list-group-item d-flex justify-content-between">
-      <span v-if="channel.isRecording">Recorded: {{ minutes }}:{{ seconds }}min</span>
+      <span v-if="channel.isRecording">
+        <i class="bi bi-stopwatch me-1"></i>
+        <span>{{ minutes }}:{{ seconds }}min</span>
+      </span>
       <span v-else>&nbsp;</span>
       <div>
-        <span><i class="bi bi-device-hdd"></i> {{ (channel.recordingsSize / 1000 / 1000 / 1000).toFixed(1) }}GB</span>
-        |
-        <span>Videos: {{ channel.recordingsCount }}</span>
+        <span><i class="bi bi-device-hdd"></i> {{ (channel.recordingsSize / 1000 / 1000 / 1000).toFixed(1) }}GB ({{ channel.recordingsCount }})</span>
       </div>
     </li>
     <li class="list-group-item">

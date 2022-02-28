@@ -12,17 +12,20 @@
         <c-p-u-chart/>
       </div>
     </div>
+    -->
 
     <div class="row">
       <div class="col">
-        <button class="btn btn-warning me-2" @click="updateInfo">
+        <button class="btn btn-primary me-2" @click="updateInfo">
           Update All Video Infos
+        </button>
+        <button class="btn btn-primary me-2" @click="posters">
+          Regenerate all posters
         </button>
       </div>
     </div>
 
     <hr/>
-    -->
 
     <div class="row">
       <div class="col">
@@ -177,6 +180,11 @@ export default defineComponent({
     };
   },
   methods: {
+    posters() {
+      if (window.confirm("Regenerate all posters?")) {
+        this.recordingApi.posters();
+      }
+    },
     fillData() {
       this.cpuData = {
         labels: ['A', 'B'],
