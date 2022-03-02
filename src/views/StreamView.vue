@@ -1,20 +1,31 @@
 <template>
   <div>
+    <ChannelModal
+        @save="save"
+        @close="showModal=false"
+        title="Edit Stream"
+        :channel-disabled="true"
+        :clear="false"
+        :channel-id="channelId"
+        :show="showModal"
+        :channel-name="channelName"
+        :display-name="displayName"
+        :url="url"
+        :skip-start="skipStart"/>
+
     <div class="row">
-      <div class="d-flex">
-        <input autocapitalize="off" class="form-control mb-3 bg-light border-info" type="text" placeholder="search" v-model="searchVal">
-        <!--
-        slow...
-        <datalist id="datalistOptions">
-          <option v-for="channel in $store.state.channels" :key="channel.channelName" :value="channel.channelName"/>
-        </datalist>
-        -->
-        <select class="form-select mb-3 ms-3 bg-light border-info w-20" v-model="tagFilter">
-          <option value=""></option>
-          <option :key="tag" v-for="tag in tags" :value="tag">{{ tag }}</option>
-        </select>
-        <i v-if="favs" class="bi bi-star-fill text-warning fs-4 ms-2" @click="favs=false"></i>
-        <i v-else class="bi bi-star text-warning fs-4 ms-2" @click="favs=true"></i>
+      <div class="col">
+        <div class="d-flex rounded-2 border mb-3 p-0 bg-light border-info p-1">
+          <input autocapitalize="off" class="w-100 p-2 border-0 bg-transparent" type="text" placeholder="search ... #tag" v-model="searchVal">
+          <!--
+          <select class="form-select mb-3 ms-3 bg-light border-info w-20" v-model="tagFilter">
+            <option value=""></option>
+            <option :key="tag" v-for="tag in tags" :value="tag">{{ tag }}</option>
+          </select>
+          -->
+          <i v-if="favs" class="px-2 bi bi-star-fill text-warning fs-4 ms-2" @click="favs=false"></i>
+          <i v-else class="px-2 bi bi-star text-warning fs-4 ms-2" @click="favs=true"></i>
+        </div>
       </div>
     </div>
     <div class="row">
@@ -68,7 +79,7 @@
                 <h5 class="m-5">No active streams</h5>
               </div>
               <div v-else v-for="channel in recordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
-                <ChannelItem :channel="channel"/>
+                <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
             </div>
           </div>
@@ -79,7 +90,7 @@
                 <h5 class="m-5">Empty</h5>
               </div>
               <div v-else v-for="channel in notRecordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
-                <ChannelItem :channel="channel"/>
+                <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
             </div>
           </div>
@@ -90,7 +101,7 @@
                 <h5 class="m-5">Empty</h5>
               </div>
               <div v-else v-for="channel in disabledStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
-                <ChannelItem :channel="channel"/>
+                <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
             </div>
           </div>
@@ -103,9 +114,11 @@
 
 <script lang="ts">
 import socket from '@/utils/socket';
-import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
+import { ChannelApi, ChannelRequest, ChannelResponse } from '@/services/api/v1/channelApi';
 import { defineComponent } from 'vue';
 import ChannelItem from '@/components/ChannelItem.vue';
+import ChannelModal from '@/components/modals/ChannelModal.vue';
+import { AxiosError, AxiosResponse } from 'axios';
 
 function filter(row: ChannelResponse, search: string, tag: string): boolean {
   return row.channelName.indexOf(search) !== -1 && row.tags.indexOf(tag) !== -1;
@@ -121,19 +134,31 @@ interface RecordingData {
   busy: boolean;
   tagFilter: string;
   favs: boolean;
+  showModal: boolean;
+  channelId: number;
+  channelName: string;
+  displayName: string;
+  skipStart: number;
+  url: string;
 }
 
 const channelService = new ChannelApi();
 
 export default defineComponent({
   name: 'Recording',
-  components: { ChannelItem },
+  components: { ChannelItem, ChannelModal },
   inject: ['baseUrl', 'apiUrl', 'fileUrl', 'socketUrl'],
   props: {
     channel: String,
   },
   data(): RecordingData {
     return {
+      channelId: 0,
+      showModal: false,
+      channelName: '',
+      displayName: '',
+      url: '',
+      skipStart: 0,
       favs: false,
       thread: 0,
       searchVal: '',
@@ -144,7 +169,7 @@ export default defineComponent({
   },
   watch: {
     tagFilter(val) {
-      this.$router.replace({params:{tag:  val}});
+      this.$router.replace({ params: { tag: val } });
     }
   },
   computed: {
@@ -155,27 +180,33 @@ export default defineComponent({
 
       return Object.keys(unionTags);
     },
-    search() {
+    search(): string {
       return this.searchVal.trim().toLowerCase();
+    },
+    searchTerms(): string {
+      return this.search.split(' ').filter(s => s[0] !== '#').join(' ');
+    },
+    tagTerms(): string {
+      return this.search.split(' ').filter(s => s[0] === '#').map(s => s.slice(1, s.length)).join(' ');
     },
     notRecordingStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => !row.isRecording && !row.isPaused)
-          .filter(row => filter(row, this.search, this.tagFilter))
+          .filter(row => filter(row, this.searchTerms, this.tagTerms))
           .filter(row => this.favs ? row.fav : true)
           .sort(sort);
     },
     disabledStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => row.isPaused)
-          .filter(row => filter(row, this.search, this.tagFilter))
+          .filter(row => filter(row, this.searchTerms, this.tagTerms))
           .filter(row => this.favs ? row.fav : true)
           .sort(sort);
     },
     recordingStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => row.isRecording)
-          .filter(row => filter(row, this.search, this.tagFilter))
+          .filter(row => filter(row, this.searchTerms, this.tagTerms))
           .filter(row => this.favs ? row.fav : true)
           .sort(sort);
     },
@@ -187,14 +218,34 @@ export default defineComponent({
     },
     searchResults(): ChannelResponse[] {
       return this.$store.state.channels.slice()
-          .filter(row => filter(row, this.search, this.tagFilter))
+          .filter(row => filter(row, this.searchTerms, this.tagTerms))
           .filter(row => this.favs ? row.fav : true)
           .sort(sort);
     },
   },
   methods: {
+    save(data: ChannelRequest) {
+      channelService.update(data)
+          .then((res: AxiosResponse<ChannelResponse>) => {
+            this.showModal = false;
+            this.$store.commit('updateChannel', res.data);
+            this.showModal = false;
+          })
+          .catch((err: AxiosError) => {
+            alert(err.response?.data);
+            this.showModal = false;
+          });
+    },
+    editChannel(channel: ChannelRequest) {
+      this.channelId = channel.channelId!;
+      this.channelName = channel.channelName;
+      this.displayName = channel.displayName;
+      this.url = channel.url;
+      this.skipStart = channel.skipStart;
+      this.showModal = true;
+    },
     tab(tab: string) {
-      this.$router.push({name: "Stream", params: {tag: this.tagFilter, tab}});
+      this.$router.push({ name: 'Stream', params: { tag: this.tagFilter, tab } });
     }
   },
   mounted() {

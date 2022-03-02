@@ -6,6 +6,8 @@ export interface ChannelResponse {
   channelId: number;
   recordingsCount: number;
   channelName: string;
+  displayName: string;
+  skipStart: number;
   isPaused: boolean;
   createdAt: string;
   isRecording: boolean;
@@ -19,6 +21,16 @@ export interface ChannelResponse {
   minRecording: number;
 }
 
+// Used for post and update
+export interface ChannelRequest {
+  channelId?: number;
+  channelName: string;
+  displayName: string;
+  skipStart: number;
+  url: string;
+  tags?: string[];
+}
+
 export class ChannelApi extends BaseApi {
   constructor() {
     super();
@@ -26,6 +38,10 @@ export class ChannelApi extends BaseApi {
 
   add(data: { channelName: string, url: string }): Promise<AxiosResponse<ChannelResponse>> {
     return this.axios.post('/channels', data);
+  }
+
+  update(channel: ChannelRequest): Promise<AxiosResponse<ChannelResponse>> {
+    return this.axios.post(`/channels/${channel.channelName}`, channel);
   }
 
   destroy(channelName: string): Promise<AxiosResponse<void>> {
@@ -69,6 +85,6 @@ export class ChannelApi extends BaseApi {
       cancelToken: source.token,
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: progressEvent => progress(progressEvent.loaded / progressEvent.total)
-    }), source]
+    }), source];
   }
 }

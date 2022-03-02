@@ -65,7 +65,7 @@ import { defineComponent } from 'vue';
 import RecordingItem from '@/components/RecordingItem.vue';
 import { ChannelApi } from '@/services/api/v1/channelApi';
 import { Modal } from 'bootstrap';
-import { CancelTokenSource } from 'axios';
+import { AxiosError, CancelTokenSource } from 'axios';
 
 const recordingApi = new RecordingApi();
 const channelApi = new ChannelApi();
@@ -156,7 +156,8 @@ export default defineComponent({
           this.modal!.hide();
           // clear old file
           el.value = '';
-        }).catch(() => {
+        }).catch((err: AxiosError) => {
+          alert(err.response?.data);
           this.modal!.hide();
         });
         this.cancellationToken = cancellationToken;
@@ -178,9 +179,9 @@ export default defineComponent({
       this.recordings = res.data;
       this.busy = false;
       window.scrollTo(0, 0);
-    }).catch(err => {
+    }).catch((err: AxiosError) => {
       this.busy = false;
-      alert(err);
+      alert(err.response?.data);
     });
   }
 });

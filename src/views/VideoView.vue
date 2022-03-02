@@ -108,6 +108,7 @@ import { RecordingApi } from '@/services/api/v1/recordingApi';
 import { defineComponent } from 'vue';
 import { Marking } from '@/components/Stripe.vue';
 import Stripe from '@/components/Stripe.vue';
+import { AxiosError } from 'axios';
 
 interface VideoData {
   markings: any[];
@@ -227,7 +228,7 @@ export default defineComponent({
             .then(() => {
               this.markings = [];
             })
-            .catch(err => alert(err));
+            .catch((err: AxiosError) => alert(err.response?.data));
       }
     },
     isPaused() {

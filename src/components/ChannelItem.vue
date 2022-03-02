@@ -13,13 +13,14 @@
       <div class="card-title p-1" :class="{'bg-primary' : !channel.isOnline, 'bg-success': channel.isOnline && !channel.isRecording, 'bg-danger': channel.isRecording}">
         <h6 class="p-2 m-0 text-white">
           <a class="text-white" target="_blank" :href="channel.url">
-            {{ channel.channelName }}
+            {{ channel.displayName }}
           </a>
         </h6>
       </div>
     </div>
     <StreamInfo :channel="channel"
                 :fav="channel.fav"
+                @edit="(data) => $emit('edit', data)"
                 @fav="fav"
                 @unfav="unfav"
                 @pause="pause"
@@ -32,12 +33,14 @@ import { defineComponent } from 'vue';
 import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
 import StreamInfo from '@/components/StreamInfo.vue';
 import Preview from '@/components/Preview.vue';
+import { AxiosError } from 'axios';
 
 const channelService = new ChannelApi();
 
 export default defineComponent({
   name: 'ChannelItem',
   components: { StreamInfo, Preview },
+  emits: ['edit'],
   inject: ['baseUrl', 'apiUrl', 'fileUrl'],
   props: {
     channel: Object
@@ -50,10 +53,10 @@ export default defineComponent({
   },
   methods: {
     fav(channel: ChannelResponse) {
-      channelService.fav(channel.channelName).then(() => this.$store.commit("fav", channel));
+      channelService.fav(channel.channelName).then(() => this.$store.commit('fav', channel));
     },
     unfav(channel: ChannelResponse) {
-      channelService.unfav(channel.channelName).then(() => this.$store.commit("unfav", channel));
+      channelService.unfav(channel.channelName).then(() => this.$store.commit('unfav', channel));
     },
     destroyChannel(channel: ChannelResponse) {
       this.busy = true;
@@ -66,8 +69,8 @@ export default defineComponent({
                 this.busy = false;
               }, 1000);
             })
-            .catch(err => {
-              alert(err);
+            .catch((err: AxiosError) => {
+              alert(err.response?.data);
               this.busy = false;
             });
       }
@@ -79,8 +82,8 @@ export default defineComponent({
             this.$store.commit('pauseChannel', { channel, pause: !channel.isPaused });
             this.busy = false;
           })
-          .catch(err => {
-            alert(err);
+          .catch((err: AxiosError) => {
+            alert(err.response?.data);
             this.busy = false;
           });
     },

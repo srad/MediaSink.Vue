@@ -70,12 +70,16 @@ export const store = createStore<State>({
         state.channels.push(channel);
       }
     },
+    updateChannel(state: State, channel: ChannelResponse) {
+      const i = state.channels.findIndex(c => c.channelName === channel.channelName);
+      if (i !== -1) {
+        state.channels[i] = channel;
+      }
+    },
     destroyChannel(state: State, channel: ChannelResponse) {
-      for (let i = 0; i < state.channels.length; i += 1) {
-        if (state.channels[i].channelName === channel.channelName) {
-          state.channels.splice(i, 1);
-          break;
-        }
+      const i = state.channels.findIndex(c => c.channelName === channel.channelName);
+      if (i !== -1) {
+        state.channels.splice(i, 1);
       }
     },
     pauseChannel(state: State, data: { channel: ChannelResponse, pause: boolean }) {

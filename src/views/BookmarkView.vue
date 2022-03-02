@@ -15,6 +15,7 @@
 import { RecordingApi, RecordingResponse } from '@/services/api/v1/recordingApi';
 import { defineComponent } from 'vue';
 import RecordingItem from '@/components/RecordingItem.vue';
+import { AxiosError } from 'axios';
 
 interface BookmarkData {
   baseUrl?: string;
@@ -45,9 +46,8 @@ export default defineComponent({
             break;
           }
         }
-      }).catch(err => {
-        console.error(err);
-        alert(err);
+      }).catch((err: AxiosError) => {
+        alert(err.response?.data);
       });
     },
   },

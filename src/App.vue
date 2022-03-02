@@ -61,7 +61,7 @@
             <i class="bi bi-stop-fill"></i>
             stop
           </button>
-          <button class="btn btn-success text-white ms-2" @click="showAddChannelModal">
+          <button class="btn btn-success text-white ms-2" @click="showModal=true">
             Add Stream
           </button>
         </div>
@@ -74,72 +74,34 @@
 
     <div class="container-fluid py-3">
       <router-view v-slot="{ Component }">
-        <!--<keep-alive include="[StatusView,RecordingView,BookmarkView,LogView,VideoView]">-->
-        <component :is="Component"/>
-        <!--</keep-alive>-->
+        <keep-alive include="[StreamView]">
+          <component :is="Component"/>
+        </keep-alive>
       </router-view>
     </div>
 
-    <div class="modal fade border-primary" ref="addChannelModal" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title" id="exampleModalToggleLabel2">Add Stream</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="url" class="form-label fw-bold">URL</label>
-              <div class="input-group mb-3">
-                <input type="url" autocomplete="off" ref="url" class="form-control" id="url" v-model="url" @input="recommendChannelName">
-                <button class="btn btn-outline-secondary" type="button" id="button-addon1" @click="paste">
-                  Paste
-                </button>
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="channel" class="form-label fw-bold">Channel name</label>
-              <input type="text" autocomplete="off" class="form-control" id="channel" v-model="channelName">
-              <div class="fs-6 my-2">Only <span class="badge bg-info">a-z</span> and
-                <span class="badge bg-info">_</span> allowed.
-                This will also be the parent folder name for all recordings of this service.
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer bg-light">
-            <button class="btn btn-primary" @click="save">
-              Save
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <ChannelModal :clear="showModal" :show="showModal" title="Add Stream" @save="save" @close="showModal=false"/>
   </main>
 </template>
 
 <script lang="ts">
-//import socket from "./socket";
-//import event from "./services/event";
-import { ChannelApi } from './services/api/v1/channelApi';
+import { ChannelRequest, ChannelResponse, ChannelApi } from './services/api/v1/channelApi';
 import { RecordingApi } from './services/api/v1/recordingApi';
 import { DiskInfo, InfoApi } from '@/services/api/v1/infoApi';
-import { Modal } from 'bootstrap';
 import { defineComponent } from 'vue';
 import socket from '@/utils/socket';
+import ChannelModal from '@/components/modals/ChannelModal.vue';
 
 const channel = new ChannelApi();
 const recording = new RecordingApi();
 const info = new InfoApi();
-const channelParser = /^[a-z_0-9]+$/i;
 const jobApi = new JobApi();
 import { JobApi, JobResponse } from '@/services/api/v1/jobApi';
+import { AxiosError, AxiosResponse } from 'axios';
 
 interface AppData {
   title: string;
-  modal?: Modal;
-  channelName: string;
-  url: string;
-  shown: boolean;
+  showModal: boolean;
   recording: boolean;
   online: boolean;
   collapseNav: boolean;
@@ -150,14 +112,12 @@ interface AppData {
 export default defineComponent({
   name: 'App',
   inject: ['socketUrl'],
+  components: { ChannelModal },
   data(): AppData {
     return {
       diskInfo: { avail: '', pcent: '', size: '', used: '' },
       title: process.env.VUE_APP_NAME,
-      modal: undefined,
-      channelName: '',
-      url: '',
-      shown: true,
+      showModal: false,
       recording: false,
       online: false,
       collapseNav: true,
@@ -183,46 +143,28 @@ export default defineComponent({
     }
   },
   methods: {
-    async paste() {
-      this.url = await navigator.clipboard.readText();
-      this.recommendChannelName();
-    },
-    recommendChannelName() {
-      const find = this.url.toLowerCase()
-          .split('/')
-          .find(s => channelParser.test(s));
-
-      if (find) {
-        this.channelName = find;
-      }
-    },
     toggle() {
       this.collapseNav = !this.collapseNav;
     },
-    showAddChannelModal() {
-      this.channelName = '';
-      this.url = '';
-      this.modal?.show();
-      (this.$refs.url as HTMLInputElement).focus();
-    },
-    async save() {
-      if (/[a-z_]+/i.test(this.channelName)) {
-        channel.add({ channelName: this.channelName, url: this.url })
-            .then(res => {
-              this.modal?.hide();
-              this.$store.commit('addChannel', res.data);
-              // TODO: vuex add global channel data
-            })
-            .catch((err: Error) => alert(err));
-      }
+    async save(data: ChannelRequest) {
+      channel.add(data)
+          .then((res: AxiosResponse<ChannelResponse>) => {
+            this.showModal = false;
+            this.$store.commit('addChannel', res.data);
+            this.showModal = false;
+          })
+          .catch((err: AxiosError) => {
+            alert(err);
+            this.showModal = false;
+          });
     },
     record(resume: boolean) {
       if (resume) {
         if (window.confirm('Start recording?')) {
           recording.resume().then(() => {
             this.recording = true;
-          }).catch(err => {
-            alert(err);
+          }).catch((err: AxiosError) => {
+            alert(err.response?.data);
           });
         }
       } else {
@@ -230,8 +172,8 @@ export default defineComponent({
           recording.pause().then(() => {
             this.$store.commit('stopChannels');
             this.recording = false;
-          }).catch(err => {
-            alert(err);
+          }).catch((err: AxiosError) => {
+            alert(err.response?.data);
           });
         }
       }
@@ -242,7 +184,6 @@ export default defineComponent({
     }
   },
   mounted() {
-    this.modal = new Modal(this.$refs.addChannelModal as HTMLElement);
     this.query();
     setInterval(this.query, 10 * 1000);
   },
@@ -253,7 +194,7 @@ export default defineComponent({
     socket.on('job:preview:progress', data => this.$store.commit('job:preview:progress', data));
     jobApi.fetch()
         .then(result => result.data.forEach((job: JobResponse) => this.$store.commit('addJob', job)))
-        .catch(err => console.log(err));
+        .catch((err: AxiosError) => alert(err.response?.data));
   }
 });
 </script>

@@ -120,6 +120,7 @@
 import { InfoApi, InfoResponse } from '@/services/api/v1/infoApi';
 import { defineComponent } from 'vue';
 import { RecordingApi } from '@/services/api/v1/recordingApi';
+import { AxiosError } from 'axios';
 //import CPUChart from '@/components/charts/CPUChart.vue';
 //import NetworkChart from '@/components/charts/NetworkChart.vue';
 
@@ -205,7 +206,7 @@ export default defineComponent({
       if (window.confirm('Check all durations and update in database?')) {
 
         this.recordingApi.updateInfo()
-            .catch(err => alert(err));
+            .catch((err: AxiosError) => alert(err.response?.data));
       }
     },
     fetch() {
@@ -213,8 +214,8 @@ export default defineComponent({
         this.infoResponse.netInfo = res.data.netInfo;
         this.infoResponse.diskInfo = res.data.diskInfo;
         this.infoResponse.cpuInfo = res.data.cpuInfo;
-      }).catch(err => {
-        alert('Error: \n\n' + err.response.data);
+      }).catch((err: AxiosError) => {
+        alert(err.response?.data);
       });
     }
   },

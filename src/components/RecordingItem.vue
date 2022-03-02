@@ -46,6 +46,7 @@ import RecordInfo from '@/components/RecordInfo.vue';
 import Preview from '@/components/Preview.vue';
 import { RecordingApi, RecordingResponse } from '@/services/api/v1/recordingApi';
 import { defineComponent, PropType } from 'vue';
+import { AxiosError } from 'axios';
 
 const recordingApi = new RecordingApi();
 
@@ -91,8 +92,8 @@ export default defineComponent({
             this.$store.commit('pauseChannel', { channel: recording.channelName, pause: yesNo });
             this.busy = false;
           })
-          .catch(err => {
-            alert(err);
+          .catch((err: AxiosError) => {
+            alert(err.response?.data);
             this.busy = false;
           });
     },
@@ -103,9 +104,9 @@ export default defineComponent({
             .then(() => {
               this.busy = false;
             })
-            .catch(err => {
+            .catch((err: AxiosError) => {
               this.busy = false;
-              alert(err.data);
+              alert(err.response?.data);
             });
       }
     },
@@ -119,10 +120,9 @@ export default defineComponent({
         this.destroyed = true;
         setTimeout(() => this.$emit('destroyed', recording), 1000);
         this.busy = false;
-      }).catch(err => {
+      }).catch((err: AxiosError) => {
         this.busy = false;
-        console.error(err);
-        alert(err);
+        alert(err.response?.data);
       });
     },
   }

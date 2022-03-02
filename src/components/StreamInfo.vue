@@ -2,8 +2,8 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item d-flex justify-content-between">
       <div>
-        <span class="badge me-2" :class="{'bg-danger text-white border border-danger blink': channel.isRecording, 'bg-light text-primary border-info border': !channel.isRecording}">Recording</span>
-        <span class="badge" :class="{'bg-success text-white border border-success': channel.isOnline, 'bg-light text-primary border-info border': !channel.isOnline}">Online</span>
+        <span class="badge me-2 user-select-none" :class="{'bg-danger text-white border border-danger blink': channel.isRecording, 'bg-light text-primary border-info border': !channel.isRecording}">Recording</span>
+        <span class="badge user-select-none" :class="{'bg-success text-white border border-success': channel.isOnline, 'bg-light text-primary border-info border': !channel.isOnline}">Online</span>
       </div>
     </li>
     <li class="list-group-item d-flex justify-content-between">
@@ -13,17 +13,19 @@
       </span>
       <span v-else>&nbsp;</span>
       <div>
-        <span><i class="bi bi-device-hdd"></i> {{ (channel.recordingsSize / 1000 / 1000 / 1000).toFixed(1) }}GB ({{ channel.recordingsCount }})</span>
+        <span><i class="bi bi-device-hdd"></i> {{
+            (channel.recordingsSize / 1000 / 1000 / 1000).toFixed(1)
+          }}GB ({{ channel.recordingsCount }})</span>
       </div>
     </li>
     <li class="list-group-item">
       <template v-if="!showTagInput && tagArray.length > 0">
-        <span v-for="tag in tagArray" class="badge bg-secondary text-dark me-1" :key="tag">{{ tag }}
+        <span v-for="tag in tagArray" class="badge bg-secondary text-dark me-1 user-select-none" :key="tag">{{ tag }}
           <span @click="destroyTag(tag)" class="bi bi-x"></span>
         </span>
       </template>
       <div v-show="showTagInput" class="input-group input-group-sm">
-        <input type="text" class="form-control form-control-sm" ref="tagInput" v-model.lazy="tagVal">
+        <input type="text" class="form-control form-control-sm" ref="tagInput" v-model.lazy="tagVal" autocapitalize="off" autocomplete="off">
         <button class="btn btn-sm btn-success" @click="addTag">save</button>
       </div>
       <span v-show="!showTagInput" class="badge bg-success" @click="showTagInput=true">
@@ -41,7 +43,12 @@
           <i v-else class="bi bi-star text-warning fs-5" @click="$emit('fav', channel)"></i>
         </span>
       </div>
-      <button class="btn btn-sm btn-danger float-end" @click="$emit('destroy', channel)">Delete</button>
+      <div>
+        <button class="btn btn-sm btn-secondary me-1" @click="$emit('edit', channel)">
+          <i class="bi bi-pen"></i>
+        </button>
+        <button class="btn btn-sm btn-danger" @click="$emit('destroy', channel)">Delete</button>
+      </div>
     </li>
   </ul>
 </template>
@@ -63,6 +70,7 @@ interface ChannelItemData {
 
 export default defineComponent({
   name: 'StreamInfo',
+  emits: ['unfav', 'fav', 'edit', 'destroy', 'pause'],
   props: {
     fav: Boolean,
     channel: { type: Object as PropType<ChannelResponse>, required: true }
