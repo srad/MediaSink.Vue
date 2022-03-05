@@ -43,7 +43,18 @@
               Define how many seconds at start should be skipped when recording, i.e. for Twitch 15s.
             </div>
           </div>
+
+          <div class="mb-3">
+            <div class="form-check form-switch">
+              <input type="checkbox" required :checked="myIsPaused" class="form-check-input" id="pause" v-model="myIsPaused">
+              <label class="form-check-label">Pause Recording</label>
+            </div>
+            <div class="fs-6 my-2">
+              Do not record as long as paused.
+            </div>
+          </div>
         </div>
+
         <div class="modal-footer bg-light">
           <button class="btn btn-primary" @click="save" :disabled="saving">
             <div class="spinner-border spinner-border-sm text-light" role="status" v-show="saving">
@@ -52,6 +63,7 @@
             Save
           </button>
         </div>
+
       </div>
     </div>
   </div>
@@ -71,6 +83,7 @@ interface ChannelModalData {
   mySkipStart: number;
   myUrl: string;
   myTitle: string;
+  myIsPaused: boolean;
   saving: boolean;
 }
 
@@ -80,6 +93,7 @@ export default defineComponent({
   props: {
     channelDisabled: { type: Boolean, required: false, default: false },
     clear: { type: Boolean, required: true },
+    isPaused: { type: Boolean, required: true },
     show: { type: Boolean, required: true },
     channelId: { type: Number, required: false },
     channelName: { type: String, required: false },
@@ -91,6 +105,7 @@ export default defineComponent({
   data(): ChannelModalData {
     return {
       modal: undefined,
+      myIsPaused: this.isPaused,
       myTitle: this.title,
       myUrl: this.url || '',
       myDisplayName: this.displayName || '',
@@ -128,6 +143,9 @@ export default defineComponent({
     },
     skipStart(val) {
       this.mySkipStart = val;
+    },
+    isPaused(val) {
+      this.myIsPaused = val;
     }
   },
   methods: {
@@ -155,6 +173,7 @@ export default defineComponent({
     save() {
       if (/[a-z_]+/i.test(this.myChannelName)) {
         this.$emit('save', {
+          isPaused: this.myIsPaused,
           channelId: this.channelId,
           channelName: this.myChannelName,
           url: this.myUrl,

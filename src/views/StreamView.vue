@@ -4,6 +4,7 @@
         @save="save"
         @close="showModal=false"
         title="Edit Stream"
+        :is-paused="isPaused"
         :channel-disabled="true"
         :clear="false"
         :channel-id="channelId"
@@ -135,7 +136,9 @@ interface RecordingData {
   tagFilter: string;
   favs: boolean;
   showModal: boolean;
+
   channelId: number;
+  isPaused: boolean;
   channelName: string;
   displayName: string;
   skipStart: number;
@@ -157,6 +160,7 @@ export default defineComponent({
       showModal: false,
       channelName: '',
       displayName: '',
+      isPaused: false,
       url: '',
       skipStart: 0,
       favs: false,
@@ -240,6 +244,7 @@ export default defineComponent({
       this.channelId = channel.channelId!;
       this.channelName = channel.channelName;
       this.displayName = channel.displayName;
+      this.isPaused = channel.isPaused;
       this.url = channel.url;
       this.skipStart = channel.skipStart;
       this.showModal = true;

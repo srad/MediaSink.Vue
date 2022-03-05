@@ -6,7 +6,9 @@
       <div class="loader"></div>
     </div>
     <div class="position-relative">
-      <input v-if="showSelection" type="checkbox" @click="checked=!checked" :checked="checked" class="position-absolute" style="right: 10px; top: 10px; z-index: 10; width: 20px; height: 20px">
+      <div @click="checked=!checked" class="position-absolute" style="padding: 10px; right: 0px; top: 0px; z-index: 10;">
+        <input v-if="showSelection" type="checkbox" :checked="checked" style="width: 20px; height: 20px">
+      </div>
       <span class="badge bg-success position-absolute" style="user-select: none; z-index: 10; top: 10px; left: 10px">
         <span v-if="recording.width===1920">1080</span>
         <span v-else-if="recording.width===1280">720</span>

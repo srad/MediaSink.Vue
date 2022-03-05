@@ -55,12 +55,11 @@
         </div>
 
         <div class="modal-footer p-0">
-          <div class="d-flex input-group m-0" v-if="pathRelative">
-            <div class="btn-group m-1">
-              <button class="btn btn-danger" @click="$emit('destroy', {channelName: channelName, filename: filename})">
-                Delete
-              </button>
-            </div>
+          <div class="d-flex justify-content-between" v-if="pathRelative">
+            <button class="btn btn-danger" @click="destroy">
+              Delete
+            </button>
+            <!--
             <div class="m-1 rounded-1 fw-6 px-1 py-3 border-info border">
               {{ (timecode / 60).toFixed(2) }}min
             </div>
@@ -71,13 +70,12 @@
                    @input="customSeek($event)"
                    min="0"
                    :max="duration">
-            <!--
             <input type="range" class="m-1 p-4 form-control form-range" v-model="playbackSpeed" step="0.1"
                    min="0.1"
                    max="5.0"/>
-                   -->
+
             <div class="btn-group m-1">
-              <!--<button class="btn btn-dark" type="button" @click="playbackSpeed=1.0">Reset</button>-->
+              <button class="btn btn-dark" type="button" @click="playbackSpeed=1.0">Reset</button>
 
               <button v-if="!muted" class="btn btn-warning" type="button" @click="muted=true">
                 Mute
@@ -90,10 +88,10 @@
               <button v-else class="btn btn-success" type="button" @click="paused=true">
                 Play
               </button>
-              <button v-if="markings.length > 0" class="btn btn-warning" type="button" @click="exportVideo">
-                Cut
-              </button>
-            </div>
+              -->
+            <button v-if="markings.length > 0" class="btn btn-warning" type="button" @click="exportVideo">
+              Cut
+            </button>
           </div>
         </div>
       </div>
@@ -130,9 +128,9 @@ export default defineComponent({
   components: { Stripe },
   inject: ['fileUrl'],
   props: {
-    channelName: String,
-    filename: String,
-    pathRelative: String,
+    channelName: { type: String, required: true },
+    filename: { type: String, required: true },
+    pathRelative: { type: String, required: true },
     previewStripe: String,
 
   },
@@ -215,6 +213,16 @@ export default defineComponent({
     },
     endSegment(end: number) {
       (this.$refs.video as HTMLVideoElement).currentTime = end;
+    },
+    destroy() {
+      if (!window.confirm('Delete?')) {
+        return;
+      }
+      recording.destroy(this.channelName, this.filename)
+          .then(() => this.$router.back())
+          .catch((err: AxiosError) => {
+            alert(err.response?.data);
+          });
     },
     exportVideo() {
       if (window.confirm('Export selected segments?')) {

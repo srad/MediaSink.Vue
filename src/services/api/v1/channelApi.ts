@@ -25,6 +25,7 @@ export interface ChannelResponse {
 export interface ChannelRequest {
   channelId?: number;
   channelName: string;
+  isPaused: boolean;
   displayName: string;
   skipStart: number;
   url: string;
