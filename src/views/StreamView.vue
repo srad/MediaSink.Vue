@@ -131,7 +131,6 @@ interface RecordingData {
   apiUrl?: string;
   baseUrl?: string;
   searchVal: string;
-  thread: number;
   busy: boolean;
   tagFilter: string;
   favs: boolean;
@@ -164,7 +163,6 @@ export default defineComponent({
       url: '',
       skipStart: 0,
       favs: false,
-      thread: 0,
       //@ts-ignore
       searchVal: this.$route.query.search || this.$route.query.tag || this.$route.params.tag || '',
       busy: false,
@@ -269,9 +267,6 @@ export default defineComponent({
         .then(res => res.data.forEach(channel => {
           this.$store.commit('addChannel', channel);
         }));
-  },
-  beforeRouteLeave() {
-    clearInterval(this.thread);
   },
   created() {
     socket.on('channel:online', data => this.$store.commit('channel:online', data));
