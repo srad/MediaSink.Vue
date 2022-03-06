@@ -20,8 +20,8 @@
     </li>
     <li class="list-group-item">
       <template v-if="!showTagInput && tagArray.length > 0">
-        <span v-for="tag in tagArray" class="badge bg-secondary text-dark me-1 user-select-none" :key="tag">{{ tag }}
-          <span @click="destroyTag(tag)" class="bi bi-x"></span>
+        <span v-for="tag in tagArray" @click="$router.push({query: {tag}})" class="badge bg-secondary text-dark me-1 user-select-none" :key="tag">{{ tag }}
+          <span @click="destroyTag(tag)" class="bi bi-x" style="z-index: 1"></span>
         </span>
       </template>
       <div v-show="showTagInput" class="input-group input-group-sm">

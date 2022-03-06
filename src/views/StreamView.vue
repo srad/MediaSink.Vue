@@ -165,13 +165,24 @@ export default defineComponent({
       skipStart: 0,
       favs: false,
       thread: 0,
-      searchVal: '',
+      //@ts-ignore
+      searchVal: this.$route.query.search || this.$route.query.tag || this.$route.params.tag || '',
       busy: false,
       //@ts-ignore
-      tagFilter: this.$route.params.tag || '',
+      tagFilter: this.$route.params.tag || this.$route.query.tag || '',
     };
   },
   watch: {
+    searchVal(search) {
+      this.$router.replace({ query: { search } });
+    },
+    '$route.query'(params) {
+      if (params.tag && params.tag !== '') {
+        this.searchVal = `#${params.tag}`;
+      } else {
+        this.searchVal = params.search || '';
+      }
+    },
     tagFilter(val) {
       this.$router.replace({ params: { tag: val } });
     }
