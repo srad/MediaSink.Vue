@@ -53,7 +53,7 @@ export default defineComponent({
         { icon: 'bi-water', url: '/streams', title: 'Streams' },
         { icon: 'bi-stopwatch', url: '/filter', title: 'Filter' },
         { icon: 'bi-hypnotize', url: '/random', title: 'Random' },
-        { icon: 'bi-star-fill', url: '/favs', title: 'Favs' },
+        { icon: 'bi-star-fill', url: '/bookmarks', title: 'Favs' },
         { icon: 'bi-list-check', url: '/jobs', title: 'Jobs' },
         { icon: 'bi-eye-fill', url: '/admin', title: 'Admin' }
       ]

@@ -46,7 +46,7 @@
         <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
           <li class="nav-item" role="presentation">
             <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'live'}" @click="tab('live')" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
-              <span class="d-none d-lg-inline">Live</span>
+              <span class="d-none d-lg-inline">Recording</span>
               <span class="d-flex justify-content-between">
               <span class="d-lg-none">Rec</span>
               <span class="recording-number">{{ recordingStreams.length }}</span>
@@ -57,7 +57,7 @@
             <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'offline'}" @click="tab('offline')" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
               <span class="d-none d-lg-inline">Offline</span>
               <span class="d-flex justify-content-between">
-              <span class="d-lg-none">Offline</span><span class="recording-number">{{
+              <span class="d-lg-none">Off</span><span class="recording-number">{{
                   notRecordingStreams.length
                 }}</span>
             </span>

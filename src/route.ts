@@ -24,7 +24,7 @@ const routes = [
   { path: '/logs', name: 'Log', component: LogView },
   { path: '/login', name: 'Login', component: LoginView },
   { path: '/logout', name: 'Logout', component: LogoutView },
-  { path: '/favs', name: 'Bookmark', component: BookmarkView },
+  { path: '/bookmarks', name: 'Bookmark', component: BookmarkView },
   { path: '/:pathMatch(.*)*', redirect: '/streams/live/tab' },
 ];
 

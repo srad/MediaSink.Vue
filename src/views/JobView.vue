@@ -1,70 +1,58 @@
 <template>
-  <div class="table-responsive" style="width: 99.9%">
-    <table class="table shadow-sm bg-white table-bordered table-hover">
-      <thead class="bg-light">
-      <tr>
-        <th style="width: 20px">Job Id</th>
-        <th style="width: 20px">Pid</th>
-        <th style="width: 50px">Channel</th>
-        <th class="align-bottom" style="width: 50px">File</th>
-        <th class="align-bottom d-none d-lg-table-cell" style="width: 60px">Status</th>
-        <th class="align-bottom" style="width:70px">Progress</th>
-        <th class="align-bottom" style="width:110px">Created</th>
-        <th class="align-bottom" style="width:50px">Terminate</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr :key="i" v-for="(job, i) in jobs" :class="{'table-success': job.active}">
-        <td class="text-end">
-          <div v-if="job.active" style="width: 1rem; height: 1rem" class="spinner-border text-success" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          {{ job.jobId }}
-        </td>
-        <td class="text-end">
-          {{ job.pid }}
-        </td>
-        <td>{{ job.channelName }}</td>
-        <td>{{ job.filename }}</td>
-        <td>{{ job.status }}</td>
-        <td>
-          <div v-if="job.active" class="progress">
-            <div class="progress-bar progress-bar-striped bg-info progress-bar-animated" role="progressbar" :style="'width:'+ job.progress + '%'" :aria-valuenow="job.progress" aria-valuemin="0" :aria-valuemax="100"></div>
-          </div>
-        </td>
-        <td>{{ job.createdAt }}</td>
-        <td class="justify-content-center d-flex">
-          <button class="btn btn-warning btn-sm" @click="term(job.pid)">Term</button>
-        </td>
-      </tr>
-      <tr v-if="jobs.length === 0">
-        <td colspan="8" class="text-center">
-          <h5 class="p-3">No Jobs</h5>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+  <ul class="nav nav-tabs my-2" id="pills-tab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">
+        Recordings
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">
+        Worker Jobs
+      </button>
+    </li>
+  </ul>
+  <div class="tab-content" id="pills-tabContent">
+    <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+      <JobTable :jobs="recordings" @term="term"/>
+    </div>
+    <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+      <JobTable :jobs="workerJobs" @term="term"/>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
-import { JobApi, JobResponse } from '@/services/api/v1/jobApi';
+import { defineComponent } from 'vue';
+import { JobApi } from '@/services/api/v1/jobApi';
 import moment from 'moment';
+import JobTable from '@/components/JobTable.vue';
+
 const jobApi = new JobApi();
 export default defineComponent({
-  data(): {jobs: JobResponse[]} {
-    return {
+  components: { JobTable },
+  computed: {
+    //@ts-ignore
+    recordings() {
       //@ts-ignore
-      jobs: this.$store.state.jobs.map(job => {
+      return this.$store.state.jobs.filter(job => job.status === 'recording').map(job => {
         job.createdAt = moment(job.createdAt).fromNow();
         return job;
-      }),
-    };
+      });
+    },
+    workerJobs() {
+      //@ts-ignore
+      return this.$store.state.jobs.filter(job => job.status !== 'recording').map(job => {
+        job.createdAt = moment(job.createdAt).fromNow();
+        return job;
+      });
+    }
+  },
+  data() {
+    return {};
   },
   methods: {
     term(pid: number) {
-      jobApi.term(pid)
+      jobApi.term(pid);
     }
   },
 });
