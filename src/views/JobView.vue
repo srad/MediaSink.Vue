@@ -38,7 +38,7 @@
         </td>
       </tr>
       <tr v-if="jobs.length === 0">
-        <td colspan="6" class="text-center">
+        <td colspan="8" class="text-center">
           <h5 class="p-3">No Jobs</h5>
         </td>
       </tr>
@@ -50,13 +50,16 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import { JobApi, JobResponse } from '@/services/api/v1/jobApi';
+import moment from 'moment';
 const jobApi = new JobApi();
-
 export default defineComponent({
   data(): {jobs: JobResponse[]} {
     return {
       //@ts-ignore
-      jobs: this.$store.state.jobs,
+      jobs: this.$store.state.jobs.map(job => {
+        job.createdAt = moment(job.createdAt).fromNow();
+        return job;
+      }),
     };
   },
   methods: {

@@ -55,6 +55,10 @@ export class RecordingApi extends BaseApi {
     return this.axios.get(`/recordings/${type}/${limit}`);
   }
 
+  getSorted(column: string, order: string, limit: string) {
+    return this.axios.get(`/recordings/sorted/${column}/${order}/${limit}`);
+  }
+
   getBookmarks(): Promise<AxiosResponse<RecordingResponse[]>> {
     return this.axios.get(`/recordings/bookmarks`);
   }

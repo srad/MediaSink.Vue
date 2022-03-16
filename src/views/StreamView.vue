@@ -36,7 +36,7 @@
           <div v-if="searchResults.length===0" class="justify-content-center d-flex">
             <h5 class="m-5">No results...</h5>
           </div>
-          <div v-else v-for="channel in searchResults" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+          <div v-else v-for="channel in searchResults" :key="channel.channelName" :class="channelItemClass">
             <ChannelItem :channel="channel"/>
           </div>
         </div>
@@ -79,7 +79,7 @@
               <div v-if="recordingStreams.length===0" class="justify-content-center d-flex">
                 <h5 class="m-5">No active streams</h5>
               </div>
-              <div v-else v-for="channel in recordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+              <div v-else v-for="channel in recordingStreams" :key="channel.channelName" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
             </div>
@@ -90,7 +90,7 @@
               <div v-if="notRecordingStreams.length===0" class="justify-content-center d-flex">
                 <h5 class="m-5">Empty</h5>
               </div>
-              <div v-else v-for="channel in notRecordingStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+              <div v-else v-for="channel in notRecordingStreams" :key="channel.channelName" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
             </div>
@@ -101,7 +101,7 @@
               <div v-if="disabledStreams.length===0" class="justify-content-center d-flex">
                 <h5 class="m-5">Empty</h5>
               </div>
-              <div v-else v-for="channel in disabledStreams" :key="channel.channelName" class="col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+              <div v-else v-for="channel in disabledStreams" :key="channel.channelName" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
             </div>
@@ -142,6 +142,8 @@ interface RecordingData {
   displayName: string;
   skipStart: number;
   url: string;
+
+  channelItemClass: string;
 }
 
 const channelService = new ChannelApi();
@@ -155,6 +157,7 @@ export default defineComponent({
   },
   data(): RecordingData {
     return {
+      channelItemClass: 'col-lg-5 col-xl-4 col-xxl-4 col-md-10',
       channelId: 0,
       showModal: false,
       channelName: '',
@@ -205,22 +208,16 @@ export default defineComponent({
     notRecordingStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => !row.isRecording && !row.isPaused)
-          .filter(row => filter(row, this.searchTerms, this.tagTerms))
-          .filter(row => this.favs ? row.fav : true)
           .sort(sort);
     },
     disabledStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => row.isPaused)
-          .filter(row => filter(row, this.searchTerms, this.tagTerms))
-          .filter(row => this.favs ? row.fav : true)
           .sort(sort);
     },
     recordingStreams(): ChannelResponse[] {
       return this.$store.state.channels.slice()
           .filter(row => row.isRecording)
-          .filter(row => filter(row, this.searchTerms, this.tagTerms))
-          .filter(row => this.favs ? row.fav : true)
           .sort(sort);
     },
     favStreams(): ChannelResponse[] {

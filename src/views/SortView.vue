@@ -1,10 +1,26 @@
 <template>
   <div>
-    <div class="row">
+    <div class="row my-3">
       <div class="col">
         <div class="d-flex justify-content-end">
           <div class="d-flex justify-content-center me-3">
             <div class="row g-3 align-items-center">
+              <div class="col-auto">
+                <label for="limit" class="col-form-label fw-bold">Order By</label>
+              </div>
+              <div class="col-auto">
+                <select class="form-select" v-model="filterColumn" @change="fetch">
+                  <option v-for="col in columns" :key="col" :value="col[1]">{{ col[0] }}</option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <label for="limit" class="col-form-label fw-bold">Order</label>
+              </div>
+              <div class="col-auto">
+                <select class="form-select text-capitalize" v-model="filterOrder" @change="fetch">
+                  <option v-for="o in order" :key="o" :value="o">{{ o }}</option>
+                </select>
+              </div>
               <div class="col-auto">
                 <label for="limit" class="col-form-label fw-bold">Limit</label>
               </div>
@@ -24,14 +40,11 @@
     </div>
   </div>
   <div class="row">
-    <div v-if="recordings.length === 0" class="d-flex justify-content-center">
-      <h3 class="text-dark">
-        No Videos
-      </h3>
-    </div>
-    <div v-else v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-4 col-xl-3 col-xxl-2 col-md-12">
-      <RecordingItem :show-title="true" :recording="recording" @destroyed="destroyRecording"/>
-    </div>
+    <LoadIndicator :busy="busy" :empty="recordings.length === 0" empty-text="No Videos">
+      <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
+        <RecordingItem :show-title="true" :recording="recording" @destroyed="destroyRecording"/>
+      </div>
+    </LoadIndicator>
   </div>
 </template>
 
@@ -39,22 +52,27 @@
 import { RecordingApi, RecordingResponse } from '@/services/api/v1/recordingApi';
 import RecordingItem from '@/components/RecordingItem.vue';
 import { defineComponent } from 'vue';
+import LoadIndicator from '@/components/LoadIndicator.vue';
 
 interface RecordingData {
   baseUrl?: string;
-  busy?: boolean;
+  busy: boolean;
   recordings: RecordingResponse[];
   selectedStream: string;
   type: string;
   limits: number[];
+  columns: string[][];
+  order: string[];
   filterLimit: string;
+  filterColumn: string;
+  filterOrder: string;
 }
 
 const recordingApi = new RecordingApi();
 
 export default defineComponent({
   name: 'Recording',
-  components: { RecordingItem },
+  components: { LoadIndicator, RecordingItem },
   inject: ['baseUrl', 'apiUrl'],
   emits: ['load'],
   watch: {
@@ -64,6 +82,9 @@ export default defineComponent({
   },
   data(): RecordingData {
     return {
+      busy: true,
+      filterOrder: this.$route.params.order as string || 'desc',
+      filterColumn: this.$route.params.column as string || 'created_at',
       filterLimit: this.$route.params.limit as string || '25',
       limits: [
         25,
@@ -71,6 +92,8 @@ export default defineComponent({
         100,
         200,
       ],
+      columns: [['Created at', 'created_at'], ['Filesize', 'size'], ['Video duration', 'duration']],
+      order: ['asc', 'desc'],
       recordings: [],
       selectedStream: '',
       type: this.$route.params.type as string,
@@ -79,7 +102,10 @@ export default defineComponent({
   methods: {
     fetch() {
       this.recordings = [];
-      recordingApi.getGallery(this.$route.params.type as string, this.filterLimit).then(res => this.recordings = res.data);
+      recordingApi.getSorted(this.filterColumn, this.filterOrder, this.filterLimit).then(res => {
+        this.recordings = res.data;
+        this.busy = false;
+      });
     },
     viewFolder(channel: string) {
       this.$router.push('/recordings/' + channel);

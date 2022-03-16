@@ -10,8 +10,9 @@
         <input v-if="showSelection" type="checkbox" :checked="checked" style="width: 20px; height: 20px">
       </div>
       <span class="badge bg-success position-absolute" style="user-select: none; z-index: 10; top: 10px; left: 10px">
-        <span v-if="recording.width===1920">1080</span>
-        <span v-else-if="recording.width===1280">720</span>
+        <span v-if="recording.width===1920">1080p</span>
+        <span v-if="recording.width===2560">1440p</span>
+        <span v-else-if="recording.width===1280">720p</span>
         <span v-else-if="recording.width===3840">4k</span>
         <span v-else>{{ recording.width }}x{{ recording.height }}</span>
       </span>

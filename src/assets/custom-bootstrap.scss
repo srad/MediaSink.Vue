@@ -23,6 +23,9 @@ $danger: #990d35;
 $light: #f4f3ee;
 $dark: #180f1d;
 
+$grid-columns: 20 !default;
+$grid-gutter-width: 1.0rem !default;
+
 @import "~bootstrap/scss/functions";
 
 @import "./variables";
