@@ -1,5 +1,5 @@
 <template>
-  <div class="modal show" tabindex="-1" ref="modalVideo" style="display: block !important;">
+  <div class="modal show m-0 p-0m position-absolute" tabindex="-1" ref="modalVideo" style="display: block !important;">
     <div class="modal-dialog modal-fullscreen p-0">
       <div class="modal-content">
         <div class="modal-body bg-light p-1" style="overflow: hidden">
@@ -7,7 +7,7 @@
           <div class="d-flex flex-row" style="height: 90%;">
 
             <div class="d-flex flex-column m-0" :class="{'w-80': markings.length > 0, 'w-100': markings.length===0}">
-              <video class="view"
+              <video class="view h-100"
                      @click="paused=!paused"
                      @touchstart="paused=!paused"
                      ref="video"

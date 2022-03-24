@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="my-2">
     <ChannelModal
         @save="save"
         @close="showModal=false"

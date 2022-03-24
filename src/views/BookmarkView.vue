@@ -1,5 +1,5 @@
 <template>
-  <div class="row">
+  <div class="row my-2">
     <LoadIndicator :busy="busy" :empty="recordings.length === 0" empty-text="No Videos">
       <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
         <RecordingItem :recording="recording" @destroyed="destroyRecording"/>

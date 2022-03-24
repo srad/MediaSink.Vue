@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="my-2">
     <div class="row my-3">
       <div class="col">
         <div class="d-flex justify-content-end">
@@ -9,7 +9,7 @@
                 <label for="limit" class="col-form-label fw-bold">Order By</label>
               </div>
               <div class="col-auto">
-                <select class="form-select" v-model="filterColumn" @change="fetch">
+                <select class="form-select" v-model="filterColumn" @change="routeFilter">
                   <option v-for="col in columns" :key="col" :value="col[1]">{{ col[0] }}</option>
                 </select>
               </div>
@@ -17,7 +17,7 @@
                 <label for="limit" class="col-form-label fw-bold">Order</label>
               </div>
               <div class="col-auto">
-                <select class="form-select text-capitalize" v-model="filterOrder" @change="fetch">
+                <select class="form-select text-capitalize" v-model="filterOrder" @change="routeFilter">
                   <option v-for="o in order" :key="o" :value="o">{{ o }}</option>
                 </select>
               </div>
@@ -25,13 +25,13 @@
                 <label for="limit" class="col-form-label fw-bold">Limit</label>
               </div>
               <div class="col-auto">
-                <select id="limit" class="form-select" v-model="filterLimit" @change="fetch">
+                <select id="limit" class="form-select" v-model="filterLimit" @change="routeFilter">
                   <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
                 </select>
               </div>
             </div>
           </div>
-          <button class="btn btn-primary" @click="fetch" v-if="$route.params.type==='random'">
+          <button class="btn btn-primary" @click="routeFilter" v-if="$route.params.type==='random'">
             Refresh
           </button>
         </div>
@@ -76,16 +76,16 @@ export default defineComponent({
   inject: ['baseUrl', 'apiUrl'],
   emits: ['load'],
   watch: {
-    $route() {
+    '$route.query'() {
       this.fetch();
     }
   },
   data(): RecordingData {
     return {
       busy: true,
-      filterOrder: this.$route.params.order as string || 'desc',
-      filterColumn: this.$route.params.column as string || 'created_at',
-      filterLimit: this.$route.params.limit as string || '25',
+      filterOrder: this.$route.query.order as string || 'desc',
+      filterColumn: this.$route.query.column as string || 'created_at',
+      filterLimit: this.$route.query.limit as string || '25',
       limits: [
         25,
         50,
@@ -100,12 +100,26 @@ export default defineComponent({
     };
   },
   methods: {
-    fetch() {
-      this.recordings = [];
-      recordingApi.getSorted(this.filterColumn, this.filterOrder, this.filterLimit).then(res => {
-        this.recordings = res.data;
-        this.busy = false;
+    routeFilter() {
+      this.$router.push({
+        path: this.$route.path,
+        query: {
+          order: this.filterOrder,
+          column: this.filterColumn,
+          limit: this.filterLimit,
+        },
+        force: true
       });
+    },
+    async fetch() {
+      try {
+        this.busy = true;
+        this.recordings = (await recordingApi.getSorted(this.$route.query.column as string || 'created_at', this.$route.query.order as string || 'desc', this.$route.query.limit as string || '25')).data;
+        this.busy = false;
+      } catch (e) {
+        alert(e.message);
+        this.busy = false;
+      }
     },
     viewFolder(channel: string) {
       this.$router.push('/recordings/' + channel);

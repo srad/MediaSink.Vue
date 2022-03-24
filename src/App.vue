@@ -4,7 +4,7 @@
   <main class="container-fluid">
     <router-view v-slot="{ Component }">
       <keep-alive include="[StreamView]">
-        <component :is="Component" class="py-2"/>
+        <component :is="Component"/>
       </keep-alive>
     </router-view>
 

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="my-2">
     <div ref="upload" style="display: none" class="modal modal-dialog modal-dialog-centered" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -52,7 +52,7 @@
           No Videos
         </h3>
       </div>
-      <div v-else v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-4 col-xl-3 col-xxl-2 col-md-12">
+      <div v-else v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
         <RecordingItem :show-selection="true" @checked="selectRecording" :recording="recording" @destroyed="destroyRecording"/>
       </div>
     </div>
