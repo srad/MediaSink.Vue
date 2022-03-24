@@ -47,14 +47,11 @@
         <h4 class="py-0"><span class="text-primary">{{ $route.params.channel }}</span></h4>
       </div>
       <hr/>
-      <div v-if="recordings.length === 0" class="d-flex justify-content-center">
-        <h3 class="text-dark">
-          No Videos
-        </h3>
-      </div>
-      <div v-else v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-        <RecordingItem :show-selection="true" @checked="selectRecording" :recording="recording" @destroyed="destroyRecording"/>
-      </div>
+      <LoadIndicator :busy="busy" :empty="recordings.length === 0" empty-text="No Videos">
+        <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
+          <RecordingItem :show-selection="true" @checked="selectRecording" :recording="recording" @destroyed="destroyRecording"/>
+        </div>
+      </LoadIndicator>
     </div>
   </div>
 </template>
@@ -66,6 +63,7 @@ import RecordingItem from '@/components/RecordingItem.vue';
 import { ChannelApi } from '@/services/api/v1/channelApi';
 import { Modal } from 'bootstrap';
 import { AxiosError, CancelTokenSource } from 'axios';
+import LoadIndicator from '@/components/LoadIndicator.vue';
 
 const recordingApi = new RecordingApi();
 const channelApi = new ChannelApi();
@@ -84,7 +82,7 @@ interface RecordingData {
 
 export default defineComponent({
   name: 'StreamItemView',
-  components: { RecordingItem },
+  components: { LoadIndicator, RecordingItem },
   inject: ['baseUrl', 'apiUrl', 'fileUrl'],
   watch: {
     $route() {
@@ -175,6 +173,7 @@ export default defineComponent({
   mounted() {
     this.modal = new Modal(this.$refs.upload as HTMLElement);
 
+    this.busy = true;
     recordingApi.getRecordings(this.channelName).then(res => {
       this.recordings = res.data;
       this.busy = false;
