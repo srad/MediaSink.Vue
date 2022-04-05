@@ -90,6 +90,12 @@ export const store = createStore<State>({
         }
       }
     },
+    destroyJob(state: State, jobId: number) {
+      const i = state.jobs.findIndex(j => j.jobId === jobId);
+      if (i !== -1) {
+        state.jobs.splice(i, 1);
+      }
+    },
     fav(state: State, channel: ChannelResponse) {
       const i = state.channels.findIndex(ch => ch.channelName === channel.channelName);
       state.channels[i].fav = true;

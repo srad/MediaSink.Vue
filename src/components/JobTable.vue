@@ -9,7 +9,7 @@
         <th class="align-bottom d-none d-lg-table-cell" style="width: 60px">Status</th>
         <th class="align-bottom" style="width:70px">Progress</th>
         <th class="align-bottom" style="width:110px">Created</th>
-        <th class="align-bottom" style="width:50px">Terminate</th>
+        <th class="align-bottom" style="width:50px">Destroy</th>
       </tr>
       </thead>
       <tbody>
@@ -30,7 +30,7 @@
         </td>
         <td>{{ job.createdAt }}</td>
         <td class="justify-content-center d-flex">
-          <button class="btn btn-warning btn-sm" @click="$emit('term', job.pid)">Term</button>
+          <button class="btn btn-warning btn-sm" @click="$emit('destroy', job.jobId)">Destroy</button>
         </td>
       </tr>
       <tr v-if="jobs.length === 0">
@@ -48,6 +48,7 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'JobTable',
+  emits: ['destroy'],
   props: {
     jobs: { type: Array, required: true },
   }

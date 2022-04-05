@@ -20,6 +20,10 @@ export class JobApi extends BaseApi {
     return this.axios.post(`/jobs/stop/${pid}`);
   }
 
+  destroy(jobId: number): Promise<AxiosResponse<number>> {
+    return this.axios.delete(`/jobs/${jobId}`);
+  }
+
   fetch(): Promise<AxiosResponse<JobResponse[]>> {
     return this.axios.get(`/jobs`);
   }

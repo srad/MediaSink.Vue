@@ -22,6 +22,12 @@
         <button class="btn btn-primary me-2" @click="posters">
           Regenerate all posters
         </button>
+        <button :disabled="importing" class="btn btn-primary me-2" @click="startImport">
+          Start Import
+        </button>
+        <button disabled class="btn btn-secondary me-2" :class="{'blink btn-danger': importing, 'btn-secondary': !importing}" @click="posters">
+          Importing
+        </button>
       </div>
     </div>
 
@@ -121,12 +127,15 @@ import { InfoApi, InfoResponse } from '@/services/api/v1/infoApi';
 import { defineComponent } from 'vue';
 import { RecordingApi } from '@/services/api/v1/recordingApi';
 import { AxiosError } from 'axios';
+import { AdminApi } from '@/services/api/v1/adminApi';
 //import CPUChart from '@/components/charts/CPUChart.vue';
 //import NetworkChart from '@/components/charts/NetworkChart.vue';
 
 const api = new InfoApi();
+const adminApi = new AdminApi();
 
 interface AdminData {
+  importing: boolean;
   id: number;
   recordingApi: RecordingApi;
   infoResponse: InfoResponse;
@@ -150,6 +159,7 @@ export default defineComponent({
   //components: { CPUChart, NetworkChart },
   data(): AdminData {
     return {
+      importing: false,
       cpuData: {
         labels: ['A', 'B'],
         datasets: [
@@ -181,8 +191,13 @@ export default defineComponent({
     };
   },
   methods: {
+    startImport() {
+      if (window.confirm('Start Import?')) {
+        adminApi.startImport().then(() => this.importing = true);
+      }
+    },
     posters() {
-      if (window.confirm("Regenerate all posters?")) {
+      if (window.confirm('Regenerate all posters?')) {
         this.recordingApi.posters();
       }
     },
@@ -214,6 +229,7 @@ export default defineComponent({
         this.infoResponse.netInfo = res.data.netInfo;
         this.infoResponse.diskInfo = res.data.diskInfo;
         this.infoResponse.cpuInfo = res.data.cpuInfo;
+        adminApi.isImporting().then(res => this.importing = res.data);
       }).catch((err: AxiosError) => {
         alert(err.response?.data);
       });

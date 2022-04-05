@@ -13,10 +13,10 @@
   </ul>
   <div class="tab-content" id="pills-tabContent">
     <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
-      <JobTable :jobs="recordings" @term="term"/>
+      <JobTable :jobs="recordings" @destroy="destroy"/>
     </div>
     <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
-      <JobTable :jobs="workerJobs" @term="term"/>
+      <JobTable :jobs="workerJobs" @destroy="destroy"/>
     </div>
   </div>
 </template>
@@ -26,6 +26,7 @@ import { defineComponent } from 'vue';
 import { JobApi } from '@/services/api/v1/jobApi';
 import moment from 'moment';
 import JobTable from '@/components/JobTable.vue';
+import { AxiosError } from 'axios';
 
 const jobApi = new JobApi();
 export default defineComponent({
@@ -51,8 +52,10 @@ export default defineComponent({
     return {};
   },
   methods: {
-    term(pid: number) {
-      jobApi.term(pid);
+    destroy(id: number) {
+      jobApi.destroy(id)
+          .then(() => this.$store.commit('destroyJob', id))
+          .catch((err: AxiosError) => alert(err.response?.data));
     }
   },
 });
