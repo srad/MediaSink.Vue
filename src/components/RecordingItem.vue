@@ -38,6 +38,7 @@
         :data="recording"
         :width="recording.width"
         :height="recording.height"
+        @convert="convert"
         @bookmarked="bookmark"
         @preview="generatePreview"
         @destroy="destroyRecording"/>
@@ -56,7 +57,7 @@ const recordingApi = new RecordingApi();
 export default defineComponent({
   name: 'RecordingItem',
   components: { RecordInfo, Preview },
-  emits: ['destroyed', 'load', 'checked'],
+  emits: ['destroyed', 'load', 'checked', 'converted'],
   inject: ['baseUrl', 'apiUrl', 'fileUrl'],
   props: {
     showSelection: { type: Boolean, default: false },
@@ -113,6 +114,18 @@ export default defineComponent({
             });
       }
     },
+    convert({ recording, mediaType }: { recording: RecordingResponse, mediaType: string }) {
+      if (!window.confirm(`Convert '${recording.filename}' video to type '${mediaType}'?`)) {
+        return;
+      }
+
+      this.busy = true;
+      recordingApi.convert(recording.channelName, recording.filename, mediaType).catch((err: AxiosError) => {
+        alert(err.response?.data);
+      }).finally(() => {
+        this.busy = false;
+      });
+    },
     destroyRecording(recording: RecordingResponse) {
       if (!window.confirm(`Delete '${recording.filename}'?`)) {
         return;
@@ -122,10 +135,10 @@ export default defineComponent({
       recordingApi.destroy(recording.channelName, recording.filename).then(() => {
         this.destroyed = true;
         setTimeout(() => this.$emit('destroyed', recording), 1000);
-        this.busy = false;
       }).catch((err: AxiosError) => {
-        this.busy = false;
         alert(err.response?.data);
+      }).finally(() => {
+        this.busy = false;
       });
     },
   }

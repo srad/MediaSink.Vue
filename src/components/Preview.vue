@@ -9,7 +9,7 @@
          @error="errorLoadImage($event)"
          @click="$emit('selected', data)"/>
     <video v-if="!image"
-           style="user-select: none;"
+           style="user-select: none; z-index: -1"
            @error="errorLoadImage"
            @contextmenu="context($event)"
            loop muted playsinline
@@ -61,9 +61,10 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .preview-container img, .preview-container video {
-  position: relative;
+  //position: relative;
   width: 100%;
   height: auto;
   vertical-align: middle;
+  z-index: -1;
 }
 </style>

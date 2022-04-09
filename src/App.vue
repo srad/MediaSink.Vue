@@ -74,9 +74,11 @@ export default defineComponent({
     },
   },
   created() {
+    // Dispatch
     socket.on('job:create', data => this.$store.commit('job:create', data));
     socket.on('job:destroy', data => this.$store.commit('job:destroy', data));
     socket.on('job:preview:done', data => this.$store.commit('job:preview:done', data));
+    socket.on('job:progress', data => this.$store.commit('job:progress', data));
     socket.on('job:preview:progress', data => this.$store.commit('job:preview:progress', data));
     jobApi.fetch()
         .then(result => result.data.forEach((job: JobResponse) => this.$store.commit('addJob', job)))

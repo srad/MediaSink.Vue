@@ -22,6 +22,10 @@ export class RecordingApi extends BaseApi {
     super();
   }
 
+  convert(channel: string, file: string, mediaType: string): Promise<AxiosResponse<RecordingResponse[]>> {
+    return this.axios.post(`/recordings/${channel}/${file}/${mediaType}/convert`);
+  }
+
   destroy(channel: string, file: string): Promise<AxiosResponse<RecordingResponse[]>> {
     return this.axios.delete(`/recordings/${channel}/${file}`);
   }
@@ -55,6 +59,10 @@ export class RecordingApi extends BaseApi {
     return this.axios.get(`/recordings/${type}/${limit}`);
   }
 
+  isUpdating(): Promise<AxiosResponse<boolean>> {
+    return this.axios.get(`/recordings/isupdating`);
+  }
+
   getSorted(column: string, order: string, limit: string) {
     return this.axios.get(`/recordings/sorted/${column}/${order}/${limit}`);
   }
@@ -64,7 +72,7 @@ export class RecordingApi extends BaseApi {
   }
 
   updateInfo(): Promise<AxiosResponse<void>> {
-    return this.axios.post(`/recorder/updateinfo`);
+    return this.axios.post(`/recordings/updateinfo`);
   }
 
   isRecording(): Promise<AxiosResponse<boolean>> {

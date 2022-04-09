@@ -10,7 +10,7 @@
       </span>
       <span class="text-secondary px-2">/</span>
       <span>
-        {{ago}}
+        {{ ago }}
       </span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between">
@@ -29,6 +29,18 @@
           })
         }}</span>
     </li>
+    <li v-if="expand" class="list-group-item d-flex justify-content-between">
+      <div>Convert</div>
+      <div class="btn-group btn-group-sm">
+        <button v-if="height !== 720" class="btn btn-sm btn-warning" @click="$emit('convert', {recording: data, mediaType: '720'})">
+          720p
+        </button>
+        <button v-if="height !== 1080" class="btn btn-sm btn-warning" @click="$emit('convert', {recording: data, mediaType: '1080'})">
+          1080p
+        </button>
+        <!--<button class="btn btn-sm btn-warning" @click="$emit('convert', {recording: data, mediaType: 'mp3'})">MP3</button>-->
+      </div>
+    </li>
     <li @click="expand=!expand" class="expand p-0 list-group-item d-flex justify-content-center">
       <i v-if="!expand" class="text-info bi bi-caret-down-fill"></i>
       <i v-else class="text-info bi bi-caret-up-fill"></i>
@@ -44,7 +56,7 @@
             <i v-else class="bi bi-star text-warning fs-5" @click="$emit('bookmarked', data, true)"></i>
           </a>
         </div>
-        <div>
+        <div class="d-flex">
           <button class="btn btn-sm btn-secondary me-2" @click="$emit('preview', data)">
             <i class="bi bi-film"></i>
           </button>
@@ -62,6 +74,7 @@ import moment from 'moment';
 
 export default defineComponent({
   name: 'RecordInfo',
+  emits: ['preview', 'destroy', 'bookmarked', 'convert'],
   props: {
     index: Number,
     url: String,
@@ -93,6 +106,7 @@ export default defineComponent({
 .expand {
   background: ghostwhite;
 }
+
 .expand:hover {
   background: darken(ghostwhite, 1%);
 }

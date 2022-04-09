@@ -27,8 +27,8 @@ function notify(event: string, data: object) {
 }
 
 c.onmessage = (msg: any) => {
-  const json = JSON.parse(msg.data) as { event: string, data: Object };
-  notify(json.event, json.data);
+  const json = JSON.parse(msg.data) as { name: string, data: Object };
+  notify(json.name, json.data);
 };
 
 c.onopen = function () {

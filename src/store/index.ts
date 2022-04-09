@@ -10,9 +10,11 @@ export interface State {
 }
 
 export interface JobMessage {
+  jobId: number;
   channelName: string;
   filename: string;
   type: string;
+  data: { packets: number, frame: number } | any;
 }
 
 export const key: InjectionKey<Store<State>> = Symbol();
@@ -30,13 +32,31 @@ export const store = createStore<State>({
     'job:preview:progress'(state: State, data) {
       console.log('Progrss: ', data);
     },
-    'job:create'(state: State, data: JobMessage) {
-      // TODO
-      //state.jobs.push({ channelName: data.channelName, filename: data.filename, jobId: 0 });
-    },
     'job:destroy'(state: State, data: JobMessage) {
       const i = state.jobs.findIndex(j => j.filename === data.channelName);
-      state.jobs.splice(i, 1);
+      if (i !== -1) {
+        state.jobs.splice(i, 1);
+      }
+    },
+    'job:start'(state: State, job: JobMessage) {
+      let i = state.jobs.findIndex(j => j.jobId === job.jobId);
+      if (i === -1) {
+        i = state.jobs.push({
+          jobId: job.jobId,
+          active: false,
+          progress: '0',
+          channelName: job.channelName,
+          filename: job.filename,
+          status: job.type,
+          createdAt: new Date().toString(),
+          args: ''
+        });
+      }
+      state.jobs[i].active = true;
+    },
+    'job:progress'(state: State, job: JobMessage) {
+      const i = state.jobs.findIndex(j => j.jobId === job.jobId);
+      state.jobs[i].progress = String(job.data.frame / job.data.packets * 100);
     },
     'channel:online'(state: State, data: { channelName: string }) {
       const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
@@ -63,6 +83,7 @@ export const store = createStore<State>({
       state.loggedIn = true;
     },
     addJob(state: State, job: JobResponse) {
+      job.progress = '0';
       state.jobs.push(job);
     },
     addChannel(state: State, channel: ChannelResponse) {
