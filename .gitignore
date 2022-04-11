@@ -4,9 +4,10 @@ node_modules
 dist.sh
 
 # local env files
+.env
 .env.local
 .env.*.local
-.env
+.buildargs
 
 # Log files
 npm-debug.log*
