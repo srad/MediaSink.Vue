@@ -25,6 +25,7 @@ ENV VUE_APP_NAME $APP_NAME
 ENV VUE_APP_FILEURL $APP_FILEURL
 ENV VUE_APP_SOCKETURL $APP_SOCKETURL
 
+RUN npm run test:unit
 RUN npm run build
 
 # production stage
