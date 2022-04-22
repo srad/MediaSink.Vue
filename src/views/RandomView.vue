@@ -79,8 +79,7 @@ export default defineComponent({
       this.recordings = [];
       recordingApi.getGallery('random', this.filterLimit).then(res => {
         this.recordings = res.data;
-        this.busy = false;
-      });
+      }).finally(() => this.busy = false);
     },
     viewFolder(channel: string) {
       this.$router.push('/recordings/' + channel);

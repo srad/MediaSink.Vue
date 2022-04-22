@@ -40,8 +40,12 @@ export class RecordingApi extends BaseApi {
     return this.axios.post(`/recordings/${channelName}/${filename}/cut`, data);
   }
 
-  bookmark(channelName: string, filename: string, yesNo: boolean): Promise<AxiosResponse<void>> {
-    return this.axios.post(`/recordings/${channelName}/${filename}/bookmark/${yesNo ? 1 : 0}`);
+  fav(channelName: string, filename: string): Promise<AxiosResponse<void>> {
+    return this.axios.post(`/recordings/${channelName}/${filename}/fav`);
+  }
+
+  unfav(channelName: string, filename: string): Promise<AxiosResponse<void>> {
+    return this.axios.post(`/recordings/${channelName}/${filename}/unfav`);
   }
 
   generatePreview(channelName: string, filename: string): Promise<AxiosResponse<void>> {

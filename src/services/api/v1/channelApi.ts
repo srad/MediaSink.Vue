@@ -9,6 +9,7 @@ export interface ChannelResponse {
   displayName: string;
   skipStart: number;
   isPaused: boolean;
+  isTerminating: boolean;
   createdAt: string;
   isRecording: boolean;
   recordingsSize: number;
@@ -21,7 +22,6 @@ export interface ChannelResponse {
   minRecording: number;
 }
 
-// Used for post and update
 export interface ChannelRequest {
   channelId?: number;
   channelName: string;

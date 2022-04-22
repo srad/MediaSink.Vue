@@ -66,13 +66,12 @@ export default defineComponent({
               this.destroyed = true;
               setTimeout(() => {
                 this.$store.commit('destroyChannel', channel);
-                this.busy = false;
               }, 1000);
             })
             .catch((err: AxiosError) => {
               alert(err.response?.data);
-              this.busy = false;
-            });
+            })
+            .finally(() => this.busy = false);
       }
     },
     pause(channel: ChannelResponse) {
@@ -80,12 +79,11 @@ export default defineComponent({
       channelService[channel.isPaused ? 'resume' : 'pause'](channel.channelName)
           .then(() => {
             this.$store.commit('pauseChannel', { channel, pause: !channel.isPaused });
-            this.busy = false;
           })
           .catch((err: AxiosError) => {
             alert(err.response?.data);
-            this.busy = false;
-          });
+          })
+          .finally(() => this.busy = false);
     },
     viewFolder(channel: string) {
       this.$router.push('/streams/' + channel);

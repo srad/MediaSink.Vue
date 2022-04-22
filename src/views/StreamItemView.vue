@@ -176,12 +176,9 @@ export default defineComponent({
     this.busy = true;
     recordingApi.getRecordings(this.channelName).then(res => {
       this.recordings = res.data;
-      this.busy = false;
       window.scrollTo(0, 0);
-    }).catch((err: AxiosError) => {
-      this.busy = false;
-      alert(err.response?.data);
-    });
+    }).catch((err: AxiosError) => alert(err.response?.data))
+        .finally(() => this.busy = false);
   }
 });
 </script>

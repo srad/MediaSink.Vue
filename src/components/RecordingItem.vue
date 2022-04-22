@@ -57,7 +57,7 @@ const recordingApi = new RecordingApi();
 export default defineComponent({
   name: 'RecordingItem',
   components: { RecordInfo, Preview },
-  emits: ['destroyed', 'load', 'checked', 'converted'],
+  emits: ['destroyed', 'load', 'checked', 'converted', 'bookmark'],
   inject: ['baseUrl', 'apiUrl', 'fileUrl'],
   props: {
     showSelection: { type: Boolean, default: false },
@@ -90,28 +90,24 @@ export default defineComponent({
     },
     bookmark(recording: RecordingResponse, yesNo: boolean) {
       this.busy = true;
-      recordingApi.bookmark(recording.channelName, recording.filename, yesNo)
+      recordingApi[yesNo ? 'fav' : 'unfav'](recording.channelName, recording.filename)
           .then(() => {
             recording.bookmark = yesNo;
-            this.$store.commit('pauseChannel', { channel: recording.channelName, pause: yesNo });
-            this.busy = false;
+            this.$emit('bookmark', recording);
           })
           .catch((err: AxiosError) => {
             alert(err.response?.data);
-            this.busy = false;
-          });
+          })
+          .finally(() => this.busy = false);
     },
     generatePreview(recording: RecordingResponse) {
       if (window.confirm('Generate new preview?')) {
         this.busy = true;
         recordingApi.generatePreview(recording.channelName, recording.filename)
-            .then(() => {
-              this.busy = false;
-            })
             .catch((err: AxiosError) => {
-              this.busy = false;
               alert(err.response?.data);
-            });
+            })
+            .finally(() => this.busy = false);
       }
     },
     convert({ recording, mediaType }: { recording: RecordingResponse, mediaType: string }) {
@@ -122,9 +118,7 @@ export default defineComponent({
       this.busy = true;
       recordingApi.convert(recording.channelName, recording.filename, mediaType).catch((err: AxiosError) => {
         alert(err.response?.data);
-      }).finally(() => {
-        this.busy = false;
-      });
+      }).finally(() => this.busy = false);
     },
     destroyRecording(recording: RecordingResponse) {
       if (!window.confirm(`Delete '${recording.filename}'?`)) {
@@ -137,9 +131,7 @@ export default defineComponent({
         setTimeout(() => this.$emit('destroyed', recording), 1000);
       }).catch((err: AxiosError) => {
         alert(err.response?.data);
-      }).finally(() => {
-        this.busy = false;
-      });
+      }).finally(() => this.busy = false);
     },
   }
 });
