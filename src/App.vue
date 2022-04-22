@@ -50,27 +50,21 @@ export default defineComponent({
       recording: false,
       online: false,
       routes: [
-        { icon: 'bi-water', url: '/streams', title: 'Streams' },
-        { icon: 'bi-stopwatch', url: '/filter', title: 'Filter' },
-        { icon: 'bi-hypnotize', url: '/random', title: 'Random' },
-        { icon: 'bi-star-fill', url: '/bookmarks', title: 'Favs' },
-        { icon: 'bi-list-check', url: '/jobs', title: 'Jobs' },
-        { icon: 'bi-eye-fill', url: '/admin', title: 'Admin' }
+        { icon: 'bi-water', url: '/streams', title: this.$t('menu.streams') },
+        { icon: 'bi-stopwatch', url: '/filter', title: this.$t('menu.filter') },
+        { icon: 'bi-hypnotize', url: '/random', title: this.$t('menu.random') },
+        { icon: 'bi-star-fill', url: '/bookmarks', title: this.$t('menu.favs') },
+        { icon: 'bi-list-check', url: '/jobs', title: this.$t('menu.jobs') },
+        { icon: 'bi-eye-fill', url: '/admin', title: this.$t('menu.admin') }
       ]
     };
   },
   methods: {
     save(data: ChannelRequest) {
       channel.add(data)
-          .then((res: AxiosResponse<ChannelResponse>) => {
-            this.showModal = false;
-            this.$store.commit('addChannel', res.data);
-            this.showModal = false;
-          })
-          .catch((err: AxiosError) => {
-            alert(err.response?.data);
-            this.showModal = false;
-          });
+          .then((res: AxiosResponse<ChannelResponse>) => this.$store.commit('addChannel', res.data))
+          .catch((err: AxiosError) => alert(err.response?.data))
+          .finally(() => this.showModal = false);
     },
   },
   created() {

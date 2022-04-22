@@ -121,7 +121,7 @@ export default defineComponent({
       }).finally(() => this.busy = false);
     },
     destroyRecording(recording: RecordingResponse) {
-      if (!window.confirm(`Delete '${recording.filename}'?`)) {
+      if (!window.confirm(this.$t('crud.destroy', [recording.filename]))) {
         return;
       }
 

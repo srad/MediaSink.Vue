@@ -94,7 +94,13 @@ export const store = createStore<State>({
     updateChannel(state: State, channel: ChannelResponse) {
       const i = state.channels.findIndex(c => c.channelName === channel.channelName);
       if (i !== -1) {
-        state.channels[i] = channel;
+        const ch = state.channels[i] as ChannelResponse;
+        Object
+          .keys(channel)
+          .forEach(key => {
+            //@ts-ignore
+            ch[key] = channel[key];
+          });
       }
     },
     destroyChannel(state: State, channel: ChannelResponse) {
@@ -104,11 +110,9 @@ export const store = createStore<State>({
       }
     },
     pauseChannel(state: State, data: { channel: ChannelResponse, pause: boolean }) {
-      for (let i = 0; i < state.channels.length; i += 1) {
-        if (state.channels[i].channelName === data.channel.channelName) {
-          state.channels[i].isPaused = data.pause;
-          break;
-        }
+      const i = state.channels.findIndex(c => c.channelName === data.channel.channelName);
+      if (i !== -1) {
+        state.channels[i].isPaused = data.pause;
       }
     },
     destroyJob(state: State, jobId: number) {

@@ -59,8 +59,8 @@ export default defineComponent({
       channelService.unfav(channel.channelName).then(() => this.$store.commit('unfav', channel));
     },
     destroyChannel(channel: ChannelResponse) {
-      this.busy = true;
-      if (window.confirm(`Do you want to remove the channel '${channel.channelName}'?`)) {
+      if (window.confirm(this.$t('crud.destroy', [channel.channelName]))) {
+        this.busy = true;
         channelService.destroy(channel.channelName)
             .then(() => {
               this.destroyed = true;

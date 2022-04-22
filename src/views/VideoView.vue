@@ -21,9 +21,9 @@
             <div v-if="markings.length > 0" class="d-flex flex-column m-0 px-1" :class="{'w-20': markings.length > 0}">
               <ul class="list-group fw-6 fw-bold">
                 <li class="list-group-item d-flex text-white bg-info justify-content-between w-100 align-middle">
-                  <span>Start</span>
-                  <span>End</span>
-                  <span>Del</span>
+                  <span>{{ $t('videoView.segment.start') }}</span>
+                  <span>{{ $t('videoView.segment.end') }}</span>
+                  <span>{{ $t('videoView.segment.destroy') }}</span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between w-100 align-middle" :class="{'bg-secondary': marking.selected}" @click="selectMarking(marking)" :key="String(marking.timestart)+String(marking.timeend)" v-for="marking in markings">
                   <span class="p-1">{{ (marking.timestart / 60).toFixed(1) }}min</span>
@@ -57,7 +57,7 @@
         <div class="modal-footer p-0">
           <div class="d-flex justify-content-between" v-if="pathRelative">
             <button class="btn btn-danger" @click="destroy">
-              Delete
+              {{ $t('videoView.button.destroy') }}
             </button>
             <!--
             <div class="m-1 rounded-1 fw-6 px-1 py-3 border-info border">
@@ -90,7 +90,7 @@
               </button>
               -->
             <button v-if="markings.length > 0" class="btn btn-warning" type="button" @click="exportVideo">
-              Cut
+              {{ $t('videoView.button.cut') }}
             </button>
           </div>
         </div>
@@ -215,7 +215,7 @@ export default defineComponent({
       (this.$refs.video as HTMLVideoElement).currentTime = end;
     },
     destroy() {
-      if (!window.confirm('Delete?')) {
+      if (!window.confirm(this.$t('videoView.destroy', [this.filename]))) {
         return;
       }
       recording.destroy(this.channelName, this.filename)

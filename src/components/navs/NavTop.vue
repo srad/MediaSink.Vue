@@ -3,7 +3,7 @@
     <div class="container-fluid">
       <a class="navbar-brand d-none d-lg-block text-white fw-bold" href="/streams">
         <span class="d-none d-lg-inline p-2">{{ title }}</span>
-        <i class="bi bi-water" style="color: deepskyblue"></i>
+        <img style="height: 28px; width: auto" src="/icon.png"/>
       </a>
 
       <div class="navbar-collapse collapse px-2 mb-1" :class="{'d-none': collapseNav}" id="collapsibleNavbar">
@@ -34,22 +34,12 @@
           </span>
       </div>
 
-      <div class="dropdown">
-        <button :disabled="jobs.length === 0" type="button" class="position-relative me-2 btn btn-warning dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-          Jobs
-          <span v-if="jobs.length > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-              {{ jobs.length }}
-              <span class="visually-hidden">open jobs</span>
-            </span>
-        </button>
-        <ul class="dropdown-menu">
-          <template :key="job.filename" v-for="job in jobs">
-            <li v-if="job.status!=='recording'">
-              <a class="dropdown-item" href="#">{{ job.filename }} ({{ job.status }})</a>
-            </li>
-          </template>
-        </ul>
-      </div>
+      <button @click="$router.push('/jobs')" v-if="jobs.length > 0" type="button" class="position-relative me-2 btn btn-info" data-bs-toggle="dropdown" aria-expanded="false">
+        {{ $t("menu.jobs") }} ({{ jobs.length }})
+        <div v-if="jobs.length > 0" class="spinner-border text-dark spinner-border-sm" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </button>
 
       <div>
         <button v-if="!recording" class="btn btn-secondary" @click="record(true)">

@@ -131,8 +131,9 @@ export default defineComponent({
     },
     deleteChannel() {
       if (window.confirm(`Delete channel "${this.channelName}"?`)) {
-        channelApi.destroy(this.channelName);
-        this.$router.back();
+        channelApi.destroy(this.channelName)
+            .then(() => this.$store.commit('destroyChannel', { channelName: this.channelName }))
+            .finally(() => this.$router.back());
       }
     },
     cancelUpload() {

@@ -2,7 +2,7 @@
   <ul class="list-group list-group-flush border-top border-secondary">
     <li class="list-group-item d-flex justify-content-center">
       <span>
-        {{ durationFormatted }}min
+        {{ $t("recording.durationMinutes", [durationFormatted]) }}
       </span>
       <span class="text-secondary px-2">/</span>
       <span>
@@ -10,27 +10,22 @@
       </span>
       <span class="text-secondary px-2">/</span>
       <span>
-        {{ ago }}
+        {{ $t("recording.ago", [createdAt]) }}
       </span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between">
-      <span>Bitrate:</span> <span>{{ (bitRate / 1000 / 1000).toFixed(1) }}MBit/s</span>
+      <span>{{ $t("recording.bitRate") }}</span>
+      <span>{{ $t("recording.bitRateMBit", [bitRate]) }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between">
-      <span>Resolution:</span> <span>{{ width }}x{{ height }}</span>
+      <span>{{ $t("recording.resolution") }}</span> <span>{{ width }}x{{ height }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between">
-      <span>Started:</span>
-      <span>{{
-          new Date(createdAt).toLocaleDateString("de-DE", {
-            hour: "2-digit",
-            minute: "2-digit",
-            timeZone: "Europe/Berlin"
-          })
-        }}</span>
+      <span>{{ $t("recording.started") }}</span>
+      <span>{{ $d(new Date(createdAt), "short") }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between">
-      <div>Convert</div>
+      <div>{{ $t("recording.convert") }}</div>
       <div class="btn-group btn-group-sm">
         <button v-if="height !== 720" class="btn btn-sm btn-warning" @click="$emit('convert', {recording: data, mediaType: '720'})">
           720p

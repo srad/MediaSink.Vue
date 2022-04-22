@@ -236,15 +236,9 @@ export default defineComponent({
   methods: {
     save(data: ChannelRequest) {
       channelService.update(data)
-          .then((res: AxiosResponse<ChannelResponse>) => {
-            this.showModal = false;
-            this.$store.commit('updateChannel', res.data);
-            this.showModal = false;
-          })
-          .catch((err: AxiosError) => {
-            alert(err.response?.data);
-            this.showModal = false;
-          });
+          .then((res: AxiosResponse<ChannelResponse>) => this.$store.commit('updateChannel', res.data))
+          .catch((err: AxiosError) => alert(err.response?.data))
+          .finally(() => this.showModal = false);
     },
     editChannel(channel: ChannelRequest) {
       this.channelId = channel.channelId!;
