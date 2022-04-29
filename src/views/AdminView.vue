@@ -143,7 +143,7 @@ const adminApi = new AdminApi();
 interface AdminData {
   importing: boolean;
   loaded: boolean;
-  build: string;
+  build?: string;
   isUpdating: boolean;
   id: number;
   recordingApi: RecordingApi;
@@ -166,10 +166,10 @@ function getRandomInt(): number {
 export default defineComponent({
   name: 'AdminView',
   components: { LoadIndicator },
+  inject: ['build'],
   //components: { CPUChart, NetworkChart },
   data(): AdminData {
     return {
-      build: process.env.VUE_BUILD,
       loaded: false,
       importing: false,
       isUpdating: false,
