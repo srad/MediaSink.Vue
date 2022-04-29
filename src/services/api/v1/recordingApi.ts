@@ -63,6 +63,10 @@ export class RecordingApi extends BaseApi {
     return this.axios.get(`/recordings/${type}/${limit}`);
   }
 
+  getRandom(limit: string | number): Promise<AxiosResponse<RecordingResponse[]>> {
+    return this.axios.get(`/recordings/random/${limit}?bump=${new Date().getTime()}`);
+  }
+
   isUpdating(): Promise<AxiosResponse<boolean>> {
     return this.axios.get(`/recordings/isupdating`);
   }

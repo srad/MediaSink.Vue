@@ -77,7 +77,7 @@ export default defineComponent({
   methods: {
     fetch() {
       this.recordings = [];
-      recordingApi.getGallery('random', this.filterLimit).then(res => {
+      recordingApi.getRandom(this.filterLimit).then(res => {
         this.recordings = res.data;
       }).finally(() => this.busy = false);
     },
