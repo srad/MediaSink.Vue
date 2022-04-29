@@ -1,5 +1,5 @@
 import { BaseApi } from './base';
-import { AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 export interface DevStat {
   name: string;
@@ -32,9 +32,17 @@ export interface InfoResponse {
   netInfo: NetInfo;
 }
 
+export interface JsonInfo {
+  build: string;
+}
+
 export class InfoApi extends BaseApi {
   constructor() {
     super();
+  }
+
+  info(): Promise<AxiosResponse<JsonInfo>> {
+    return axios.get('/config.json');
   }
 
   fetch(seconds: number): Promise<AxiosResponse<InfoResponse>> {

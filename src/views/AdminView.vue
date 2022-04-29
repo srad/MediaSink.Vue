@@ -29,6 +29,8 @@
           <button disabled class="btn btn-secondary me-2" :class="{'blink btn-danger': importing, 'btn-secondary': !importing}" @click="posters">
             Importing
           </button>
+
+          <span>{{ build }}</span>
         </div>
       </div>
 
@@ -140,6 +142,7 @@ const adminApi = new AdminApi();
 interface AdminData {
   importing: boolean;
   loaded: boolean;
+  build: string;
   isUpdating: boolean;
   id: number;
   recordingApi: RecordingApi;
@@ -165,6 +168,7 @@ export default defineComponent({
   //components: { CPUChart, NetworkChart },
   data(): AdminData {
     return {
+      build: '',
       loaded: false,
       importing: false,
       isUpdating: false,
@@ -234,6 +238,7 @@ export default defineComponent({
       }
     },
     fetch() {
+      api.info().then(res => this.build = res.data.build);
       api.fetch(1).then(res => {
         this.infoResponse.netInfo = res.data.netInfo;
         this.infoResponse.diskInfo = res.data.diskInfo;
