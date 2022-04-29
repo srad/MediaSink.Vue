@@ -41,10 +41,6 @@ export class InfoApi extends BaseApi {
     super();
   }
 
-  info(): Promise<AxiosResponse<JsonInfo>> {
-    return axios.get('/config.json');
-  }
-
   fetch(seconds: number): Promise<AxiosResponse<InfoResponse>> {
     return this.axios.get(`/info/${seconds}`);
   }

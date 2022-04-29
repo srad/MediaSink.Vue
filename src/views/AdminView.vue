@@ -133,6 +133,7 @@ import { RecordingApi } from '@/services/api/v1/recordingApi';
 import { AxiosError } from 'axios';
 import { AdminApi } from '@/services/api/v1/adminApi';
 import LoadIndicator from '@/components/LoadIndicator.vue';
+
 //import CPUChart from '@/components/charts/CPUChart.vue';
 //import NetworkChart from '@/components/charts/NetworkChart.vue';
 
@@ -168,7 +169,7 @@ export default defineComponent({
   //components: { CPUChart, NetworkChart },
   data(): AdminData {
     return {
-      build: '',
+      build: process.env.VUE_BUILD,
       loaded: false,
       importing: false,
       isUpdating: false,
@@ -238,7 +239,6 @@ export default defineComponent({
       }
     },
     fetch() {
-      api.info().then(res => this.build = res.data.build);
       api.fetch(1).then(res => {
         this.infoResponse.netInfo = res.data.netInfo;
         this.infoResponse.diskInfo = res.data.diskInfo;

@@ -27,10 +27,6 @@ http {
         server_name     _ default_server;
         index           index.html;
 
-        location ~* \.(?:json|txt)$ {
-           root        /usr/share/nginx/html;
-        }
-
         location / {
             root        /usr/share/nginx/html;
             index       index.html;
