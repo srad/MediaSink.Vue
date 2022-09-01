@@ -93,8 +93,8 @@
                 </tr>
                 <tr>
                   <td class="text-center">
-                    <span class="fs-5">{{ infoResponse.diskInfo.pcent }}%</span> |
-                    <span class="fs-5">Usage {{ infoResponse.diskInfo.used }}/{{ infoResponse.diskInfo.size }}GB</span>
+                    <span class="fs-5">{{ infoResponse.diskInfo.pcent }}</span> |
+                    <span class="fs-5">Usage {{ infoResponse.diskInfo.used }}/{{ infoResponse.diskInfo.size }}</span>
                   </td>
                 </tr>
                 </tbody>
