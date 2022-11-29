@@ -105,19 +105,15 @@ export default defineComponent({
       if (!window.confirm('Delete selection?')) {
         return;
       }
-      try {
-        for (let i = 0; i < this.selectedRecordings.length; i++) {
-          const rec = this.selectedRecordings[i];
-          await recordingApi.destroy(rec.channelName, rec.filename);
-          const j = this.recordings.findIndex(r => r.filename === rec.filename);
-          if (j !== -1) {
-            this.recordings.splice(j, 1);
-          }
+      for (let i = 0; i < this.selectedRecordings.length; i++) {
+        const rec = this.selectedRecordings[i];
+        await recordingApi.destroy(rec.channelName, rec.filename);
+        const j = this.recordings.findIndex(r => r.filename === rec.filename);
+        if (j !== -1) {
+          this.recordings.splice(j, 1);
         }
-        this.selectedRecordings = [];
-      } catch (e) {
-        alert(e.message);
       }
+      this.selectedRecordings = [];
     },
     selectRecording(data: { checked: boolean, recording: RecordingResponse }) {
       if (data.checked) {

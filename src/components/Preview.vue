@@ -27,7 +27,7 @@
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-  name: 'Preview',
+  name: 'streamsink-preview',
   inject: ['fileUrl'],
   emits: ['selected'],
   data() {

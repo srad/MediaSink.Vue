@@ -60,6 +60,7 @@ interface StripeData {
 }
 
 export default defineComponent({
+  name: 'streamsink-stripe',
   data(): StripeData {
     return {
       startDown: false,
@@ -93,7 +94,7 @@ export default defineComponent({
   },
   watch: {
     timecode() {
-      this.$emit('offset', {offset: this.offset, clientX: this.clientX});
+      this.$emit('offset', { offset: this.offset, clientX: this.clientX });
     },
   },
   methods: {
@@ -108,14 +109,14 @@ export default defineComponent({
 
       if (this.markerPos === 'start') {
         if (x > this.markings[i].end - 50) {
-          return
+          return;
         }
         this.markings[i].start = x;
         this.markings[i].timestart = this.markings[i].start / this.width * this.duration;
         this.$emit('seek', this.markings[i].timestart);
       } else {
         if (x < this.markings[i].start + 50) {
-          return
+          return;
         }
         this.markings[i].end = x;
         this.markings[i].timeend = this.markings[i].end / this.width * this.duration;
@@ -124,7 +125,7 @@ export default defineComponent({
     },
     markerUp() {
       if (!this.paused) {
-        return
+        return;
       }
 
       this.markerDownIndex = 0;
@@ -135,11 +136,11 @@ export default defineComponent({
     },
     markerDown(event: MouseEvent, marker: Object, i: number, pos: string) {
       if (!this.paused) {
-        return
+        return;
       }
 
       event.preventDefault();
-      event.cancelBubble = true;
+      event.stopPropagation();
       if (this.markerDownIndex !== 0) {
         return;
       }
@@ -172,10 +173,10 @@ export default defineComponent({
     },
     down(event: MouseEvent) {
       if (!this.paused) {
-        return
+        return;
       }
       event.preventDefault();
-      event.cancelBubble = true;
+      event.stopPropagation();
 
       this.$emit('selecting', true);
 
@@ -198,7 +199,7 @@ export default defineComponent({
     },
     up(event: MouseEvent) {
       if (!this.paused) {
-        return
+        return;
       }
 
       this.showBar = true;

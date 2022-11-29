@@ -1,5 +1,5 @@
 import { BaseApi } from './base';
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 
 export interface DevStat {
   name: string;

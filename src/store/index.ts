@@ -1,5 +1,5 @@
 import { InjectionKey } from 'vue';
-import { createStore, Store } from 'vuex';
+import { createStore, Store, useStore as baseUseStore } from 'vuex';
 import { ChannelResponse } from '@/services/api/v1/channelApi';
 import { JobResponse } from '@/services/api/v1/jobApi';
 
@@ -19,11 +19,17 @@ export interface JobMessage {
 
 export const key: InjectionKey<Store<State>> = Symbol();
 
+///////////////////////////////////////////////////
+// Mutations must be synchronous!
+///////////////////////////////////////////////////
+
 export const store = createStore<State>({
-  state: {
-    channels: [],
-    jobs: [],
-    loggedIn: false,
+  state() {
+    return {
+      channels: [],
+      jobs: [],
+      loggedIn: false,
+    };
   },
   mutations: {
     'job:preview:done'(state: State, data: JobMessage) {
@@ -139,3 +145,7 @@ export const store = createStore<State>({
     }
   }
 });
+
+export function useStore() {
+  return baseUseStore(key);
+}

@@ -38,7 +38,7 @@ import { AxiosError } from 'axios';
 const channelService = new ChannelApi();
 
 export default defineComponent({
-  name: 'ChannelItem',
+  name: 'streamsink-channel-item',
   components: { StreamInfo, Preview },
   emits: ['edit'],
   inject: ['baseUrl', 'apiUrl', 'fileUrl'],

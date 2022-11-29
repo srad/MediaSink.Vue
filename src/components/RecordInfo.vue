@@ -83,7 +83,7 @@ export default defineComponent({
     createdAt: String,
   },
   computed: {
-    durationFormatted() {
+    durationFormatted(): string {
       return (this.duration / 60).toFixed(2);
     }
   },

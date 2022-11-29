@@ -17,7 +17,9 @@
         <span v-else>{{ recording.width }}x{{ recording.height }}</span>
       </span>
       <span v-if="recording.videoType==='cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
-      <Preview class="card-img-top" :data="recording" @selected="load(recording)" :preview-video="fileUrl + '/' + recording.previewVideo"/>
+      <router-link :to="{ name: 'Video', params: { channelName: recording.channelName, filename: recording.filename, pathRelative: recording.pathRelative, previewStripe: recording.previewStripe } }">
+        <Preview class="card-img-top" :data="recording" :preview-video="fileUrl + '/' + recording.previewVideo"/>
+      </router-link>
     </div>
     <div v-if="showTitle" class="card-body">
       <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="$router.push('/streams/' + recording.channelName)">
@@ -77,17 +79,6 @@ export default defineComponent({
     };
   },
   methods: {
-    load(recording: RecordingResponse) {
-      this.$router.push({
-        name: 'Video',
-        params: {
-          channelName: recording.channelName,
-          filename: recording.filename,
-          pathRelative: recording.pathRelative,
-          previewStripe: recording.previewStripe,
-        },
-      });
-    },
     bookmark(recording: RecordingResponse, yesNo: boolean) {
       this.busy = true;
       recordingApi[yesNo ? 'fav' : 'unfav'](recording.channelName, recording.filename)

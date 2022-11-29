@@ -71,7 +71,7 @@ interface RecordingData {
 const recordingApi = new RecordingApi();
 
 export default defineComponent({
-  name: 'Recording',
+  name: 'streamsink-sortview',
   components: { LoadIndicator, RecordingItem },
   inject: ['baseUrl', 'apiUrl'],
   emits: ['load'],
@@ -111,15 +111,11 @@ export default defineComponent({
         force: true
       });
     },
-    async fetch() {
-      try {
-        this.busy = true;
-        this.recordings = (await recordingApi.getSorted(this.$route.query.column as string || 'created_at', this.$route.query.order as string || 'desc', this.$route.query.limit as string || '25')).data;
-        this.busy = false;
-      } catch (e) {
-        alert(e.message);
-        this.busy = false;
-      }
+    fetch() {
+      this.busy = true;
+      recordingApi.getSorted(this.$route.query.column as string || 'created_at', this.$route.query.order as string || 'desc', this.$route.query.limit as string || '25').then(res => this.recordings = res.data)
+          .catch(err => alert(err))
+          .finally(() => this.busy = false);
     },
     viewFolder(channel: string) {
       this.$router.push('/recordings/' + channel);

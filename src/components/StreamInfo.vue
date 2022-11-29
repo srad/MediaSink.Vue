@@ -115,22 +115,18 @@ export default defineComponent({
         return;
       }
 
-      try {
-        const parsed = parseTags(tag);
-        const newTags = [...this.tagArray];
-        newTags.push(parsed[0]);
+      const parsed = parseTags(tag);
+      const newTags = [...this.tagArray];
+      newTags.push(parsed[0]);
 
-        channelApi.tags(this.channel.channelName, newTags)
-            .then(() => {
-              this.tagArray = newTags;
-              this.showTagInput = false;
-              this.tagVal = '';
-            });
-      } catch (e) {
-        alert(e.message);
-        this.tagVal = '';
-        return;
-      }
+      channelApi.tags(this.channel.channelName, newTags)
+          .then(() => {
+            this.tagArray = newTags;
+            this.showTagInput = false;
+            this.tagVal = '';
+          })
+          .catch(e => alert(e.message))
+          .finally(() => this.tagVal = '');
     }
   },
   mounted() {

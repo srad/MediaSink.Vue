@@ -23,7 +23,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { JobApi } from '@/services/api/v1/jobApi';
+import { JobApi, JobResponse } from '@/services/api/v1/jobApi';
 import moment from 'moment';
 import JobTable from '@/components/JobTable.vue';
 import { AxiosError } from 'axios';
@@ -40,7 +40,7 @@ export default defineComponent({
         return job;
       });
     },
-    workerJobs() {
+    workerJobs(): JobResponse[] {
       //@ts-ignore
       return this.$store.state.jobs.filter(job => job.status !== 'recording').map(job => {
         job.createdAt = moment(job.createdAt).fromNow();

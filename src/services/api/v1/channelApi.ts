@@ -85,7 +85,7 @@ export class ChannelApi extends BaseApi {
     return [this.axios.post(`/channels/${channelName}/upload`, formData, {
       cancelToken: source.token,
       headers: { 'Content-Type': 'multipart/form-data' },
-      onUploadProgress: progressEvent => progress(progressEvent.loaded / progressEvent.total)
+      onUploadProgress: progressEvent => progressEvent.total ? progress(progressEvent.loaded / progressEvent.total) : 0
     }), source];
   }
 }

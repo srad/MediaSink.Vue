@@ -47,9 +47,24 @@
 
 <script lang="ts">
 
-export default {
-  name: "Editor",
-  data() {
+import { defineComponent } from 'vue';
+
+interface Timestamp {
+  id: number;
+  start: number;
+  end: number;
+}
+
+interface EditorData {
+  counter: number;
+  start: number;
+  end: number;
+  timestamps: Timestamp[];
+}
+
+export default defineComponent({
+  name: 'Editor',
+  data(): EditorData {
     return {
       counter: 0,
       start: 0,
@@ -58,8 +73,8 @@ export default {
     };
   },
   model: {
-    prop: "timestamp",
-    event: "change"
+    prop: 'timestamp',
+    event: 'change'
   },
   props: {
     timestamp: {
@@ -88,10 +103,10 @@ export default {
         alert(`Start and end time too close ${this.start}:${this.end}`);
         return;
       }
-      const data = {id: this.counter, start: this.start, end: this.end};
+      const data = { id: this.counter, start: this.start, end: this.end };
       this.timestamps.push(data);
       this.counter += 1;
-      this.$emit("add", data);
+      this.$emit('add', data);
     },
     markStart() {
       this.start = this.timestamp;
@@ -99,17 +114,17 @@ export default {
     markEnd() {
       this.end = this.timestamp;
     },
-    destroy(id) {
+    destroy(id: number) {
       for (let i = 0; i < this.timestamps.length; i += 1) {
         if (this.timestamps[i].id === id) {
-          this.$emit("destroy", this.timestamps[i]);
+          this.$emit('destroy', this.timestamps[i]);
           this.timestamps.splice(i, 1);
           break;
         }
       }
     }
   }
-};
+});
 </script>
 
 <style scoped>

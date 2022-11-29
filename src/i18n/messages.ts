@@ -1,4 +1,3 @@
-import moment from 'moment';
 import en from './en';
 import de from './de';
 

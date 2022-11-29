@@ -51,7 +51,7 @@ interface RecordingData {
 const recordingApi = new RecordingApi();
 
 export default defineComponent({
-  name: 'Recording',
+  name: 'streamsink-randomview',
   components: { LoadIndicator, RecordingItem },
   inject: ['baseUrl', 'apiUrl'],
   emits: ['load'],

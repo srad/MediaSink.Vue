@@ -149,7 +149,7 @@ interface RecordingData {
 const channelService = new ChannelApi();
 
 export default defineComponent({
-  name: 'Recording',
+  name: 'streamsink-streamview',
   components: { ChannelItem, ChannelModal },
   inject: ['baseUrl', 'apiUrl', 'fileUrl', 'socketUrl'],
   props: {
