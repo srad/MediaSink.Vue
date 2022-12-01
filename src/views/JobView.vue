@@ -2,12 +2,12 @@
   <ul class="nav nav-tabs my-2" id="pills-tab" role="tablist">
     <li class="nav-item" role="presentation">
       <button class="nav-link active" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">
-        Worker Jobs
+        {{ $t("job.tab.workerJobs") }}
       </button>
     </li>
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">
-        Recordings
+        {{ $t("job.tab.recordings") }}
       </button>
     </li>
   </ul>

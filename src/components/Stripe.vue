@@ -264,10 +264,10 @@ export default defineComponent({
     }
   },
   unmounted() {
-    (this.$refs.stripe as HTMLDivElement).removeEventListener('wheel', this.resizePreview, true);
+    (this.$refs.stripe as HTMLDivElement)?.removeEventListener('wheel', this.resizePreview, true);
   },
   mounted() {
-    (this.$refs.stripe as HTMLDivElement).addEventListener('wheel', this.resizePreview, true);
+    (this.$refs.stripe as HTMLDivElement)?.addEventListener('wheel', this.resizePreview, true);
   }
 });
 </script>

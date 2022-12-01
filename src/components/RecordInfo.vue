@@ -10,12 +10,12 @@
       </span>
       <span class="text-secondary px-2">/</span>
       <span>
-        {{ $t("recording.ago", [createdAt]) }}
+        {{ $t("recording.ago", [ago]) }}
       </span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between">
       <span>{{ $t("recording.bitRate") }}</span>
-      <span>{{ $t("recording.bitRateMBit", [bitRate]) }}</span>
+      <span>{{ $t("recording.bitRateMBit", [(bitRate/1024/1024).toFixed(2)]) }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between">
       <span>{{ $t("recording.resolution") }}</span> <span>{{ width }}x{{ height }}</span>

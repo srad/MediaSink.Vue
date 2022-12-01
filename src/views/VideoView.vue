@@ -118,6 +118,8 @@ interface VideoData {
   segments: any[],
   baseUrl?: string;
   muted: boolean;
+  channelName: string;
+  filename: string;
   fileUrl?: string;
   playbackSpeed: number;
 }
@@ -127,14 +129,10 @@ const recording = new RecordingApi();
 export default defineComponent({
   components: { Stripe },
   inject: ['fileUrl'],
-  props: {
-    channelName: { type: String, required: true },
-    filename: { type: String, required: true },
-    pathRelative: { type: String, required: true },
-    previewStripe: String,
-  },
   data(): VideoData {
     return {
+      channelName: this.$route.params.channelName as string,
+      filename: this.$route.params.filename as string,
       markings: [],
       show: true,
       loaded: false,

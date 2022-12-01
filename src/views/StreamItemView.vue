@@ -23,18 +23,16 @@
     </div>
 
     <nav class="navbar fixed-bottom navbar-light bg-light border-info border-top">
-      <div class="container-fluid justify-content-between w-100">
+      <div class="container-fluid justify-content-end w-100">
         <div class="btn-group">
           <button v-if="selectedRecordings.length > 0" class="btn btn-danger" @click="destroySelection">Delete
             selected
           </button>
-        </div>
 
-        <div class="btn-group">
-          <button class="btn btn-danger me-3" @click="deleteChannel">
+          <button class="btn btn-danger me-3" @click="deleteChannel" v-if="selectedRecordings.length == 0">
             Delete Channel
           </button>
-          <button class="btn btn-primary text-white" @click="$refs.file.click()">
+          <button class="btn btn-primary text-white" @click="$refs.file.click()" v-if="selectedRecordings.length == 0">
             <input ref="file" name="file" v-show="false" accept="video/mp4" @change="submit" type="file">
             Upload Video
           </button>

@@ -3,20 +3,20 @@
     <table class="table table-sm shadow-sm align-middle bg-white table-bordered table-hover">
       <thead class="bg-light">
       <tr>
-        <th style="width: 20px">Pid</th>
-        <th style="width: 50px">Channel</th>
-        <th class="align-bottom" style="width: 50px">File</th>
-        <th class="align-bottom d-none d-lg-table-cell" style="width: 60px">Task</th>
-        <th class="align-bottom" style="width:70px">Progress</th>
-        <th class="align-bottom" style="width:110px">Created</th>
-        <th class="align-bottom" style="width:50px">Destroy</th>
+        <th style="width: 20px">{{ $t("jobTable.col.pid") }}</th>
+        <th style="width: 50px">{{ $t("jobTable.col.channel") }}</th>
+        <th class="align-bottom" style="width: 50px">{{ $t("jobTable.col.file") }}</th>
+        <th class="align-bottom d-none d-lg-table-cell" style="width: 60px">{{ $t("jobTable.col.task") }}</th>
+        <th class="align-bottom" style="width:70px">{{ $t("jobTable.col.progress") }}</th>
+        <th class="align-bottom" style="width:110px">{{ $t("jobTable.col.created") }}</th>
+        <th class="align-bottom" style="width:50px">{{ $t("jobTable.col.destroy") }}</th>
       </tr>
       </thead>
       <tbody>
       <tr :key="i" v-for="(job, i) in jobs" :class="{'table-success': job.active}">
         <td class="text-end">
           <div v-if="job.active" style="width: 1rem; height: 1rem" class="spinner-border text-success" role="status">
-            <span class="visually-hidden">Loading...</span>
+            <span class="visually-hidden">{{ $t("jobTable.loading") }}</span>
           </div>
           {{ job.pid }}
         </td>
@@ -39,7 +39,7 @@
 
       <tr v-if="jobs.length === 0">
         <td colspan="7" class="text-center">
-          <h5 class="p-3">No Jobs</h5>
+          <h5 class="p-3">{{ $t("jobTable.noJobs") }}</h5>
         </td>
       </tr>
       </tbody>

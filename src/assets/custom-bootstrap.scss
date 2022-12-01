@@ -2,7 +2,7 @@ $white: #ffffff;
 //$enable-rounded: false;
 
 $card-border-radius: 0;
-$border-radius: .2rem;
+$border-radius: .1rem;
 
 $card-cap-padding-y: 0;
 $card-cap-padding-x: 0;
@@ -11,9 +11,9 @@ $card-cap-padding-x: 0;
 }
 
 $theme-colors: (
-        "primary": #4b4e6d,
+        "primary": #6d4b6a,
         "secondary": #dcdcdd,
-        "success": #197278,
+        "success": #19785f,
         "info": #ab9db4,
         "warning": #e9c46a,
         "danger": #990d35,
@@ -24,7 +24,7 @@ $theme-colors: (
 $form-check-input-checked-bg-color: #4b4e6d;
 $form-check-input-checked-border-color: grey;
 
-$primary: #4b4e6d;
+$primary: #6d4b6a;
 $secondary: #dcdcdd;
 $success: #197278;
 $info: #ab9db4;

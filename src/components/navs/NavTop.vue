@@ -2,8 +2,8 @@
   <nav class="navbar navbar-expand-lg sticky-top shadow-sm m-0 d-flex bg-primary justify-content-between">
     <div class="container-fluid">
       <a class="navbar-brand d-none d-lg-block text-white fw-bold" href="/streams">
+        <img class="px-2" style="height: 28px; width: auto" src="/icon.png"/>
         <span class="d-none d-lg-inline p-2">{{ title }}</span>
-        <img style="height: 28px; width: auto" src="/icon.png"/>
       </a>
 
       <div class="navbar-collapse collapse px-2 mb-1" :class="{'d-none': collapseNav}" id="collapsibleNavbar">
@@ -37,7 +37,9 @@
       <button @click="$router.push('/jobs')" v-if="jobs.length > 0" type="button" class="position-relative me-2 btn btn-info" data-bs-toggle="dropdown" aria-expanded="false">
         {{ $t("menu.jobs") }} ({{ jobs.length }})
         <div v-if="jobs.length > 0" class="spinner-border text-dark spinner-border-sm" role="status">
-          <span class="visually-hidden">Loading...</span>
+          <span class="visually-hidden">
+            {{ $t("navtop.jobsLoading") }}
+          </span>
         </div>
       </button>
 
@@ -48,10 +50,10 @@
         </button>
         <button v-else class="btn btn-danger blink" @click="record(false)">
           <i class="bi bi-stop-fill"></i>
-          stop
+          {{ $t("navtop.stopRecording") }}
         </button>
         <button class="btn btn-success text-white ms-2" @click="$emit('add')">
-          Add Stream
+          {{ $t("navtop.addStream") }}
         </button>
       </div>
 
@@ -67,8 +69,8 @@
 import { defineComponent } from 'vue';
 import { DiskInfo, InfoApi } from '@/services/api/v1/infoApi';
 import { RecordingApi } from '@/services/api/v1/recordingApi';
-import { AxiosError } from 'axios';
 import { JobResponse } from '@/services/api/v1/jobApi';
+import { AxiosError } from 'axios';
 
 const recording = new RecordingApi();
 const info = new InfoApi();

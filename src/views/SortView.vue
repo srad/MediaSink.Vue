@@ -4,9 +4,12 @@
       <div class="col">
         <div class="d-flex justify-content-end">
           <div class="d-flex justify-content-center me-3">
+            <!-- filter row -->
             <div class="row g-3 align-items-center">
               <div class="col-auto">
-                <label for="limit" class="col-form-label fw-bold">Order By</label>
+                <label for="limit" class="col-form-label fw-bold">
+                  {{ $t("filter.label.orderBy") }}
+                </label>
               </div>
               <div class="col-auto">
                 <select class="form-select" v-model="filterColumn" @change="routeFilter">
@@ -14,7 +17,9 @@
                 </select>
               </div>
               <div class="col-auto">
-                <label for="limit" class="col-form-label fw-bold">Order</label>
+                <label for="limit" class="col-form-label fw-bold">
+                  {{ $t("filter.label.order") }}
+                </label>
               </div>
               <div class="col-auto">
                 <select class="form-select text-capitalize" v-model="filterOrder" @change="routeFilter">
@@ -22,7 +27,9 @@
                 </select>
               </div>
               <div class="col-auto">
-                <label for="limit" class="col-form-label fw-bold">Limit</label>
+                <label for="limit" class="col-form-label fw-bold">
+                  {{ $t("filter.label.limit") }}
+                </label>
               </div>
               <div class="col-auto">
                 <select id="limit" class="form-select" v-model="filterLimit" @change="routeFilter">
@@ -30,6 +37,7 @@
                 </select>
               </div>
             </div>
+            <!-- filter row -->
           </div>
           <button class="btn btn-primary" @click="routeFilter" v-if="$route.params.type==='random'">
             Refresh
