@@ -14,6 +14,7 @@
         :url="url"
         :skip-start="skipStart"/>
 
+    <!-- Search bar -->
     <div class="row">
       <div class="col">
         <div class="d-flex rounded-2 border mb-3 p-0 bg-light border-info p-1">
@@ -29,8 +30,10 @@
         </div>
       </div>
     </div>
-    <div class="row">
+    <!-- Search bar -->
 
+    <!-- Body -->
+    <div class="row">
       <div v-if="searchVal !== '' || favs" class="col">
         <div class="row">
           <div v-if="searchResults.length===0" class="justify-content-center d-flex">
@@ -107,9 +110,11 @@
             </div>
           </div>
         </div>
-
       </div>
+
     </div>
+    <!-- Body -->
+
   </div>
 </template>
 

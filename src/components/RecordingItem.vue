@@ -1,6 +1,6 @@
 <template>
   <div style="z-index: 10"
-       class="card bg-light border position-relative shadow-sm bg-light zoom"
+       class="card bg-light border position-relative shadow-sm bg-light mark p-0"
        :class="{'border-info': !checked, 'animate__animated animate__zoomOut': destroyed, 'border-2 border-danger': checked}">
     <div v-if="busy" class="bg-dark opacity-50 position-absolute w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 100">
       <div class="loader"></div>
@@ -128,6 +128,8 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
-
+<style scoped >
+.mark:hover {
+  outline: #da420d 2px solid;
+}
 </style>

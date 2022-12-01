@@ -13,12 +13,12 @@ $card-cap-padding-x: 0;
 $theme-colors: (
         "primary": #6d4b6a,
         "secondary": #dcdcdd,
-        "success": #19785f,
+        "success": #5c9d1b,
         "info": #ab9db4,
-        "warning": #e9c46a,
-        "danger": #990d35,
+        "warning": #febd65,
+        "danger": #da420d,
         "light": #f4f3ee,
-        "dark": #180f1d,
+        "dark": #34283b,
 );
 
 $form-check-input-checked-bg-color: #4b4e6d;
@@ -41,3 +41,12 @@ $nav-tabs-link-active-bg: $primary;
 $nav-tabs-link-active-border-color: $primary;
 
 @import "~bootstrap/scss/bootstrap";
+
+.bg-info-light {
+  background: tint-color($primary, 90%);
+}
+
+.bg-info-light-2 {
+  background: tint-color($primary, 98%);
+}
+

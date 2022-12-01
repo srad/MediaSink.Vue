@@ -1,10 +1,7 @@
 <template>
-  <nav class="navbar navbar-expand-lg sticky-top shadow-sm m-0 d-flex bg-primary justify-content-between">
+  <nav class="navbar navbar-expand-lg sticky-top shadow-sm m-0 d-flex bg-primary">
     <div class="container-fluid">
-      <a class="navbar-brand d-none d-lg-block text-white fw-bold" href="/streams">
-        <img class="px-2" style="height: 28px; width: auto" src="/icon.png"/>
-        <span class="d-none d-lg-inline p-2">{{ title }}</span>
-      </a>
+      <AppBrand class="mr-auto" :title="title"/>
 
       <div class="navbar-collapse collapse px-2 mb-1" :class="{'d-none': collapseNav}" id="collapsibleNavbar">
         <ul class="navbar-nav">
@@ -18,46 +15,10 @@
         </ul>
       </div>
 
-      <div class="text-white d-flex justify-content-between align-middle me-3 d-none d-lg-flex">
-          <span class="fw-bold me-2 ">
-            {{ diskInfo.pcent }}
-            <i class="bi bi-hdd"></i>
-          </span>
-        <span class="progress m-1" style="min-width: 120px">
-            <span class="progress-bar bg-info progress-bar-striped"
-                  role="progressbar"
-                  :style="{width: diskInfo.pcent}"
-                  :aria-valuenow="parseInt(diskInfo.pcent)"
-                  aria-valuemin="0"
-                  aria-valuemax="100">
-            </span>
-          </span>
-      </div>
+      <DiskStatus :pcent="diskInfo.pcent"/>
+      <RecordingControls :jobs="jobs" :recording="recording" @add="$emit('add')" @record="record"/>
 
-      <button @click="$router.push('/jobs')" v-if="jobs.length > 0" type="button" class="position-relative me-2 btn btn-info" data-bs-toggle="dropdown" aria-expanded="false">
-        {{ $t("menu.jobs") }} ({{ jobs.length }})
-        <div v-if="jobs.length > 0" class="spinner-border text-dark spinner-border-sm" role="status">
-          <span class="visually-hidden">
-            {{ $t("navtop.jobsLoading") }}
-          </span>
-        </div>
-      </button>
-
-      <div>
-        <button v-if="!recording" class="btn btn-secondary" @click="record(true)">
-          <i class="bi bi-record-fill"></i>
-          start
-        </button>
-        <button v-else class="btn btn-danger blink" @click="record(false)">
-          <i class="bi bi-stop-fill"></i>
-          {{ $t("navtop.stopRecording") }}
-        </button>
-        <button class="btn btn-success text-white ms-2" @click="$emit('add')">
-          {{ $t("navtop.addStream") }}
-        </button>
-      </div>
-
-      <button class="text-white fs-1 navbar-toggler collapsed" type="button" data-bs-toggle="collapse" @click="toggle" data-bs-target="#collapsibleNavbar" style="cursor:pointer" aria-expanded="false">
+      <button class="text-white fs-1 navbar-toggler collapsed align-items-end" type="button" data-bs-toggle="collapse" @click="toggle" data-bs-target="#collapsibleNavbar" style="cursor:pointer" aria-expanded="false">
         <span class="bi bi-list"></span>
       </button>
     </div>
@@ -71,6 +32,9 @@ import { DiskInfo, InfoApi } from '@/services/api/v1/infoApi';
 import { RecordingApi } from '@/services/api/v1/recordingApi';
 import { JobResponse } from '@/services/api/v1/jobApi';
 import { AxiosError } from 'axios';
+import DiskStatus from '@/components/DiskStatus.vue';
+import RecordingControls from '@/components/RecordingControls.vue';
+import AppBrand from '@/components/AppBrand.vue';
 
 const recording = new RecordingApi();
 const info = new InfoApi();
@@ -82,6 +46,7 @@ interface NavTopData {
 }
 
 export default defineComponent({
+  components: { AppBrand, RecordingControls, DiskStatus },
   props: {
     routes: { type: Array, required: true },
     title: { type: String, required: true },

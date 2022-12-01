@@ -23,6 +23,7 @@ export const messages = {
     navtop: {
       addStream: 'Add Stream',
       stopRecording: 'Stop',
+      startRecording: 'Start',
       jobsLoading: 'Loading...'
     },
     videoView: {

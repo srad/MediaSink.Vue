@@ -1,5 +1,5 @@
 <template>
-  <ul class="list-group list-group-flush border-top border-secondary">
+  <ul class="list-group list-group-flush">
     <li class="list-group-item d-flex justify-content-center">
       <span>
         {{ $t("recording.durationMinutes", [durationFormatted]) }}
@@ -9,28 +9,26 @@
         {{ (size / 1000 / 1000 / 1000).toFixed(1) }}GB
       </span>
       <span class="text-secondary px-2">/</span>
-      <span>
-        {{ $t("recording.ago", [ago]) }}
-      </span>
+      <span class="text-cut">{{ $t("recording.ago", [ago]) }}</span>
     </li>
-    <li v-if="expand" class="list-group-item d-flex justify-content-between">
+    <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
       <span>{{ $t("recording.bitRate") }}</span>
-      <span>{{ $t("recording.bitRateMBit", [(bitRate/1024/1024).toFixed(2)]) }}</span>
+      <span>{{ $t("recording.bitRateMBit", [(bitRate / 1024 / 1024).toFixed(2)]) }}</span>
     </li>
-    <li v-if="expand" class="list-group-item d-flex justify-content-between">
+    <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
       <span>{{ $t("recording.resolution") }}</span> <span>{{ width }}x{{ height }}</span>
     </li>
-    <li v-if="expand" class="list-group-item d-flex justify-content-between">
+    <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
       <span>{{ $t("recording.started") }}</span>
-      <span>{{ $d(new Date(createdAt), "short") }}</span>
+      <span>{{ new Date(createdAt).toLocaleDateString(undefined, {hour: "numeric", minute: "numeric"}) }}</span>
     </li>
-    <li v-if="expand" class="list-group-item d-flex justify-content-between">
+    <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
       <div>{{ $t("recording.convert") }}</div>
-      <div class="btn-group btn-group-sm">
-        <button v-if="height !== 720" class="btn btn-sm btn-warning" @click="$emit('convert', {recording: data, mediaType: '720'})">
+      <div class="btn-group">
+        <button v-if="height !== 720" class="btn btn-light" @click="$emit('convert', {recording: data, mediaType: '720'})">
           720p
         </button>
-        <button v-if="height !== 1080" class="btn btn-sm btn-warning" @click="$emit('convert', {recording: data, mediaType: '1080'})">
+        <button v-if="height !== 1080" class="btn btn-light" @click="$emit('convert', {recording: data, mediaType: '1080'})">
           1080p
         </button>
         <!--<button class="btn btn-sm btn-warning" @click="$emit('convert', {recording: data, mediaType: 'mp3'})">MP3</button>-->
@@ -40,23 +38,25 @@
       <i v-if="!expand" class="text-info bi bi-caret-down-fill"></i>
       <i v-else class="text-info bi bi-caret-up-fill"></i>
     </li>
-    <li class="list-group-item bg-light">
+    <li class="list-group-item bg-info-light fs-6">
       <div class="justify-content-between d-flex">
-        <div>
+
+        <div class="d-flex justify-content-evenly w-25">
           <a :href="url + '/download'">
-            <i class="bi bi-download text-dark fs-5 me-3"></i>
+            <i class="bi bi-download text-dark"></i>
           </a>
-          <a>
-            <i class="bi bi-star-fill text-warning fs-5" @click="$emit('bookmarked', data, false)" v-if="bookmark"></i>
-            <i v-else class="bi bi-star text-warning fs-5" @click="$emit('bookmarked', data, true)"></i>
-          </a>
+          <FavButton :data="data" :faved="bookmark" @fav="$emit('bookmarked', data, false)" @unfav="$emit('bookmarked', data, true)"/>
         </div>
-        <div class="d-flex">
-          <button class="btn btn-sm btn-secondary me-2" @click="$emit('preview', data)">
+
+        <div class="d-flex justify-content-evenly w-25">
+          <a @click="$emit('preview', data)">
             <i class="bi bi-film"></i>
-          </button>
-          <button class="btn btn-sm btn-danger" @click="$emit('destroy', data)">Delete</button>
+          </a>
+          <a class="text-danger" @click="$emit('destroy', data)">
+            <i class="bi bi-trash3-fill px-2"/>
+          </a>
         </div>
+
       </div>
     </li>
   </ul>
@@ -66,9 +66,11 @@
 import { defineComponent } from 'vue';
 //import { RecordingResponse } from '@/services/api/v1/recordingApi';
 import moment from 'moment';
+import FavButton from '@/components/controls/FavButton.vue';
 
 export default defineComponent({
   name: 'RecordInfo',
+  components: { FavButton },
   emits: ['preview', 'destroy', 'bookmarked', 'convert'],
   props: {
     index: Number,
