@@ -1,6 +1,6 @@
 <template>
-  <div class="card bg-light mb-3 border shadow-sm position-relative zoom"
-       :class="{'animate__animated animate__zoomOut': destroyed, 'opacity-50': channel.isPaused, 'border-primary': !channel.isRecording, 'border-danger border-2': channel.isRecording}">
+  <div class="card bg-light mb-3 border shadow-sm position-relative border-primary"
+       :class="{'animate__animated animate__zoomOut': destroyed, 'opacity-50': channel.isPaused, 'border-primary': !channel.isRecording}">
     <div v-if="busy" class="bg-dark opacity-50 position-absolute w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 100">
       <div class="loader"></div>
     </div>
@@ -10,21 +10,16 @@
              :data="{channelName: channel}"
              :image="fileUrl +'/'+ channel.preview + (channel.previewUpdate ? '?' + String(channel.previewUpdate.getTime()) : '')"/>
     <div class="card-body">
-      <div class="card-title p-1 m-0" :class="{'bg-primary' : !channel.isOnline, 'bg-success': channel.isOnline && !channel.isRecording, 'bg-danger': channel.isRecording}">
+      <div class="card-title p-1 m-0" :class="{'bg-primary' : !channel.isRecording && !channel.isOnline, 'bg-danger': channel.isRecording, 'bg-success': channel.isOnline && !channel.isRecording}">
         <h6 class="p-2 m-0 text-white">
           <a class="text-white" target="_blank" :href="channel.url">
             {{ channel.displayName }}
+            <i class="bi bi-link"/>
           </a>
         </h6>
       </div>
     </div>
-    <StreamInfo :channel="channel"
-                :fav="channel.fav"
-                @edit="(data) => $emit('edit', data)"
-                @fav="fav"
-                @unfav="unfav"
-                @pause="pause"
-                @destroy="destroyChannel"/>
+    <StreamInfo :channel="channel" :fav="channel.fav" @edit="(data) => $emit('edit', data)" @fav="fav" @unfav="unfav" @pause="pause"  @destroy="destroyChannel"/>
   </div>
 </template>
 

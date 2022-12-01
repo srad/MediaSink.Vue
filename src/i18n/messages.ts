@@ -11,6 +11,9 @@ export const messages = {
       jobs: 'Jobs',
       admin: 'Admin'
     },
+    crud: {
+      destroy: 'Delete'
+    },
     recording: {
       durationMinutes: '{0}min',
       ago: '{0}',
