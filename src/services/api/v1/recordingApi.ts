@@ -22,6 +22,10 @@ export class RecordingApi extends BaseApi {
     super();
   }
 
+  convert(channel: string, file: string, mediaType: string): Promise<AxiosResponse<RecordingResponse[]>> {
+    return this.axios.post(`/recordings/${channel}/${file}/${mediaType}/convert`);
+  }
+
   destroy(channel: string, file: string): Promise<AxiosResponse<RecordingResponse[]>> {
     return this.axios.delete(`/recordings/${channel}/${file}`);
   }
@@ -36,8 +40,12 @@ export class RecordingApi extends BaseApi {
     return this.axios.post(`/recordings/${channelName}/${filename}/cut`, data);
   }
 
-  bookmark(channelName: string, filename: string, yesNo: boolean): Promise<AxiosResponse<void>> {
-    return this.axios.post(`/recordings/${channelName}/${filename}/bookmark/${yesNo ? 1 : 0}`);
+  fav(channelName: string, filename: string): Promise<AxiosResponse<void>> {
+    return this.axios.post(`/recordings/${channelName}/${filename}/fav`);
+  }
+
+  unfav(channelName: string, filename: string): Promise<AxiosResponse<void>> {
+    return this.axios.post(`/recordings/${channelName}/${filename}/unfav`);
   }
 
   generatePreview(channelName: string, filename: string): Promise<AxiosResponse<void>> {
@@ -55,6 +63,14 @@ export class RecordingApi extends BaseApi {
     return this.axios.get(`/recordings/${type}/${limit}`);
   }
 
+  getRandom(limit: string | number): Promise<AxiosResponse<RecordingResponse[]>> {
+    return this.axios.get(`/recordings/random/${limit}?bump=${new Date().getTime()}`);
+  }
+
+  isUpdating(): Promise<AxiosResponse<boolean>> {
+    return this.axios.get(`/recordings/isupdating`);
+  }
+
   getSorted(column: string, order: string, limit: string) {
     return this.axios.get(`/recordings/sorted/${column}/${order}/${limit}`);
   }
@@ -64,7 +80,7 @@ export class RecordingApi extends BaseApi {
   }
 
   updateInfo(): Promise<AxiosResponse<void>> {
-    return this.axios.post(`/recorder/updateinfo`);
+    return this.axios.post(`/recordings/updateinfo`);
   }
 
   isRecording(): Promise<AxiosResponse<boolean>> {

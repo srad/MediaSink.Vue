@@ -2,7 +2,7 @@
   <div class="row my-2">
     <LoadIndicator :busy="busy" :empty="recordings.length === 0" empty-text="No Videos">
       <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-        <RecordingItem :recording="recording" @destroyed="destroyRecording"/>
+        <RecordingItem :recording="recording" @destroyed="destroyRecording" @bookmark="bookmark"/>
       </div>
     </LoadIndicator>
   </div>
@@ -34,18 +34,25 @@ export default defineComponent({
     };
   },
   methods: {
+    removeItem(recording: RecordingResponse) {
+      const i = this.recordings.findIndex(r => r.filename === recording.filename);
+      if (i !== -1) {
+        this.recordings.splice(i, 1);
+      }
+    },
+
+    bookmark(recording: RecordingResponse) {
+      if (!recording.bookmark) {
+        this.removeItem(recording);
+      }
+    },
     destroyRecording(recording: RecordingResponse) {
-      if (!window.confirm(`Delete '${recording.filename}'?`)) {
+      if (!window.confirm(this.$t('crud.destroy', [recording.filename]))) {
         return;
       }
 
       recordingApi.destroy(recording.channelName, recording.filename).then(() => {
-        for (let i = 0; i < this.recordings.length; i += 1) {
-          if (this.recordings[i].filename === recording.filename) {
-            this.recordings.splice(i, 1);
-            break;
-          }
-        }
+        this.removeItem(recording);
       }).catch((err: AxiosError) => {
         alert(err.response?.data);
       });
@@ -54,8 +61,7 @@ export default defineComponent({
   created() {
     recordingApi.getBookmarks().then(res => {
       this.recordings = res.data;
-      this.busy = false;
-    });
+    }).finally(() => this.busy = false);
   }
 });
 </script>

@@ -32,6 +32,10 @@ export interface InfoResponse {
   netInfo: NetInfo;
 }
 
+export interface JsonInfo {
+  build: string;
+}
+
 export class InfoApi extends BaseApi {
   constructor() {
     super();

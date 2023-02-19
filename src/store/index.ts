@@ -1,5 +1,5 @@
 import { InjectionKey } from 'vue';
-import { createStore, Store } from 'vuex';
+import { createStore, Store, useStore as baseUseStore } from 'vuex';
 import { ChannelResponse } from '@/services/api/v1/channelApi';
 import { JobResponse } from '@/services/api/v1/jobApi';
 
@@ -10,18 +10,26 @@ export interface State {
 }
 
 export interface JobMessage {
+  jobId: number;
   channelName: string;
   filename: string;
   type: string;
+  data: { packets: number, frame: number } | any;
 }
 
 export const key: InjectionKey<Store<State>> = Symbol();
 
+///////////////////////////////////////////////////
+// Mutations must be synchronous!
+///////////////////////////////////////////////////
+
 export const store = createStore<State>({
-  state: {
-    channels: [],
-    jobs: [],
-    loggedIn: false,
+  state() {
+    return {
+      channels: [],
+      jobs: [],
+      loggedIn: false,
+    };
   },
   mutations: {
     'job:preview:done'(state: State, data: JobMessage) {
@@ -30,13 +38,31 @@ export const store = createStore<State>({
     'job:preview:progress'(state: State, data) {
       console.log('Progrss: ', data);
     },
-    'job:create'(state: State, data: JobMessage) {
-      // TODO
-      //state.jobs.push({ channelName: data.channelName, filename: data.filename, jobId: 0 });
-    },
     'job:destroy'(state: State, data: JobMessage) {
       const i = state.jobs.findIndex(j => j.filename === data.channelName);
-      state.jobs.splice(i, 1);
+      if (i !== -1) {
+        state.jobs.splice(i, 1);
+      }
+    },
+    'job:start'(state: State, job: JobMessage) {
+      let i = state.jobs.findIndex(j => j.jobId === job.jobId);
+      if (i === -1) {
+        i = state.jobs.push({
+          jobId: job.jobId,
+          active: false,
+          progress: '0',
+          channelName: job.channelName,
+          filename: job.filename,
+          status: job.type,
+          createdAt: new Date().toString(),
+          args: ''
+        });
+      }
+      state.jobs[i].active = true;
+    },
+    'job:progress'(state: State, job: JobMessage) {
+      const i = state.jobs.findIndex(j => j.jobId === job.jobId);
+      state.jobs[i].progress = String(job.data.frame / job.data.packets * 100);
     },
     'channel:online'(state: State, data: { channelName: string }) {
       const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
@@ -63,6 +89,7 @@ export const store = createStore<State>({
       state.loggedIn = true;
     },
     addJob(state: State, job: JobResponse) {
+      job.progress = '0';
       state.jobs.push(job);
     },
     addChannel(state: State, channel: ChannelResponse) {
@@ -73,7 +100,13 @@ export const store = createStore<State>({
     updateChannel(state: State, channel: ChannelResponse) {
       const i = state.channels.findIndex(c => c.channelName === channel.channelName);
       if (i !== -1) {
-        state.channels[i] = channel;
+        const ch = state.channels[i] as ChannelResponse;
+        Object
+          .keys(channel)
+          .forEach(key => {
+            //@ts-ignore
+            ch[key] = channel[key];
+          });
       }
     },
     destroyChannel(state: State, channel: ChannelResponse) {
@@ -83,11 +116,9 @@ export const store = createStore<State>({
       }
     },
     pauseChannel(state: State, data: { channel: ChannelResponse, pause: boolean }) {
-      for (let i = 0; i < state.channels.length; i += 1) {
-        if (state.channels[i].channelName === data.channel.channelName) {
-          state.channels[i].isPaused = data.pause;
-          break;
-        }
+      const i = state.channels.findIndex(c => c.channelName === data.channel.channelName);
+      if (i !== -1) {
+        state.channels[i].isPaused = data.pause;
       }
     },
     destroyJob(state: State, jobId: number) {
@@ -114,3 +145,7 @@ export const store = createStore<State>({
     }
   }
 });
+
+export function useStore() {
+  return baseUseStore(key);
+}

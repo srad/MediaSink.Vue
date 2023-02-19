@@ -3,6 +3,7 @@ import {AxiosResponse} from "axios";
 
 export interface JobResponse {
   jobId: number;
+  active?: boolean;
   channelName: string;
   filename: string;
   status: string;

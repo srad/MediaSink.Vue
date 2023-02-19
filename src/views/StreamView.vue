@@ -14,6 +14,7 @@
         :url="url"
         :skip-start="skipStart"/>
 
+    <!-- Search bar -->
     <div class="row">
       <div class="col">
         <div class="d-flex rounded-2 border mb-3 p-0 bg-light border-info p-1">
@@ -29,8 +30,10 @@
         </div>
       </div>
     </div>
-    <div class="row">
+    <!-- Search bar -->
 
+    <!-- Body -->
+    <div class="row">
       <div v-if="searchVal !== '' || favs" class="col">
         <div class="row">
           <div v-if="searchResults.length===0" class="justify-content-center d-flex">
@@ -107,9 +110,11 @@
             </div>
           </div>
         </div>
-
       </div>
+
     </div>
+    <!-- Body -->
+
   </div>
 </template>
 
@@ -149,7 +154,7 @@ interface RecordingData {
 const channelService = new ChannelApi();
 
 export default defineComponent({
-  name: 'Recording',
+  name: 'streamsink-streamview',
   components: { ChannelItem, ChannelModal },
   inject: ['baseUrl', 'apiUrl', 'fileUrl', 'socketUrl'],
   props: {
@@ -236,15 +241,9 @@ export default defineComponent({
   methods: {
     save(data: ChannelRequest) {
       channelService.update(data)
-          .then((res: AxiosResponse<ChannelResponse>) => {
-            this.showModal = false;
-            this.$store.commit('updateChannel', res.data);
-            this.showModal = false;
-          })
-          .catch((err: AxiosError) => {
-            alert(err.response?.data);
-            this.showModal = false;
-          });
+          .then((res: AxiosResponse<ChannelResponse>) => this.$store.commit('updateChannel', res.data))
+          .catch((err: AxiosError) => alert(err.response?.data))
+          .finally(() => this.showModal = false);
     },
     editChannel(channel: ChannelRequest) {
       this.channelId = channel.channelId!;

@@ -111,6 +111,7 @@ import { defineComponent } from 'vue';
 import { DiskInfo, InfoApi } from '@/services/api/v1/infoApi';
 import { RecordingApi } from '@/services/api/v1/recordingApi';
 import { AxiosError } from 'axios';
+import { JobResponse } from '@/services/api/v1/jobApi';
 
 const recording = new RecordingApi();
 const info = new InfoApi();
@@ -132,7 +133,7 @@ export default defineComponent({
     }
   },
   computed: {
-    jobs() {
+    jobs(): JobResponse[] {
       //@ts-ignore
       return this.$store.state.jobs.slice().filter(job => job.status !== 'recording');
     }

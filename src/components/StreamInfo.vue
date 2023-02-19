@@ -1,12 +1,12 @@
 <template>
   <ul class="list-group list-group-flush">
-    <li class="list-group-item d-flex justify-content-between">
+    <li class="list-group-item d-flex justify-content-between bg-info-light bg-gradient">
       <div>
         <span class="badge me-2 user-select-none" :class="{'bg-danger text-white border border-danger blink': channel.isRecording, 'bg-light text-primary border-info border': !channel.isRecording}">Recording</span>
         <span class="badge user-select-none" :class="{'bg-success text-white border border-success': channel.isOnline, 'bg-light text-primary border-info border': !channel.isOnline}">Online</span>
       </div>
     </li>
-    <li class="list-group-item d-flex justify-content-between">
+    <li class="list-group-item d-flex justify-content-between bg-info-light-2">
       <span v-if="channel.isRecording">
         <i class="bi bi-stopwatch me-1"></i>
         <span>{{ minutes }}:{{ seconds }}min</span>
@@ -18,7 +18,7 @@
           }}GB ({{ channel.recordingsCount }})</span>
       </div>
     </li>
-    <li class="list-group-item">
+    <li class="list-group-item bg-info-light-2">
       <template v-if="!showTagInput && tagArray.length > 0">
         <span v-for="tag in tagArray" @click="$router.push({query: {tag}})" class="badge bg-secondary text-dark me-1 user-select-none" :key="tag">{{ tag }}
           <span @click="destroyTag(tag)" class="bi bi-x" style="z-index: 1"></span>
@@ -32,23 +32,25 @@
           <span class="bi bi-plus"></span>
       </span>
     </li>
-    <li class="list-group-item bg-light d-flex justify-content-between">
-      <div class="d-flex">
-        <span class="form-check form-switch py-1 me-2">
+    <li class="list-group-item bg-info-light d-flex justify-content-between fs-6">
+
+      <div class="d-flex w-75">
+        <span class="form-check form-switch me-2">
           <input @click="$emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" id="flexSwitchCheckDefault">
           <label class="form-check-label" for="flexSwitchCheckDefault">Record</label>
         </span>
-        <span>
-          <i class="bi bi-star-fill text-warning fs-5" @click="$emit('unfav', channel)" v-if="fav"></i>
-          <i v-else class="bi bi-star text-warning fs-5" @click="$emit('fav', channel)"></i>
-        </span>
+        <FavButton :data="channel" :faved="fav" @fav="$emit('unfav', channel)" @unfav="$emit('fav', channel)"/>
       </div>
-      <div>
-        <button class="btn btn-sm btn-secondary me-1" @click="$emit('edit', channel)">
-          <i class="bi bi-pen"></i>
-        </button>
-        <button class="btn btn-sm btn-danger" @click="$emit('destroy', channel)">Delete</button>
+
+      <div class="d-flex justify-content-evenly w-25">
+        <a @click="$emit('edit', channel)" class="me-2">
+          <i class="bi bi-pencil-square"></i>
+        </a>
+        <a class="text-danger" @click="$emit('destroy', channel)">
+          <i class="bi bi-trash3-fill"></i>
+        </a>
       </div>
+
     </li>
   </ul>
 </template>
@@ -57,6 +59,7 @@
 import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
 import { PropType, defineComponent } from 'vue';
 import { parseTags } from '@/utils/parser';
+import FavButton from '@/components/controls/FavButton.vue';
 
 const channelApi = new ChannelApi();
 
@@ -70,6 +73,7 @@ interface ChannelItemData {
 
 export default defineComponent({
   name: 'StreamInfo',
+  components: { FavButton },
   emits: ['unfav', 'fav', 'edit', 'destroy', 'pause'],
   props: {
     fav: Boolean,
@@ -115,22 +119,18 @@ export default defineComponent({
         return;
       }
 
-      try {
-        const parsed = parseTags(tag);
-        const newTags = [...this.tagArray];
-        newTags.push(parsed[0]);
+      const parsed = parseTags(tag);
+      const newTags = [...this.tagArray];
+      newTags.push(parsed[0]);
 
-        channelApi.tags(this.channel.channelName, newTags)
-            .then(() => {
-              this.tagArray = newTags;
-              this.showTagInput = false;
-              this.tagVal = '';
-            });
-      } catch (e) {
-        alert(e.message);
-        this.tagVal = '';
-        return;
-      }
+      channelApi.tags(this.channel.channelName, newTags)
+          .then(() => {
+            this.tagArray = newTags;
+            this.showTagInput = false;
+            this.tagVal = '';
+          })
+          .catch(e => alert(e.message))
+          .finally(() => this.tagVal = '');
     }
   },
   mounted() {

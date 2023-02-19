@@ -23,30 +23,37 @@
     </div>
 
     <nav class="navbar fixed-bottom navbar-light bg-light border-info border-top">
-      <div class="container-fluid justify-content-between w-100">
-        <div class="btn-group">
-          <button v-if="selectedRecordings.length > 0" class="btn btn-danger" @click="destroySelection">Delete
-            selected
-          </button>
-        </div>
+      <div class="container-fluid justify-content-end">
+        <button v-if="selectedRecordings.length > 0" class="btn btn-danger" @click="destroySelection">
+          <i class="bi bi-trash3-fill px-2"/>
+        </button>
 
-        <div class="btn-group">
-          <button class="btn btn-danger me-3" @click="deleteChannel">
-            Delete Channel
-          </button>
-          <button class="btn btn-primary text-white" @click="$refs.file.click()">
-            <input ref="file" name="file" v-show="false" accept="video/mp4" @change="submit" type="file">
-            Upload Video
-          </button>
-        </div>
+        <button class="btn btn-light text-danger" @click="deleteChannel" v-if="selectedRecordings.length == 0">
+          <i class="bi bi-trash3-fill px-2"/>
+        </button>
+
+        <button class="btn btn-light" @click="$refs.file.click()" v-if="selectedRecordings.length == 0">
+          <input ref="file" name="file" v-show="false" accept="video/mp4" @change="submit" type="file">
+          <i class="bi bi-upload px-2"/>
+        </button>
+
+        <button class="btn btn-light">
+          <i class="bi bi-pencil px-2"/>
+        </button>
+
+        <button class="btn btn-light" style="color: goldenrod">
+          <i class="bi bi-star px-2"/>
+        </button>
       </div>
     </nav>
 
     <div class="row pb-5">
-      <div class="d-flex justify-content-between">
-        <h4 class="py-0"><span class="text-primary">{{ $route.params.channel }}</span></h4>
+      <div class="d-flex align-middle fs-5 pb-2 fw-bolder">
+        <span class="text-primary px-2">{{ $route.params.channel }}</span>
       </div>
+
       <hr/>
+
       <LoadIndicator :busy="busy" :empty="recordings.length === 0" empty-text="No Videos">
         <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
           <RecordingItem :show-selection="true" @checked="selectRecording" :recording="recording" @destroyed="destroyRecording"/>
@@ -105,19 +112,15 @@ export default defineComponent({
       if (!window.confirm('Delete selection?')) {
         return;
       }
-      try {
-        for (let i = 0; i < this.selectedRecordings.length; i++) {
-          const rec = this.selectedRecordings[i];
-          await recordingApi.destroy(rec.channelName, rec.filename);
-          const j = this.recordings.findIndex(r => r.filename === rec.filename);
-          if (j !== -1) {
-            this.recordings.splice(j, 1);
-          }
+      for (let i = 0; i < this.selectedRecordings.length; i++) {
+        const rec = this.selectedRecordings[i];
+        await recordingApi.destroy(rec.channelName, rec.filename);
+        const j = this.recordings.findIndex(r => r.filename === rec.filename);
+        if (j !== -1) {
+          this.recordings.splice(j, 1);
         }
-        this.selectedRecordings = [];
-      } catch (e) {
-        alert(e.message);
       }
+      this.selectedRecordings = [];
     },
     selectRecording(data: { checked: boolean, recording: RecordingResponse }) {
       if (data.checked) {
@@ -131,8 +134,9 @@ export default defineComponent({
     },
     deleteChannel() {
       if (window.confirm(`Delete channel "${this.channelName}"?`)) {
-        channelApi.destroy(this.channelName);
-        this.$router.back();
+        channelApi.destroy(this.channelName)
+            .then(() => this.$store.commit('destroyChannel', { channelName: this.channelName }))
+            .finally(() => this.$router.back());
       }
     },
     cancelUpload() {
@@ -176,12 +180,9 @@ export default defineComponent({
     this.busy = true;
     recordingApi.getRecordings(this.channelName).then(res => {
       this.recordings = res.data;
-      this.busy = false;
       window.scrollTo(0, 0);
-    }).catch((err: AxiosError) => {
-      this.busy = false;
-      alert(err.response?.data);
-    });
+    }).catch((err: AxiosError) => alert(err.response?.data))
+        .finally(() => this.busy = false);
   }
 });
 </script>

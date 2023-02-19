@@ -1,6 +1,6 @@
 <template>
   <div style="z-index: 10"
-       class="card bg-light border position-relative shadow-sm bg-light zoom"
+       class="card bg-light border position-relative shadow-sm bg-light mark p-0"
        :class="{'border-info': !checked, 'animate__animated animate__zoomOut': destroyed, 'border-2 border-danger': checked}">
     <div v-if="busy" class="bg-dark opacity-50 position-absolute w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 100">
       <div class="loader"></div>
@@ -17,10 +17,12 @@
         <span v-else>{{ recording.width }}x{{ recording.height }}</span>
       </span>
       <span v-if="recording.videoType==='cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
-      <Preview class="card-img-top" :data="recording" @selected="load(recording)" :preview-video="fileUrl + '/' + recording.previewVideo"/>
+      <router-link :to="{ name: 'Video', params: { channelName: recording.channelName, filename: recording.filename, pathRelative: recording.pathRelative, previewStripe: recording.previewStripe } }">
+        <Preview class="card-img-top" :data="recording" :preview-video="fileUrl + '/' + recording.previewVideo"/>
+      </router-link>
     </div>
     <div v-if="showTitle" class="card-body">
-      <div class="card-title p-1 bg-primary" style="cursor:pointer;" @click="$router.push('/streams/' + recording.channelName)">
+      <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="$router.push('/streams/' + recording.channelName)">
         <h6 class="p-2 m-0 text-white">
           <a class="text-white" target="_blank">
             {{ recording.channelName }}
@@ -38,6 +40,7 @@
         :data="recording"
         :width="recording.width"
         :height="recording.height"
+        @convert="convert"
         @bookmarked="bookmark"
         @preview="generatePreview"
         @destroy="destroyRecording"/>
@@ -56,7 +59,7 @@ const recordingApi = new RecordingApi();
 export default defineComponent({
   name: 'RecordingItem',
   components: { RecordInfo, Preview },
-  emits: ['destroyed', 'load', 'checked'],
+  emits: ['destroyed', 'load', 'checked', 'converted', 'bookmark'],
   inject: ['baseUrl', 'apiUrl', 'fileUrl'],
   props: {
     showSelection: { type: Boolean, default: false },
@@ -76,45 +79,40 @@ export default defineComponent({
     };
   },
   methods: {
-    load(recording: RecordingResponse) {
-      this.$router.push({
-        name: 'Video',
-        params: {
-          channelName: recording.channelName,
-          filename: recording.filename,
-          pathRelative: recording.pathRelative,
-          previewStripe: recording.previewStripe,
-        },
-      });
-    },
     bookmark(recording: RecordingResponse, yesNo: boolean) {
       this.busy = true;
-      recordingApi.bookmark(recording.channelName, recording.filename, yesNo)
+      recordingApi[yesNo ? 'fav' : 'unfav'](recording.channelName, recording.filename)
           .then(() => {
             recording.bookmark = yesNo;
-            this.$store.commit('pauseChannel', { channel: recording.channelName, pause: yesNo });
-            this.busy = false;
+            this.$emit('bookmark', recording);
           })
           .catch((err: AxiosError) => {
             alert(err.response?.data);
-            this.busy = false;
-          });
+          })
+          .finally(() => this.busy = false);
     },
     generatePreview(recording: RecordingResponse) {
       if (window.confirm('Generate new preview?')) {
         this.busy = true;
         recordingApi.generatePreview(recording.channelName, recording.filename)
-            .then(() => {
-              this.busy = false;
-            })
             .catch((err: AxiosError) => {
-              this.busy = false;
               alert(err.response?.data);
-            });
+            })
+            .finally(() => this.busy = false);
       }
     },
+    convert({ recording, mediaType }: { recording: RecordingResponse, mediaType: string }) {
+      if (!window.confirm(`Convert '${recording.filename}' video to type '${mediaType}'?`)) {
+        return;
+      }
+
+      this.busy = true;
+      recordingApi.convert(recording.channelName, recording.filename, mediaType).catch((err: AxiosError) => {
+        alert(err.response?.data);
+      }).finally(() => this.busy = false);
+    },
     destroyRecording(recording: RecordingResponse) {
-      if (!window.confirm(`Delete '${recording.filename}'?`)) {
+      if (!window.confirm(this.$t('crud.destroy', [recording.filename]))) {
         return;
       }
 
@@ -122,16 +120,16 @@ export default defineComponent({
       recordingApi.destroy(recording.channelName, recording.filename).then(() => {
         this.destroyed = true;
         setTimeout(() => this.$emit('destroyed', recording), 1000);
-        this.busy = false;
       }).catch((err: AxiosError) => {
-        this.busy = false;
         alert(err.response?.data);
-      });
+      }).finally(() => this.busy = false);
     },
   }
 });
 </script>
 
-<style scoped>
-
+<style scoped >
+.mark:hover {
+  outline: #da420d 2px solid;
+}
 </style>

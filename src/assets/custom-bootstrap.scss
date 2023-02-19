@@ -1,20 +1,30 @@
 $white: #ffffff;
+//$enable-rounded: false;
+
+$card-border-radius: 0;
+$border-radius: .1rem;
+
+$card-cap-padding-y: 0;
+$card-cap-padding-x: 0;
+.card-body {
+  padding: 0 !important;
+}
 
 $theme-colors: (
-        "primary": #4b4e6d,
+        "primary": #6d4b6a,
         "secondary": #dcdcdd,
-        "success": #197278,
+        "success": #5c9d1b,
         "info": #ab9db4,
-        "warning": #e9c46a,
-        "danger": #990d35,
+        "warning": #febd65,
+        "danger": #da420d,
         "light": #f4f3ee,
-        "dark": #180f1d,
+        "dark": #34283b,
 );
 
 $form-check-input-checked-bg-color: #4b4e6d;
 $form-check-input-checked-border-color: grey;
 
-$primary: #4b4e6d;
+$primary: #6d4b6a;
 $secondary: #dcdcdd;
 $success: #197278;
 $info: #ab9db4;
@@ -30,49 +40,13 @@ $nav-tabs-link-active-color: $white;
 $nav-tabs-link-active-bg: $primary;
 $nav-tabs-link-active-border-color: $primary;
 
+@import "~bootstrap/scss/bootstrap";
 
-@import "~bootstrap/scss/functions";
+.bg-info-light {
+  background: tint-color($primary, 90%);
+}
 
-@import "./variables";
+.bg-info-light-2 {
+  background: tint-color($primary, 98%);
+}
 
-@import "~bootstrap/scss/mixins";
-@import "~bootstrap/scss/utilities";
-
-// Layout & components
-@import "~bootstrap/scss/root";
-@import "~bootstrap/scss/reboot";
-@import "~bootstrap/scss/type";
-@import "~bootstrap/scss/images";
-@import "~bootstrap/scss/containers";
-@import "~bootstrap/scss/grid";
-@import "~bootstrap/scss/tables";
-@import "~bootstrap/scss/forms";
-@import "~bootstrap/scss/buttons";
-//@import "~bootstrap/scss/transitions";
-@import "~bootstrap/scss/dropdown";
-@import "~bootstrap/scss/button-group";
-@import "~bootstrap/scss/nav";
-@import "~bootstrap/scss/navbar";
-//@import "~bootstrap/scss/card";
-//@import "~bootstrap/scss/accordion";
-//@import "~bootstrap/scss/breadcrumb";
-//@import "~bootstrap/scss/pagination";
-@import "~bootstrap/scss/badge";
-//@import "~bootstrap/scss/alert";
-@import "~bootstrap/scss/progress";
-@import "~bootstrap/scss/list-group";
-@import "~bootstrap/scss/close";
-//@import "~bootstrap/scss/toasts";
-@import "~bootstrap/scss/modal";
-//@import "~bootstrap/scss/tooltip";
-//@import "~bootstrap/scss/popover";
-//@import "~bootstrap/scss/carousel";
-@import "~bootstrap/scss/spinners";
-@import "~bootstrap/scss/offcanvas";
-
-// Helpers
-@import "~bootstrap/scss/helpers";
-
-// Utilities
-@import "~bootstrap/scss/utilities/api";
-// scss-docs-end import-stack
