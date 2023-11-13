@@ -27,15 +27,22 @@ ENV VUE_APP_NAME $APP_NAME
 ENV VUE_APP_FILEURL $APP_FILEURL
 ENV VUE_APP_SOCKETURL $APP_SOCKETURL
 
-RUN echo "VUE_APP_APIURL=$API_URL" >> .env
-RUN echo "VUE_APP_BASE=$APP_BAS" >> .env
-RUN echo "VUE_APP_NAME= $APP_NAME" >> .env
-RUN echo "VUE_APP_SOCKETURL=$APP_SOCKETURL" >> .env
-RUN echo "VUE_APP_FILEURL= $APP_FILEURL" >> .env
-RUN echo "VUE_APP_BUILD=$APP_BUILD" >> .env
+#RUN echo "VUE_APP_APIURL=$API_URL" >> .env
+#RUN echo "VUE_APP_BASE=$APP_BAS" >> .env
+#RUN echo "VUE_APP_NAME= $APP_NAME" >> .env
+#RUN echo "VUE_APP_SOCKETURL=$APP_SOCKETURL" >> .env
+#RUN echo "VUE_APP_FILEURL= $APP_FILEURL" >> .env
+#RUN echo "VUE_APP_BUILD=$APP_BUILD" >> .env
 
 RUN npm run test:unit
 RUN npm run build
+
+RUN sed -i 's|VUE_APP_APIURL|'${API_URL}'|g' dist/*.js
+RUN sed -i 's|VUE_APP_BUILD|'${APP_BUILD}'|g' dist/*.js
+RUN sed -i 's|VUE_APP_BASE|'${APP_BASE}'|g' dist/*.js
+RUN sed -i 's|VUE_APP_NAME|'${APP_NAME}'|g' dist/*.js
+RUN sed -i 's|VUE_APP_FILEURL|'${APP_FILEURL}'|g' dist/*.js
+RUN sed -i 's|VUE_APP_SOCKETURL|'${APP_SOCKETURL}'|g' dist/*.js
 
 # production stage
 FROM nginx:stable-alpine as production-stage
