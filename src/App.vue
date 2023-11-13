@@ -45,7 +45,7 @@ export default defineComponent({
   components: { NavTop, ChannelModal, NavSidebar },
   data(): AppData {
     return {
-      title: process.env.VUE_APP_NAME,
+      title: window.VUE_APP_NAME,
       showModal: false,
       recording: false,
       online: false,

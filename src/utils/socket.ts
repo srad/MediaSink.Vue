@@ -1,5 +1,5 @@
 //@ts-ignore
-const c = new WebSocket(process.env.VUE_APP_SOCKETURL);
+const c = new WebSocket(window.VUE_APP_SOCKETURL);
 
 // const send = function (data: any) {
 //   c.send(JSON.stringify(data));
