@@ -5,7 +5,7 @@ export class BaseApi {
 
   constructor() {
     this.axios = axios.create({
-      baseURL: process.env.VUE_APP_APIURL,
+      baseURL: window.VUE_APP_APIURL,
       timeout: 10 * 60 * 1000,
     });
 
