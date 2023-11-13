@@ -45,12 +45,12 @@ ENV VUE_APP_NAME $APP_NAME
 ENV VUE_APP_FILEURL $APP_FILEURL
 ENV VUE_APP_SOCKETURL $APP_SOCKETURL
 
-RUN sed -i "s/VUE_APP_APIURL/${API_URL}/g" /app/dist/*.js
-RUN sed -i "s/VUE_APP_BUILD/${APP_BUILD}/g" /app/dist/*.js
-RUN sed -i "s/VUE_APP_BASE/${APP_BASE}/g" /app/dist/*.js
-RUN sed -i "s/VUE_APP_NAME/${APP_NAME}/g" /app/dist/*.js
-RUN sed -i "s/VUE_APP_FILEURL/${APP_FILEURL}/g" /app/dist/*.js
-RUN sed -i "s/VUE_APP_SOCKETURL/${APP_SOCKETURL}/g" /app/dist/*.js
+RUN sed -i "s/VUE_APP_APIURL/${API_URL}/g" ./dist/*.js
+RUN sed -i "s/VUE_APP_BUILD/${APP_BUILD}/g" ./dist/*.js
+RUN sed -i "s/VUE_APP_BASE/${APP_BASE}/g" ./dist/*.js
+RUN sed -i "s/VUE_APP_NAME/${APP_NAME}/g" ./dist/*.js
+RUN sed -i "s/VUE_APP_FILEURL/${APP_FILEURL}/g" ./dist/*.js
+RUN sed -i "s/VUE_APP_SOCKETURL/${APP_SOCKETURL}/g" ./dist/*.js
 
 EXPOSE 80
 
