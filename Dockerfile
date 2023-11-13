@@ -23,15 +23,6 @@ COPY . .
 RUN npm run test:unit
 RUN npm run build
 
-# production stage
-FROM nginx:stable-alpine as production-stage
-
-COPY --from=build-stage /app/dist /app
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-COPY ./nginx.conf.default /etc/nginx/nginx.conf
-#COPY .htpasswd /etc/nginx
-RUN mkdir -p /recordings
-
 ARG API_URL
 ARG APP_BASE
 ARG APP_NAME
@@ -46,16 +37,20 @@ ENV VUE_APP_NAME $APP_NAME
 ENV VUE_APP_FILEURL $APP_FILEURL
 ENV VUE_APP_SOCKETURL $APP_SOCKETURL
 
-COPY /app /usr/share/nginx/html
-RUN ls /app
-RUN ls /usr/share/nginx/html
+RUN sed -i "s|VUE_APP_APIURL|${API_URL}|g" /app/dist/**/*.js
+RUN sed -i "s|VUE_APP_BUILD|${APP_BUILD}|g" /app/dist/**/*.js
+RUN sed -i "s|VUE_APP_BASE|${APP_BASE}|g" /app/dist/**/*.js
+RUN sed -i "s|VUE_APP_NAME|${APP_NAME}|g" /app/dist/**/*.js
+RUN sed -i "s|VUE_APP_FILEURL|${APP_FILEURL}|g" /app/dist/**/*.js
+RUN sed -i "s|VUE_APP_SOCKETURL|${APP_SOCKETURL}|g" /app/dist/**/*.js
 
-RUN sed -i "s/VUE_APP_APIURL/${API_URL}/g" /usr/share/nginx/html/*.js
-RUN sed -i "s/VUE_APP_BUILD/${APP_BUILD}/g" /usr/share/nginx/html/*.js
-RUN sed -i "s/VUE_APP_BASE/${APP_BASE}/g" /usr/share/nginx/html/*.js
-RUN sed -i "s/VUE_APP_NAME/${APP_NAME}/g" /usr/share/nginx/html/*.js
-RUN sed -i "s/VUE_APP_FILEURL/${APP_FILEURL}/g" /usr/share/nginx/html/*.js
-RUN sed -i "s/VUE_APP_SOCKETURL/${APP_SOCKETURL}/g" /usr/share/nginx/html/*.js
+# production stage
+FROM nginx:stable-alpine as production-stage
+
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+COPY ./nginx.conf.default /etc/nginx/nginx.conf
+#COPY .htpasswd /etc/nginx
+RUN mkdir -p /recordings
 
 EXPOSE 80
 
