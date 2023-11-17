@@ -1,8 +1,8 @@
 $white: #ffffff;
 //$enable-rounded: false;
 
-$card-border-radius: 0;
-$border-radius: .1rem;
+$card-border-radius: 0.25em;
+$border-radius: .1em;
 
 $card-cap-padding-y: 0;
 $card-cap-padding-x: 0;
@@ -10,30 +10,30 @@ $card-cap-padding-x: 0;
   padding: 0 !important;
 }
 
-$theme-colors: (
-        "primary": #6d4b6a,
-        "secondary": #dcdcdd,
-        "success": #5c9d1b,
-        "info": #ab9db4,
-        "warning": #febd65,
-        "danger": #da420d,
-        "light": #f4f3ee,
-        "dark": #34283b,
-);
+//$theme-colors: (
+//        "primary": #3e4c5d,
+//        "secondary": #dcdcdd,
+//        "success": #5c9d1b,
+//        "info": #ab9db4,
+        //"warning": #febd65,
+//        "danger": #da420d,
+//        "light": #f4f3ee,
+//        "dark": #34283b,
+//);
 
-$form-check-input-checked-bg-color: #4b4e6d;
-$form-check-input-checked-border-color: grey;
+//$form-check-input-checked-bg-color: #4b4e6d;
+//$form-check-input-checked-border-color: grey;
 
-$primary: #6d4b6a;
+$primary: #652a6c;
 $secondary: #dcdcdd;
-$success: #197278;
-$info: #ab9db4;
-$warning: #e9c46a;
-$danger: #990d35;
-$light: #f4f3ee;
-$dark: #180f1d;
+//$success: #54c7ba;
+$info: #be9cd7;
+//$warning: #e9c46a;
+$danger: #cc2255;
+//$light: #f4f3ee;
+//$dark: #180f1d;
 
-$grid-columns: 20 !default;
+$grid-columns: 24 !default;
 $grid-gutter-width: 1.0rem !default;
 
 $nav-tabs-link-active-color: $white;

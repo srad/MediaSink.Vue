@@ -41,7 +41,7 @@ interface AppData {
 
 export default defineComponent({
   name: 'App',
-  inject: ['socketUrl'],
+  inject: [ 'socketUrl' ],
   components: { NavTop, ChannelModal, NavSidebar },
   data(): AppData {
     return {

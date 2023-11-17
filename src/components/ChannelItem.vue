@@ -24,7 +24,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
 import StreamInfo from '@/components/StreamInfo.vue';
 import Preview from '@/components/Preview.vue';
@@ -38,7 +38,7 @@ export default defineComponent({
   emits: ['edit'],
   inject: ['baseUrl', 'apiUrl', 'fileUrl'],
   props: {
-    channel: Object
+    channel: { type: Object as PropType<ChannelResponse>, required: true }
   },
   data() {
     return {

@@ -162,7 +162,7 @@ export default defineComponent({
   },
   data(): RecordingData {
     return {
-      channelItemClass: 'col-lg-5 col-xl-4 col-xxl-4 col-md-10',
+      channelItemClass: 'col-lg-6 col-xl-6 col-xxl-4 col-md-6',
       channelId: 0,
       showModal: false,
       channelName: '',
