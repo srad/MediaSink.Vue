@@ -62,25 +62,35 @@ export const store = createStore<State>({
     },
     'job:progress'(state: State, job: JobMessage) {
       const i = state.jobs.findIndex(j => j.jobId === job.jobId);
-      state.jobs[i].progress = String(job.data.frame / job.data.packets * 100);
+      if (i !== -1) {
+        state.jobs[i].progress = String(job.data.frame / job.data.packets * 100);
+      }
     },
     'channel:online'(state: State, data: { channelName: string }) {
       const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
-      state.channels[i].isOnline = true;
+      if (i !== -1) {
+        state.channels[i].isOnline = true;
+      }
     },
     'channel:offline'(state: State, data: { channelName: string }) {
       const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
-      state.channels[i].isOnline = false;
-      state.channels[i].isRecording = false;
+      if (i !== -1) {
+        state.channels[i].isOnline = false;
+        state.channels[i].isRecording = false;
+      }
     },
     'channel:thumbnail'(state: State, data: { channelName: string }) {
       const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
-      state.channels[i].previewUpdate = new Date();
+      if (i !== -1) {
+        state.channels[i].previewUpdate = new Date();
+      }
     },
     'channel:start'(state: State, data: { channelName: string }) {
       const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
-      state.channels[i].isRecording = true;
-      state.channels[i].isOnline = true;
+      if (i !== -1) {
+        state.channels[i].isRecording = true;
+        state.channels[i].isOnline = true;
+      }
     },
     login(state: State) {
       state.loggedIn = true;

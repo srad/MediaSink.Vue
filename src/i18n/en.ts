@@ -15,6 +15,12 @@ export default {
   search: {
     searchInput: 'search ... #tag'
   },
+  navtop: {
+    addStream: 'Add Stream',
+    stopRecording: 'Stop',
+    startRecording: 'Start',
+    jobsLoading: 'Loading...'
+  },
   recording: {
     durationMinutes: '{0}min',
     bitRate: 'Bitrate',

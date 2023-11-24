@@ -13,7 +13,7 @@
                      ref="video"
                      @loadeddata="loaddata"
                      @timeupdate="timeupdate" muted autoplay controls>
-                <source :src="fileUrl + '/' + $route.params.pathRelative" type="video/mp4">
+                <source :src="videoUrl" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
             </div>
@@ -41,7 +41,7 @@
           </div>
 
           <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative overflow-hidden" style="height: 10%;">
-            <Stripe :src="fileUrl + '/' + $route.params.previewStripe"
+            <Stripe :src="stripePath"
                     :paused="paused"
                     :timecode="timecode"
                     :duration="duration"
@@ -55,7 +55,7 @@
         </div>
 
         <div class="modal-footer p-0">
-          <div class="d-flex justify-content-between" v-if="$route.params.pathRelative">
+          <div class="d-flex justify-content-between" v-if="previewPath">
             <button class="btn btn-danger" @click="destroy">
               {{ $t("videoView.button.destroy") }}
             </button>
@@ -118,9 +118,12 @@ interface VideoData {
   segments: any[],
   baseUrl?: string;
   muted: boolean;
-  channelName: string;
-  filename: string;
+  channel: string;
+  file: string;
   fileUrl?: string;
+  videoUrl: string;
+  previewPath: string;
+  stripePath: string;
   playbackSpeed: number;
 }
 
@@ -128,12 +131,33 @@ const recording = new RecordingApi();
 
 export default defineComponent({
   components: { Stripe },
-  inject: ['fileUrl'],
+  inject: [ 'fileUrl' ],
+  props: {
+    previewStripe: {
+      type: String,
+      required: true
+    },
+    pathRelative: {
+      type: String,
+      required: true
+    },
+    channelName: {
+      type: String,
+      required: true
+    },
+    filename: {
+      type: String,
+      required: true
+    },
+  },
   data(): VideoData {
     return {
-      channelName: this.$route.params.channelName as string,
-      filename: this.$route.params.filename as string,
+      videoUrl: this.fileUrl + '/recordings/' + this.channelName + '/' + this.filename,
+      channel: this.channelName,
+      file: this.filename,
       markings: [],
+      previewPath: this.pathRelative,
+      stripePath:  this.fileUrl + '/' + this.previewStripe,
       show: true,
       loaded: false,
       paused: true,
@@ -212,7 +236,7 @@ export default defineComponent({
       (this.$refs.video as HTMLVideoElement).currentTime = end;
     },
     destroy() {
-      if (!window.confirm(this.$t('videoView.destroy', [this.filename]))) {
+      if (!window.confirm(this.$t('videoView.destroy', [ this.filename ]))) {
         return;
       }
       recording.destroy(this.channelName, this.filename)
@@ -250,11 +274,15 @@ export default defineComponent({
       });
     },
     loaddata() {
-      this.duration = (this.$refs.video as HTMLVideoElement).duration;
-      this.loaded = true;
+      if (this.$refs.video != null) {
+        this.duration = (this.$refs.video as HTMLVideoElement).duration;
+        this.loaded = true;
+      }
     },
     timeupdate() {
-      this.timecode = (this.$refs.video as HTMLVideoElement).currentTime;
+      if (this.$refs.video != null) {
+        this.timecode = (this.$refs.video as HTMLVideoElement).currentTime;
+      }
     },
   },
   beforeRouteLeave() {

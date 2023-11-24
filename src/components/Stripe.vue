@@ -23,7 +23,7 @@
             @mousedown="markerDown($event, marking, i, 'start')">
       </span>
       <span class="bar bar-end position-absolute" @mousedown="markerDown($event, marking, i, 'end')" draggable="false"></span>
-      <button @click="destroyMarking(i)" class="btn btn-danger btn-sm marking-destroy position-absolute">x</button>
+      <i @click="destroyMarking(i)" class="text-white bg-danger p-1 bi bi-x marking-destroy position-absolute" style="opacity: 1"></i>
     </div>
     <div v-if="showBar" class="timecode position-absolute" :style="{left: `${offset}px`}"></div>
   </div>
