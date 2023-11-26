@@ -12,7 +12,7 @@
                      @touchstart="paused=!paused"
                      ref="video"
                      @loadeddata="loaddata"
-                     @timeupdate="timeupdate" muted autoplay controls>
+                     @timeupdate="timeupdate" muted autoplay>
                 <source :src="videoUrl" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
@@ -21,9 +21,9 @@
             <div v-if="markings.length > 0" class="d-flex flex-column m-0 px-1" :class="{'w-20': markings.length > 0}">
               <ul class="list-group fw-6 fw-bold">
                 <li class="list-group-item d-flex text-white bg-info justify-content-between w-100 align-middle">
-                  <span>{{ $t("videoView.segment.start") }}</span>
-                  <span>{{ $t("videoView.segment.end") }}</span>
-                  <span>{{ $t("videoView.segment.destroy") }}</span>
+                  <span>{{ $t('videoView.segment.start') }}</span>
+                  <span>{{ $t('videoView.segment.end') }}</span>
+                  <span>{{ $t('videoView.segment.destroy') }}</span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between w-100 align-middle" :class="{'bg-secondary': marking.selected}" @click="selectMarking(marking)" :key="String(marking.timestart)+String(marking.timeend)" v-for="marking in markings">
                   <span class="p-1">{{ (marking.timestart / 60).toFixed(1) }}min</span>
@@ -34,13 +34,13 @@
                 </li>
               </ul>
               <button class="btn btn-info mt-2">
-                Play Cut
+                Play Cut <i class="bi bi-scissors"></i>
               </button>
             </div>
 
           </div>
 
-          <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative overflow-hidden" style="height: 10%;">
+          <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative overflow-y-scroll" style="height: 10%;">
             <Stripe :src="stripePath"
                     :paused="paused"
                     :timecode="timecode"
@@ -54,44 +54,48 @@
           </div>
         </div>
 
-        <div class="modal-footer p-0">
-          <div class="d-flex justify-content-between" v-if="previewPath">
-            <button class="btn btn-danger" @click="destroy">
-              {{ $t("videoView.button.destroy") }}
-            </button>
-            <!--
-            <div class="m-1 rounded-1 fw-6 px-1 py-3 border-info border">
-              {{ (timecode / 60).toFixed(2) }}min
-            </div>
-            <input class="m-1 p-4 form-control form-range"
+        <div class="modal-footer p-1" v-if="previewPath">
+          <div class="d-flex w-100">
+            <input class="form-control form-range flex-fill me-2"
                    type="range"
                    v-model="timecode"
                    step="1"
                    @input="customSeek($event)"
                    min="0"
                    :max="duration">
+            <!--
             <input type="range" class="m-1 p-4 form-control form-range" v-model="playbackSpeed" step="0.1"
                    min="0.1"
-                   max="5.0"/>
+                   max="5.0"/>-->
 
-            <div class="btn-group m-1">
-              <button class="btn btn-dark" type="button" @click="playbackSpeed=1.0">Reset</button>
+            <div class="d-flex justify-content-evenly flex-fill" style="width: 30%">
+              <div class="fw-6 me-2">
+                {{ durationMin }}/{{ (timecode / 60).toFixed(2) }}min
+              </div>
 
-              <button v-if="!muted" class="btn btn-warning" type="button" @click="muted=true">
-                Mute
-              </button>
-              <button v-else class="btn btn-info" type="button" @click="muted=false">
-                Unmute
+              <button class="btn btn-danger btn-sm me-2" @click="destroy">
+                {{ $t('videoView.button.destroy') }}
               </button>
 
-              <button v-if="paused" class="btn btn-primary" type="button" @click="paused=false">Pause</button>
-              <button v-else class="btn btn-success" type="button" @click="paused=true">
-                Play
+              <button v-if="!muted" class="btn btn-primary btn-sm me-2" type="button" @click="muted=true">
+                <i class="bi bi-volume-up"/>
               </button>
-              -->
-            <button v-if="markings.length > 0" class="btn btn-warning" type="button" @click="exportVideo">
-              {{ $t("videoView.button.cut") }}
-            </button>
+
+              <button v-else class="btn btn-outline-primary btn-sm me-2" type="button" @click="muted=false">
+                <i class="bi bi-volume-mute"/>
+              </button>
+
+              <button v-if="paused" class="btn btn-warning btn-sm" type="button" @click="play()">
+                <i class="bi bi-play"></i>
+              </button>
+              <button v-else class="btn btn-success btn-sm" type="button" @click="pause()">
+                <i class="bi bi-pause"></i>
+              </button>
+
+              <button v-if="markings.length > 0" class="btn btn-warning btn-sm ms-2" type="button" @click="exportVideo">
+                {{ $t('videoView.button.cut') }} <i class="bi bi-scissors"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -131,7 +135,7 @@ const recording = new RecordingApi();
 
 export default defineComponent({
   components: { Stripe },
-  inject: [ 'fileUrl' ],
+  inject: ['fileUrl'],
   props: {
     previewStripe: {
       type: String,
@@ -157,10 +161,10 @@ export default defineComponent({
       file: this.filename,
       markings: [],
       previewPath: this.pathRelative,
-      stripePath:  this.fileUrl + '/' + this.previewStripe,
+      stripePath: this.fileUrl + '/' + this.previewStripe,
       show: true,
       loaded: false,
-      paused: true,
+      paused: false,
       timecode: 0,
       duration: 0,
       segments: [],
@@ -169,6 +173,9 @@ export default defineComponent({
     };
   },
   computed: {
+    durationMin() {
+      return (this.duration / 60).toFixed(2);
+    },
     sortedSegments(): Marking[] {
       return this.segments.slice().sort((a: Marking, b: Marking) => a.start - b.start);
     },
@@ -177,7 +184,7 @@ export default defineComponent({
     muted(val) {
       (this.$refs.video as HTMLVideoElement).muted = val;
     },
-    paused(val) {
+    paused(val, val2) {
       if (val) {
         (this.$refs.video as HTMLVideoElement).pause();
       } else {
@@ -236,7 +243,7 @@ export default defineComponent({
       (this.$refs.video as HTMLVideoElement).currentTime = end;
     },
     destroy() {
-      if (!window.confirm(this.$t('videoView.destroy', [ this.filename ]))) {
+      if (!window.confirm(this.$t('videoView.destroy', [this.filename]))) {
         return;
       }
       recording.destroy(this.channelName, this.filename)

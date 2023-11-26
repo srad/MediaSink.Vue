@@ -47,7 +47,6 @@ export default defineComponent({
     hoverVideo(event: any) {
       event.target.playbackRate = 16;
       event.target.play();
-      console.log('play');
     },
     leaveVideo(event: any) {
       event.target.pause();
