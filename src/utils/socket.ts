@@ -1,5 +1,6 @@
-//@ts-ignore
-const c = new WebSocket(process.env.VUE_APP_SOCKETURL);
+//@ts-nocheck
+
+const c = new WebSocket(window.VUE_APP_SOCKETURL);
 
 // const send = function (data: any) {
 //   c.send(JSON.stringify(data));
@@ -8,22 +9,21 @@ const c = new WebSocket(process.env.VUE_APP_SOCKETURL);
 const listeners = {};
 
 function addListener(event: string, fn: (data: Object) => void) {
-  // @ts-ignore
+  
   if (!listeners[event]) {
-    // @ts-ignore
     listeners[event] = [];
   }
-  // @ts-ignore
   listeners[event].push(fn);
 }
 
 function notify(event: string, data: object) {
-  // @ts-ignore
   if (!listeners[event]) {
     return;
   }
-  // @ts-ignore
-  listeners[event].forEach(fn => fn(data));
+
+  if (listeners[event]) {
+    listeners[event].forEach(fn => fn(data));
+  }
 }
 
 c.onmessage = (msg: any) => {

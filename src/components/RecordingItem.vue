@@ -17,7 +17,7 @@
         <span v-else>{{ recording.width }}x{{ recording.height }}</span>
       </span>
       <span v-if="recording.videoType==='cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
-      <router-link :to="{ name: 'Video', params: { channelName: recording.channelName, filename: recording.filename, pathRelative: recording.pathRelative, previewStripe: recording.previewStripe } }">
+      <router-link :to="{ name: 'Video', params: { channelName: recording.channelName, filename: recording.filename, pathRelative: recording.pathRelative, previewStripe: recording.previewStripe} }">
         <Preview class="card-img-top" :data="recording" :preview-video="fileUrl + '/' + recording.previewVideo"/>
       </router-link>
     </div>
