@@ -8,7 +8,7 @@
             <div class="row g-3 align-items-center">
               <div class="col-auto">
                 <label for="limit" class="col-form-label fw-bold">
-                  {{ $t("filter.label.orderBy") }}
+                  {{ $t("filter.orderBy") }}
                 </label>
               </div>
               <div class="col-auto">
@@ -18,7 +18,7 @@
               </div>
               <div class="col-auto">
                 <label for="limit" class="col-form-label fw-bold">
-                  {{ $t("filter.label.order") }}
+                  {{ $t("filter.order") }}
                 </label>
               </div>
               <div class="col-auto">
@@ -28,7 +28,7 @@
               </div>
               <div class="col-auto">
                 <label for="limit" class="col-form-label fw-bold">
-                  {{ $t("filter.label.limit") }}
+                  {{ $t("filter.limit") }}
                 </label>
               </div>
               <div class="col-auto">

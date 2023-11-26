@@ -4,6 +4,7 @@ export default {
   menu: {
     streams: 'Streams',
     filter: 'Filter',
+    latest: 'Latest',
     random: 'Random',
     favs: 'Favs',
     jobs: 'Jobs',
@@ -20,6 +21,25 @@ export default {
     stopRecording: 'Stop',
     startRecording: 'Start',
     jobsLoading: 'Loading...'
+  },
+  job: {
+    tab: {
+      workerJobs: 'Worker Jobs',
+      recordings: 'Recordings'
+    }
+  },
+  jobTable: {
+    col: {
+      pid: 'PID',
+      channel: 'Channel',
+      file: 'File',
+      task: 'Task',
+      progress: 'Progress',
+      created: 'Created',
+      destroy: 'Destroy',
+    },
+    loading: 'Loading...',
+    noJobs: 'No Jobs'
   },
   recording: {
     durationMinutes: '{0}min',

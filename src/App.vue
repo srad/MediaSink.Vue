@@ -51,7 +51,7 @@ export default defineComponent({
       online: false,
       routes: [
         { icon: 'bi-water', url: '/streams', title: this.$t('menu.streams') },
-        { icon: 'bi-stopwatch', url: '/filter', title: this.$t('menu.filter') },
+        { icon: 'bi-stopwatch', url: '/filter', title: this.$t('menu.latest') },
         { icon: 'bi-hypnotize', url: '/random', title: this.$t('menu.random') },
         { icon: 'bi-star-fill', url: '/bookmarks', title: this.$t('menu.favs') },
         { icon: 'bi-list-check', url: '/jobs', title: this.$t('menu.jobs') },
