@@ -2,7 +2,8 @@
 FROM node:lts as build-stage
 
 # npm build dependencies
-RUN apk add --no-cache python3 py3-pip make g++
+RUN apt update && apt upgrade
+RUN apt install python3 py3-pip make g++
 
 WORKDIR /app
 
