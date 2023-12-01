@@ -1,5 +1,5 @@
 # build stage
-FROM node:lts as build-stage
+FROM node:21-bookworm as build-stage
 
 # npm build dependencies
 RUN apt update && apt upgrade
