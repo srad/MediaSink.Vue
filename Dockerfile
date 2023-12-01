@@ -2,7 +2,7 @@
 FROM node:21-bookworm as build-stage
 
 # npm build dependencies
-RUN apt update && apt upgrade
+RUN apt update
 RUN apt install python3 py3-pip make g++
 
 WORKDIR /app
