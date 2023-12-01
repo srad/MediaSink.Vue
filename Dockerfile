@@ -1,5 +1,5 @@
 # build stage
-FROM node:lts-alpine as build-stage
+FROM node:lts as build-stage
 
 # npm build dependencies
 RUN apk add --no-cache python3 py3-pip make g++
