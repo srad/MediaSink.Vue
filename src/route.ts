@@ -20,7 +20,19 @@ const routes = [
   { path: '/streams/:channel', name: 'StreamItem', component: StreamItemView, props: true },
   { path: '/filter', name: 'Filter', component: SortView },
   { path: '/random', name: 'Random', component: RandomView },
-  { path: '/recordings/:channelName/:filename/:pathRelative/:previewStripe?', name: 'Video', component: VideoView, props: true },
+  {
+    path: '/recordings/:channelName/:fileName',
+    name: 'Video',
+    component: VideoView,
+    props(route: any) {
+      return {
+        channelName: route.query.channelName,
+        filename: route.query.filename,
+        pathRelative: route.query.pathRelative,
+        previewStripe: route.query.previewStripe,
+      };
+    }
+  },
   { path: '/logs', name: 'Log', component: LogView },
   { path: '/login', name: 'Login', component: LoginView },
   { path: '/logout', name: 'Logout', component: LogoutView },

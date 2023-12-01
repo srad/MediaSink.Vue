@@ -22,7 +22,7 @@ import { defineComponent } from 'vue';
 export default defineComponent({
   name: 'DiskStatus',
   props: {
-    pcent: { type: Number, required: true }
+    pcent: { type: String, required: true }
   }
 });
 </script>

@@ -1,5 +1,3 @@
-import moment from 'moment';
-
 export default {
   menu: {
     streams: 'Streams',
@@ -48,7 +46,6 @@ export default {
     resolution: 'Resolution',
     started: 'Started at',
     convert: 'Convert to',
-    ago: (ctx: any) => moment(ctx.list(0)).fromNow()
   },
   channel: {
     destroy: 'Delete the channel "{0}"?',

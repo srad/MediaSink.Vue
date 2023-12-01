@@ -184,7 +184,7 @@ export default defineComponent({
     muted(val) {
       (this.$refs.video as HTMLVideoElement).muted = val;
     },
-    paused(val, val2) {
+    paused(val) {
       if (val) {
         (this.$refs.video as HTMLVideoElement).pause();
       } else {

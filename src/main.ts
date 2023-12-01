@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-const app = createApp(App)
+const app = createApp(App).use(i18n)
   .use(store)
   .use(i18n);
 

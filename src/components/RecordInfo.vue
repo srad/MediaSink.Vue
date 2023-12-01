@@ -2,25 +2,25 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item d-flex justify-content-center">
       <span>
-        {{ $t("recording.durationMinutes", [durationFormatted]) }}
+        {{ $t("recording.durationMinutes", [ durationFormatted ]) }}
       </span>
       <span class="text-secondary px-2">/</span>
       <span>
         {{ (size / 1000 / 1000 / 1000).toFixed(1) }}GB
       </span>
       <span class="text-secondary px-2">/</span>
-      <span class="text-cut">{{ $t("recording.ago", [ago]) }}</span>
+      <span class="text-cut">{{ ago }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
       <span>{{ $t("recording.bitRate") }}</span>
-      <span>{{ $t("recording.bitRateMBit", [(bitRate / 1024 / 1024).toFixed(2)]) }}</span>
+      <span>{{ (bitRate / 1024 / 1024).toFixed(2) }} MBit</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
       <span>{{ $t("recording.resolution") }}</span> <span>{{ width }}x{{ height }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
       <span>{{ $t("recording.started") }}</span>
-      <span>{{ new Date(createdAt).toLocaleDateString(undefined, {hour: "numeric", minute: "numeric"}) }}</span>
+      <span>{{ new Date(createdAt).toLocaleDateString(undefined, { hour: "numeric", minute: "numeric" }) }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
       <div>{{ $t("recording.convert") }}</div>
@@ -71,7 +71,7 @@ import FavButton from '@/components/controls/FavButton.vue';
 export default defineComponent({
   name: 'RecordInfo',
   components: { FavButton },
-  emits: ['preview', 'destroy', 'bookmarked', 'convert'],
+  emits: [ 'preview', 'destroy', 'bookmarked', 'convert' ],
   props: {
     index: Number,
     url: String,
@@ -90,9 +90,12 @@ export default defineComponent({
     }
   },
   data() {
+    //@ts-ignore
+    const ago = moment(Date.parse(this.createdAt)).fromNow();
+
     return {
       expand: false,
-      ago: moment(this.createdAt).fromNow()
+      ago: ago
     };
   },
   methods: {},
