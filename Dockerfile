@@ -2,8 +2,8 @@
 FROM node:21-bookworm as build-stage
 
 # npm build dependencies
-RUN apt update
-RUN apt install python3 py3-pip make g++
+RUN apt update && apt upgrade -y
+RUN apt install python3 make g++
 
 WORKDIR /app
 
@@ -32,7 +32,7 @@ ENV VUE_APP_FILEURL $APP_FILEURL
 ENV VUE_APP_SOCKETURL $APP_SOCKETURL
 
 # production stage
-FROM nginx:stable-alpine as production-stage
+FROM nginx:stable as production-stage
 
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 COPY ./nginx.conf.default /etc/nginx/nginx.conf
