@@ -1,3 +1,8 @@
+<template>
+  <FavButton v-if="!busy" :data="{}" :faved="fav" @fav="bookmark" @unfav="bookmark"/>
+  <span v-else class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+</template>
+
 <script lang="ts">
 import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
 import { defineComponent, PropType } from 'vue';
@@ -17,30 +22,28 @@ export default defineComponent({
     return {
       channel: this.channelName,
       file: this.fileName,
-      busy: false
+      busy: false,
+      fav: this.bookmarked,
     };
   },
   methods: {
-    bookmark(data: Object, yesNo: boolean) {
+    bookmark() {
       this.busy = true;
-      api.fav(this.channel)
-          .catch((err: AxiosError) => alert(err.response?.data))
-          .finally(() => this.busy = false);
-    },
-    unbookmark(data: Object, yesNo: boolean) {
-      this.busy = true;
-      api.unfav(this.channel)
-          .catch((err: AxiosError) => alert(err.response?.data))
-          .finally(() => this.busy = false);
+      if (this.fav) {
+        api.unfav(this.channel)
+            .then(() => this.fav = false)
+            .catch((err: AxiosError) => alert(err.response?.data))
+            .finally(() => this.busy = false);
+      } else {
+        api.fav(this.channel)
+            .then(() => this.fav = true)
+            .catch((err: AxiosError) => alert(err.response?.data))
+            .finally(() => this.busy = false);
+      }
     },
   }
 });
 </script>
-
-<template>
-  <FavButton v-if="!busy" :data="{}" :faved="bookmarked" @fav="bookmark" @unfav="unbookmark"/>
-  <span v-else class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-</template>
 
 <style scoped>
 

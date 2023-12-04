@@ -53,6 +53,10 @@ export class ChannelApi extends BaseApi {
     return this.axios.get(`/channels`);
   }
 
+  getChannel(channelName: string): Promise<AxiosResponse<ChannelResponse>> {
+    return this.axios.get(`/channels/${channelName}`);
+  }
+
   pause(channelName: string): Promise<AxiosResponse<void>> {
     return this.axios.post(`/channels/${channelName}/pause`);
   }
@@ -77,15 +81,15 @@ export class ChannelApi extends BaseApi {
     return this.axios.post(`/channels/${channelName}/write`);
   }
 
-  upload(channelName: string, file: File, progress: (pcent: number) => void): [Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource] {
+  upload(channelName: string, file: File, progress: (pcent: number) => void): [ Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource ] {
     const source = axios.CancelToken.source();
     const formData = new FormData();
     formData.append('file', file);
 
-    return [this.axios.post(`/channels/${channelName}/upload`, formData, {
+    return [ this.axios.post(`/channels/${channelName}/upload`, formData, {
       cancelToken: source.token,
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: progressEvent => progressEvent.total ? progress(progressEvent.loaded / progressEvent.total) : 0
-    }), source];
+    }), source ];
   }
 }

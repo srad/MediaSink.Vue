@@ -21,8 +21,8 @@ export default defineComponent({
   name: "LoadIndicator",
   props: {
     busy: {type: Boolean, required: true},
-    empty: {type: Boolean, required: true},
-    emptyText: {type: String, required: true}
+    empty: {type: Boolean, default: true},
+    emptyText: {type: String, default: ""}
   }
 });
 </script>

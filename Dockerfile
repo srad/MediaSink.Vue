@@ -1,7 +1,5 @@
-# build stage
-FROM node:21-bookworm as build-stage
+FROM node:20-bookworm as build-stage
 
-# npm build dependencies
 RUN apt update && apt upgrade -y
 RUN apt install python3 make g++
 

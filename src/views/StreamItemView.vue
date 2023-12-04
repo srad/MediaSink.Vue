@@ -42,7 +42,7 @@
         </button>
 
         <button class="btn btn-light" style="color: goldenrod">
-          <ChannelBookmarkButton :file-name="channelName" :bookmarked="false" />
+          <ChannelBookmarkButton :channel-name="channelName" :bookmarked="fav"/>
         </button>
       </div>
     </nav>
@@ -67,7 +67,7 @@
 import { RecordingApi, RecordingResponse } from '@/services/api/v1/recordingApi';
 import { defineComponent } from 'vue';
 import RecordingItem from '@/components/RecordingItem.vue';
-import { ChannelApi } from '@/services/api/v1/channelApi';
+import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
 import { Modal } from 'bootstrap';
 import { AxiosError, CancelTokenSource } from 'axios';
 import LoadIndicator from '@/components/LoadIndicator.vue';
@@ -84,6 +84,7 @@ interface RecordingData {
   busy: boolean;
   uploadProgress: number;
   modal?: Modal;
+  channel?: ChannelResponse;
   cancellationToken?: CancelTokenSource;
   selectedRecordings: RecordingResponse[];
 }
@@ -91,7 +92,7 @@ interface RecordingData {
 export default defineComponent({
   name: 'StreamItemView',
   components: { ChannelBookmarkButton, LoadIndicator, RecordingItem },
-  inject: ['baseUrl', 'apiUrl', 'fileUrl'],
+  inject: [ 'baseUrl', 'apiUrl', 'fileUrl' ],
   watch: {
     $route() {
       this.recordings = [];
@@ -105,8 +106,14 @@ export default defineComponent({
       uploadProgress: 0,
       busy: false,
       recordings: [],
+      channel: undefined,
       channelName: this.$route.params.channel as string,
     };
+  },
+  computed: {
+    fav() {
+      return this.channel && this.channel.fav || false
+    }
   },
   methods: {
     async destroySelection() {
@@ -151,7 +158,7 @@ export default defineComponent({
       if (el.files && el.files!.length > 0) {
         this.uploadProgress = 0;
         this.modal!.show();
-        const [req, cancellationToken] = channelApi.upload(this.channelName, el.files![0], pcent => this.uploadProgress = pcent);
+        const [ req, cancellationToken ] = channelApi.upload(this.channelName, el.files![0], pcent => this.uploadProgress = pcent);
         req.then(res => {
           this.uploadProgress = 0;
           this.recordings.unshift(res.data);
@@ -179,6 +186,12 @@ export default defineComponent({
     this.modal = new Modal(this.$refs.upload as HTMLElement);
 
     this.busy = true;
+
+    channelApi.getChannel(this.channelName)
+        .then(response => {
+          this.channel = response.data
+        })
+        .finally(() => this.busy = false);
 
     recordingApi.getRecordings(this.channelName).then(res => {
       this.recordings = res.data;
