@@ -42,7 +42,7 @@
         </button>
 
         <button class="btn btn-light" style="color: goldenrod">
-          <i class="bi bi-star px-2"/>
+          <ChannelBookmarkButton :file-name="channelName" :bookmarked="false" />
         </button>
       </div>
     </nav>
@@ -71,6 +71,7 @@ import { ChannelApi } from '@/services/api/v1/channelApi';
 import { Modal } from 'bootstrap';
 import { AxiosError, CancelTokenSource } from 'axios';
 import LoadIndicator from '@/components/LoadIndicator.vue';
+import ChannelBookmarkButton from "@/components/ChannelBookmarkButton.vue";
 
 const recordingApi = new RecordingApi();
 const channelApi = new ChannelApi();
@@ -89,7 +90,7 @@ interface RecordingData {
 
 export default defineComponent({
   name: 'StreamItemView',
-  components: { LoadIndicator, RecordingItem },
+  components: { ChannelBookmarkButton, LoadIndicator, RecordingItem },
   inject: ['baseUrl', 'apiUrl', 'fileUrl'],
   watch: {
     $route() {
@@ -178,6 +179,7 @@ export default defineComponent({
     this.modal = new Modal(this.$refs.upload as HTMLElement);
 
     this.busy = true;
+
     recordingApi.getRecordings(this.channelName).then(res => {
       this.recordings = res.data;
       window.scrollTo(0, 0);

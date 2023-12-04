@@ -1,5 +1,5 @@
 <template>
-  <div class="text-white d-flex justify-content-between align-middle me-3 d-none d-lg-flex">
+  <div class="text-white d-flex justify-content-between align-middle me-3">
           <span class="fw-bold me-2 ">
             {{ pcent }}
             <i class="bi bi-hdd"></i>

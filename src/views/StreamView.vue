@@ -54,9 +54,7 @@
       <div v-else class="col">
         <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
           <li class="nav-item" role="presentation">
-            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'live'}"
-                    @click="tab('live')" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button"
-                    role="tab" aria-controls="home" aria-selected="true">
+            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'live'}" @click="tab('live')" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
               <span class="d-none d-lg-inline">Recording</span>
               <span class="d-flex justify-content-between">
               <span class="d-lg-none">Rec</span>

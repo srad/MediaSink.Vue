@@ -1,7 +1,7 @@
 <template>
   <NavTop :routes="routes" :title="title" @add="showModal=true"/>
 
-  <main class="container-fluid">
+  <main class="container-fluid" style="padding-top: 3.5rem">
     <router-view v-slot="{ Component }">
       <keep-alive include="[StreamView]">
         <component :is="Component"/>

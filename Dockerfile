@@ -9,6 +9,9 @@ WORKDIR /app
 
 COPY package*.json ./
 
+# buildx emulation is so slow that NPM install might time-out
+RUN npm install --fetch-timeout=600000
+
 # install project dependencies
 RUN npm install --save-dev
 

@@ -7,7 +7,7 @@
           <div class="d-flex flex-row" style="height: 90%;">
 
             <div class="d-flex flex-column m-0" :class="{'w-80': markings.length > 0, 'w-100': markings.length===0}">
-              <video class="view h-100"
+              <video class="view h-100" controls
                      @click="paused=!paused"
                      @touchstart="paused=!paused"
                      ref="video"
@@ -70,12 +70,25 @@
 
             <div class="d-flex justify-content-evenly flex-fill" style="width: 30%">
               <div class="fw-6 me-2">
-                {{ durationMin }}/{{ (timecode / 60).toFixed(2) }}min
+                {{ (timecode / 60).toFixed(2) }}/{{ durationMin }} min
               </div>
+
+              <button class="btn bg-primary text-white btn-sm me-2" @click="() => this.$refs.video.currentTime -= 30">
+                <i class="bi bi-chevron-left"/>
+              </button>
+
+              <button class="btn bg-primary text-white btn-sm me-2" @click="() => this.$refs.video.currentTime += 30">
+                <i class="bi bi-chevron-right"/>
+              </button>
 
               <button class="btn btn-danger btn-sm me-2" @click="destroy">
                 {{ $t('videoView.button.destroy') }}
               </button>
+
+              <!--
+                            <div class="fw-6 me-2">
+                {{ durationMin }}/{{ (timecode / 60).toFixed(2) }}min
+              </div>
 
               <button v-if="!muted" class="btn btn-primary btn-sm me-2" type="button" @click="muted=true">
                 <i class="bi bi-volume-up"/>
@@ -91,6 +104,7 @@
               <button v-else class="btn btn-success btn-sm" type="button" @click="pause()">
                 <i class="bi bi-pause"></i>
               </button>
+              -->
 
               <button v-if="markings.length > 0" class="btn btn-warning btn-sm ms-2" type="button" @click="exportVideo">
                 {{ $t('videoView.button.cut') }} <i class="bi bi-scissors"></i>
@@ -135,7 +149,7 @@ const recording = new RecordingApi();
 
 export default defineComponent({
   components: { Stripe },
-  inject: ['fileUrl'],
+  inject: [ 'fileUrl' ],
   props: {
     previewStripe: {
       type: String,
@@ -243,7 +257,7 @@ export default defineComponent({
       (this.$refs.video as HTMLVideoElement).currentTime = end;
     },
     destroy() {
-      if (!window.confirm(this.$t('videoView.destroy', [this.filename]))) {
+      if (!window.confirm(this.$t('videoView.destroy', [ this.filename ]))) {
         return;
       }
       recording.destroy(this.channelName, this.filename)
