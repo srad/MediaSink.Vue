@@ -6,7 +6,7 @@
       <div class="loader"></div>
     </div>
     <div class="position-relative">
-      <div @click="checked=!checked" class="position-absolute" style="padding: 10px; right: 0px; top: 0px; z-index: 10;">
+      <div @click="checked=!checked" class="position-absolute" style="padding: 10px; right: 0; top: 0; z-index: 10;">
         <input v-if="showSelection" type="checkbox" :checked="checked" style="width: 20px; height: 20px">
       </div>
       <span class="badge bg-success position-absolute" style="user-select: none; z-index: 10; top: 10px; left: 10px">
@@ -50,11 +50,11 @@
 <script lang="ts">
 import RecordInfo from '@/components/RecordInfo.vue';
 import Preview from '@/components/Preview.vue';
-import { RecordingApi, RecordingResponse } from '@/services/api/v1/recordingApi';
 import { defineComponent, PropType } from 'vue';
-import { AxiosError } from 'axios';
+import { ModelsRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
+import { createClient } from '@/services/api/v1/ClientFactory';
 
-const recordingApi = new RecordingApi();
+const api = createClient();
 
 export default defineComponent({
   name: 'RecordingItem',
@@ -79,56 +79,66 @@ export default defineComponent({
     };
   },
   methods: {
-    bookmark(recording: RecordingResponse, yesNo: boolean) {
-      this.busy = true;
-      recordingApi[yesNo ? 'fav' : 'unfav'](recording.channelName, recording.filename)
-          .then(() => {
-            recording.bookmark = yesNo;
-            this.$emit('bookmark', recording);
-          })
-          .catch((err: AxiosError) => {
-            alert(err.response?.data);
-          })
-          .finally(() => this.busy = false);
-    },
-    generatePreview(recording: RecordingResponse) {
-      if (window.confirm('Generate new preview?')) {
+    async bookmark(recording: RecordingResponse, yesNo: boolean) {
+      try {
         this.busy = true;
-        recordingApi.generatePreview(recording.channelName, recording.filename)
-            .catch((err: AxiosError) => {
-              alert(err.response?.data);
-            })
-            .finally(() => this.busy = false);
+        const method = yesNo ? api.recordings.favCreate : api.recordings.unfavCreate;
+        await method(recording.channelName!, recording.filename!);
+        recording.bookmark = yesNo;
+        this.$emit('bookmark', recording);
+      } catch (ex) {
+        alert(ex);
+      } finally {
+        this.busy = false;
       }
     },
-    convert({ recording, mediaType }: { recording: RecordingResponse, mediaType: string }) {
+    async generatePreview(recording: RecordingResponse) {
+      if (window.confirm('Generate new preview?')) {
+        try {
+          this.busy = true;
+          await api.recordings.previewCreate(recording.channelName!, recording.filename!);
+        } catch (ex) {
+          alert(ex);
+        } finally {
+          this.busy = false;
+        }
+      }
+    },
+    async convert({ recording, mediaType }: { recording: RecordingResponse, mediaType: string }) {
       if (!window.confirm(`Convert '${recording.filename}' video to type '${mediaType}'?`)) {
         return;
       }
 
-      this.busy = true;
-      recordingApi.convert(recording.channelName, recording.filename, mediaType).catch((err: AxiosError) => {
-        alert(err.response?.data);
-      }).finally(() => this.busy = false);
+      try {
+        this.busy = true;
+        await api.recordings.convertCreate(recording.channelName!, recording.filename!, mediaType);
+      } catch (ex) {
+        alert(ex);
+      } finally {
+        this.busy = false;
+      }
     },
-    destroyRecording(recording: RecordingResponse) {
+    async destroyRecording(recording: RecordingResponse) {
       if (!window.confirm(this.$t('crud.destroy', [recording.filename]))) {
         return;
       }
 
-      this.busy = true;
-      recordingApi.destroy(recording.channelName, recording.filename).then(() => {
+      try {
+        this.busy = true;
+        await api.recordings.recordingsDelete(recording.channelName!, recording.filename!);
         this.destroyed = true;
         setTimeout(() => this.$emit('destroyed', recording), 1000);
-      }).catch((err: AxiosError) => {
-        alert(err.response?.data);
-      }).finally(() => this.busy = false);
+      } catch (ex) {
+        alert(ex);
+      } finally {
+        this.busy = false;
+      }
     },
   }
 });
 </script>
 
-<style scoped >
+<style scoped>
 .mark:hover {
   outline: #da420d 2px solid;
 }

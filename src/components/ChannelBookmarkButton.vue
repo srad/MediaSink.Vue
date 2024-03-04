@@ -4,12 +4,12 @@
 </template>
 
 <script lang="ts">
-import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
+import { createClient } from '@/services/api/v1/ClientFactory';
 import { defineComponent, PropType } from 'vue';
 import { AxiosError } from 'axios';
-import FavButton from "@/components/controls/FavButton.vue";
+import FavButton from '@/components/controls/FavButton.vue';
 
-const api = new ChannelApi();
+const api = createClient();
 
 export default defineComponent({
   name: 'ChannelBookmarkButton',
@@ -30,12 +30,12 @@ export default defineComponent({
     bookmark() {
       this.busy = true;
       if (this.fav) {
-        api.unfav(this.channel)
+        api.channels.unfavPartialUpdate(this.channel)
             .then(() => this.fav = false)
             .catch((err: AxiosError) => alert(err.response?.data))
             .finally(() => this.busy = false);
       } else {
-        api.fav(this.channel)
+        api.channels.fav(this.channel)
             .then(() => this.fav = true)
             .catch((err: AxiosError) => alert(err.response?.data))
             .finally(() => this.busy = false);

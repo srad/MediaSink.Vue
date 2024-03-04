@@ -115,7 +115,7 @@ export interface V1ChannelRequest {
 
 export interface V1ChannelResponse {
   channelId?: number;
-  channelName?: string;
+  channelName: string;
   createdAt?: string;
   deleted?: boolean;
   displayName?: string;
@@ -495,14 +495,14 @@ export class StreamSinkClient<SecurityDataType extends unknown> extends HttpClie
      * @description Mark channel as one of favorites
      *
      * @tags channels
-     * @name PostChannels
+     * @name FavPartialUpdate
      * @summary Mark channel as one of favorites
-     * @request POST:/channels/{channelName}/fav
+     * @request PATCH:/channels/{channelName}/fav
      */
-    postChannels: (channelName: string, params: RequestParams = {}) =>
+    favPartialUpdate: (channelName: string, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/channels/${channelName}/fav`,
-        method: "POST",
+        method: "PATCH",
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -564,14 +564,14 @@ export class StreamSinkClient<SecurityDataType extends unknown> extends HttpClie
      * @description Remove channel as one of favorites
      *
      * @tags channels
-     * @name UnfavCreate
+     * @name UnfavPartialUpdate
      * @summary Remove channel as one of favorites
-     * @request POST:/channels/{channelName}/unfav
+     * @request PATCH:/channels/{channelName}/unfav
      */
-    unfavCreate: (channelName: string, params: RequestParams = {}) =>
+    unfavPartialUpdate: (channelName: string, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/channels/${channelName}/unfav`,
-        method: "POST",
+        method: "PATCH",
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -706,14 +706,14 @@ export class StreamSinkClient<SecurityDataType extends unknown> extends HttpClie
   };
   metric = {
     /**
-     * @description Get system metrics
+     * @description Get CPU metrics
      *
      * @tags metric
-     * @name GetMetric
-     * @summary Get system metrics
+     * @name CpuList
+     * @summary Get CPU metrics
      * @request GET:/metric/cpu
      */
-    getMetric: (params: RequestParams = {}) =>
+    cpuList: (params: RequestParams = {}) =>
       this.request<ModelsCPULoad, any>({
         path: `/metric/cpu`,
         method: "GET",
@@ -723,16 +723,14 @@ export class StreamSinkClient<SecurityDataType extends unknown> extends HttpClie
       }),
 
     /**
-     * @description Get system metrics
+     * @description Get network metrics
      *
      * @tags metric
-     * @name GetMetric2
-     * @summary Get system metrics
+     * @name NetList
+     * @summary Get network metrics
      * @request GET:/metric/net
-     * @originalName getMetric
-     * @duplicate
      */
-    getMetric2: (params: RequestParams = {}) =>
+    netList: (params: RequestParams = {}) =>
       this.request<ModelsNetInfo, any>({
         path: `/metric/net`,
         method: "GET",
@@ -800,51 +798,6 @@ export class StreamSinkClient<SecurityDataType extends unknown> extends HttpClie
       this.request<ModelsRecording[], any>({
         path: `/recordings`,
         method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Cut a video and merge all defined segments
-     *
-     * @tags recordings
-     * @name ChannelNameFilenameMediaTypeConvertCreate
-     * @summary Cut a video and merge all defined segments
-     * @request POST:/recordings/:channelName/:filename/:mediaType/convert
-     */
-    channelNameFilenameMediaTypeConvertCreate: (
-      channelName: string,
-      filename: string,
-      mediaType: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<ModelsJob, any>({
-        path: `/recordings/${channelName}/${filename}/${mediaType}/convert`,
-        method: "POST",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Cut a video and merge all defined segments
-     *
-     * @tags recordings
-     * @name ChannelNameFilenameCutCreate
-     * @summary Cut a video and merge all defined segments
-     * @request POST:/recordings/:channelName/:filename/cut
-     */
-    channelNameFilenameCutCreate: (
-      channelName: string,
-      filename: string,
-      CutRequest: V1CutRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<ModelsJob, any>({
-        path: `/recordings/${channelName}/${filename}/cut`,
-        method: "POST",
-        body: CutRequest,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -983,6 +936,24 @@ export class StreamSinkClient<SecurityDataType extends unknown> extends HttpClie
       }),
 
     /**
+     * @description Cut a video and merge all defined segments
+     *
+     * @tags recordings
+     * @name CutCreate
+     * @summary Cut a video and merge all defined segments
+     * @request POST:/recordings/{channelName}/{filename}/cut
+     */
+    cutCreate: (channelName: string, filename: string, CutRequest: V1CutRequest, params: RequestParams = {}) =>
+      this.request<ModelsJob, any>({
+        path: `/recordings/${channelName}/${filename}/cut`,
+        method: "POST",
+        body: CutRequest,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Download a file from a channel.
      *
      * @tags recordings
@@ -1002,11 +973,11 @@ export class StreamSinkClient<SecurityDataType extends unknown> extends HttpClie
      * @description Bookmark a certain video in a channel.
      *
      * @tags recordings
-     * @name PostRecordings
+     * @name FavCreate
      * @summary Bookmark a certain video in a channel
      * @request POST:/recordings/{channelName}/{filename}/fav
      */
-    postRecordings: (channelName: string, filename: string, params: RequestParams = {}) =>
+    favCreate: (channelName: string, filename: string, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/recordings/${channelName}/${filename}/fav`,
         method: "POST",
@@ -1044,6 +1015,23 @@ export class StreamSinkClient<SecurityDataType extends unknown> extends HttpClie
         path: `/recordings/${channelName}/${filename}/unfav`,
         method: "POST",
         type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Cut a video and merge all defined segments
+     *
+     * @tags recordings
+     * @name ConvertCreate
+     * @summary Cut a video and merge all defined segments
+     * @request POST:/recordings/{channelName}/{filename}/{mediaType}/convert
+     */
+    convertCreate: (channelName: string, filename: string, mediaType: string, params: RequestParams = {}) =>
+      this.request<ModelsJob, any>({
+        path: `/recordings/${channelName}/${filename}/${mediaType}/convert`,
+        method: "POST",
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };

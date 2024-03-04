@@ -56,12 +56,13 @@
 </template>
 
 <script lang="ts">
-import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
+import { V1ChannelResponse as ChannelResponse } from '@/services/api/v1/StreamSinkClient';
+import { createClient } from '@/services/api/v1/ClientFactory';
 import { PropType, defineComponent } from 'vue';
 import { parseTags } from '@/utils/parser';
 import FavButton from '@/components/controls/FavButton.vue';
 
-const channelApi = new ChannelApi();
+const api = createClient();
 
 interface ChannelItemData {
   tagVal: string;
@@ -97,18 +98,18 @@ export default defineComponent({
   },
   data(): ChannelItemData {
     return {
-      tagArray: parseTags(this.channel.tags),
+      tagArray: parseTags(this.channel.tags!),
       tagVal: '',
       showTagInput: false,
       thread: 0,
-      secRecording: this.channel.minRecording * 60
+      secRecording: this.channel.minRecording! * 60
     };
   },
   methods: {
-    destroyTag(tag: string) {
+    async destroyTag(tag: string) {
       const removeTag = this.tagArray.filter(t => t !== tag);
-      channelApi.tags(this.channel.channelName, removeTag)
-          .then(() => this.tagArray = removeTag);
+      await api.channels.tagsCreate(this.channel.channelName!, { tags: removeTag });
+      this.tagArray = removeTag;
     },
     addTag() {
       const tag = this.tagVal.trim().toLowerCase();
@@ -123,7 +124,7 @@ export default defineComponent({
       const newTags = [...this.tagArray];
       newTags.push(parsed[0]);
 
-      channelApi.tags(this.channel.channelName, newTags)
+      api.channels.tagsCreate(this.channel.channelName!, { tags: newTags })
           .then(() => {
             this.tagArray = newTags;
             this.showTagInput = false;

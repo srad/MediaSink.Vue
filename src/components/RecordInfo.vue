@@ -2,7 +2,7 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item d-flex justify-content-center">
       <span>
-        {{ $t("recording.durationMinutes", [ durationFormatted ]) }}
+        {{ $t('recording.durationMinutes', [durationFormatted]) }}
       </span>
       <span class="text-secondary px-2">/</span>
       <span>
@@ -12,18 +12,18 @@
       <span class="text-cut">{{ ago }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <span>{{ $t("recording.bitRate") }}</span>
+      <span>{{ $t('recording.bitRate') }}</span>
       <span>{{ (bitRate / 1024 / 1024).toFixed(2) }} MBit</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <span>{{ $t("recording.resolution") }}</span> <span>{{ width }}x{{ height }}</span>
+      <span>{{ $t('recording.resolution') }}</span> <span>{{ width }}x{{ height }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <span>{{ $t("recording.started") }}</span>
-      <span>{{ new Date(createdAt).toLocaleDateString(undefined, { hour: "numeric", minute: "numeric" }) }}</span>
+      <span>{{ $t('recording.started') }}</span>
+      <span>{{ new Date(createdAt).toLocaleDateString(undefined, { hour: 'numeric', minute: 'numeric' }) }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <div>{{ $t("recording.convert") }}</div>
+      <div>{{ $t('recording.convert') }}</div>
       <div class="btn-group">
         <button v-if="height !== 720" class="btn btn-light" @click="$emit('convert', {recording: data, mediaType: '720'})">
           720p
@@ -64,14 +64,13 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-//import { RecordingResponse } from '@/services/api/v1/recordingApi';
 import moment from 'moment';
 import FavButton from '@/components/controls/FavButton.vue';
 
 export default defineComponent({
   name: 'RecordInfo',
   components: { FavButton },
-  emits: [ 'preview', 'destroy', 'bookmarked', 'convert' ],
+  emits: ['preview', 'destroy', 'bookmarked', 'convert'],
   props: {
     index: Number,
     url: String,

@@ -6,6 +6,7 @@
     </svg>
     <img v-if="image && !errorLoad"
          :src="image"
+         alt="preview"
          @error="errorLoadImage($event)"
          @click="$emit('selected', data)"/>
     <video v-if="!image"
@@ -28,8 +29,8 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'streamsink-preview',
-  inject: [ 'fileUrl' ],
-  emits: [ 'selected' ],
+  inject: ['fileUrl'],
+  emits: ['selected'],
   data() {
     return {
       errorLoad: false

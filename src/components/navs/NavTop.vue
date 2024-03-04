@@ -44,16 +44,13 @@
 <script lang="ts">
 
 import { defineComponent } from 'vue';
-import { DiskInfo, InfoApi } from '@/services/api/v1/infoApi';
-import { RecordingApi } from '@/services/api/v1/recordingApi';
-import { JobResponse } from '@/services/api/v1/jobApi';
-import { AxiosError } from 'axios';
+import { ModelsJob as JobResponse, UtilsDiskInfo as DiskInfo } from '@/services/api/v1/StreamSinkClient';
+import { createClient } from '@/services/api/v1/ClientFactory';
 import DiskStatus from '@/components/DiskStatus.vue';
 import RecordingControls from '@/components/RecordingControls.vue';
 import AppBrand from '@/components/AppBrand.vue';
 
-const recording = new RecordingApi();
-const info = new InfoApi();
+const api = createClient();
 
 interface NavTopData {
   collapseNav: boolean;
@@ -67,7 +64,7 @@ export default defineComponent({
     routes: { type: Array, required: true },
     title: { type: String, required: true },
   },
-  emits: [ 'add' ],
+  emits: ['add'],
   watch: {
     $route() {
       this.collapseNav = true;
@@ -90,9 +87,12 @@ export default defineComponent({
     toggle() {
       this.collapseNav = !this.collapseNav;
     },
-    query() {
-      recording.isRecording().then(res => this.recording = res.data);
-      info.disk().then(res => this.diskInfo = res.data);
+    async query() {
+      const res = await api.recorder.recorderList();
+      this.recording = res.data;
+
+      const diskRes = await api.info.diskList();
+      this.diskInfo = diskRes.data;
     },
     record(resume: boolean) {
       if (resume) {

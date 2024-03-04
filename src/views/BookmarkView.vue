@@ -9,7 +9,8 @@
 </template>
 
 <script lang="ts">
-import { RecordingApi, RecordingResponse } from '@/services/api/v1/recordingApi';
+import { createClient } from '@/services/api/v1/ClientFactory';
+import { ModelsRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
 import { defineComponent } from 'vue';
 import RecordingItem from '@/components/RecordingItem.vue';
 import { AxiosError } from 'axios';
@@ -22,7 +23,7 @@ interface BookmarkData {
   busy: boolean;
 }
 
-const recordingApi = new RecordingApi();
+const api = createClient();
 
 export default defineComponent({
   components: { LoadIndicator, RecordingItem },
@@ -46,22 +47,23 @@ export default defineComponent({
         this.removeItem(recording);
       }
     },
-    destroyRecording(recording: RecordingResponse) {
+    async destroyRecording(recording: RecordingResponse) {
       if (!window.confirm(this.$t('crud.destroy', [recording.filename]))) {
         return;
       }
 
-      recordingApi.destroy(recording.channelName, recording.filename).then(() => {
+      try {
+        await api.recordings.recordingsDelete(recording.channelName!, recording.filename!);
         this.removeItem(recording);
-      }).catch((err: AxiosError) => {
-        alert(err.response?.data);
-      });
+      } catch (ex) {
+        alert(ex);
+      }
     },
   },
-  created() {
-    recordingApi.getBookmarks().then(res => {
-      this.recordings = res.data;
-    }).finally(() => this.busy = false);
+  async created() {
+    const response = await api.recordings.bookmarksList();
+    this.recordings = response.data;
+    this.busy = false;
   }
 });
 </script>

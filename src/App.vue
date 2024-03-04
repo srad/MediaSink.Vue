@@ -19,17 +19,15 @@
 </template>
 
 <script lang="ts">
-import { ChannelRequest, ChannelResponse, ChannelApi } from './services/api/v1/channelApi';
-import { JobApi, JobResponse } from '@/services/api/v1/jobApi';
-import { AxiosError, AxiosResponse } from 'axios';
+import { V1ChannelRequest as ChannelRequest, ModelsJob as JobResponse } from './services/api/v1/StreamSinkClient';
 import { defineComponent } from 'vue';
 import socket from '@/utils/socket';
 import ChannelModal from '@/components/modals/ChannelModal.vue';
 import NavSidebar from '@/components/navs/NavSidebar.vue';
 import NavTop from '@/components/navs/NavTop.vue';
+import { createClient } from '@/services/api/v1/ClientFactory';
 
-const channel = new ChannelApi();
-const jobApi = new JobApi();
+const api = createClient();
 
 interface AppData {
   title: string;
@@ -61,9 +59,9 @@ export default defineComponent({
   },
   methods: {
     save(data: ChannelRequest) {
-      channel.add(data)
-          .then((res: AxiosResponse<ChannelResponse>) => this.$store.commit('addChannel', res.data))
-          .catch((err: AxiosError) => alert(err.response?.data))
+      api.channels.channelsCreate(data)
+          .then(res => this.$store.commit('addChannel', res.data))
+          .catch(err => alert(err.response?.data))
           .finally(() => this.showModal = false);
     },
   },
@@ -74,9 +72,9 @@ export default defineComponent({
     socket.on('job:preview:done', data => this.$store.commit('job:preview:done', data));
     socket.on('job:progress', data => this.$store.commit('job:progress', data));
     socket.on('job:preview:progress', data => this.$store.commit('job:preview:progress', data));
-    jobApi.fetch()
+    api.jobs.jobsList()
         .then(result => result.data.forEach((job: JobResponse) => this.$store.commit('addJob', job)))
-        .catch((err: AxiosError) => alert(err.response?.data));
+        .catch(err => alert(err.response?.data));
   }
 });
 </script>

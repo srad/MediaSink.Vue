@@ -19,18 +19,22 @@
         </h6>
       </div>
     </div>
-    <StreamInfo :channel="channel" :fav="channel.fav" @edit="(data) => $emit('edit', data)" @fav="fav" @unfav="unfav" @pause="pause"  @destroy="destroyChannel"/>
+    <StreamInfo :channel="channel" :fav="channel.fav" @edit="(data) => $emit('edit', data)" @fav="fav" @unfav="unfav" @pause="pause" @destroy="destroyChannel"/>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
 import StreamInfo from '@/components/StreamInfo.vue';
 import Preview from '@/components/Preview.vue';
-import { AxiosError } from 'axios';
+import { V1ChannelResponse } from '@/services/api/v1/StreamSinkClient';
+import { createClient } from '@/services/api/v1/ClientFactory';
 
-const channelService = new ChannelApi();
+interface ChannelResponse extends V1ChannelResponse {
+  previewUpdate: Date;
+}
+
+const api = createClient();
 
 export default defineComponent({
   name: 'streamsink-channel-item',
@@ -47,38 +51,41 @@ export default defineComponent({
     };
   },
   methods: {
-    fav(channel: ChannelResponse) {
-      channelService.fav(channel.channelName).then(() => this.$store.commit('fav', channel));
+    async fav(channel: ChannelResponse) {
+      await api.channels.favPartialUpdate(channel.channelName);
+      this.$store.commit('fav', channel);
     },
-    unfav(channel: ChannelResponse) {
-      channelService.unfav(channel.channelName).then(() => this.$store.commit('unfav', channel));
+    async unfav(channel: ChannelResponse) {
+      await api.channels.unfavPartialUpdate(channel.channelName);
+      this.$store.commit('unfav', channel);
     },
-    destroyChannel(channel: ChannelResponse) {
+    async destroyChannel(channel: ChannelResponse) {
       if (window.confirm(this.$t('crud.destroy', [channel.channelName]))) {
-        this.busy = true;
-        channelService.destroy(channel.channelName)
-            .then(() => {
-              this.destroyed = true;
-              setTimeout(() => {
-                this.$store.commit('destroyChannel', channel);
-              }, 1000);
-            })
-            .catch((err: AxiosError) => {
-              alert(err.response?.data);
-            })
-            .finally(() => this.busy = false);
+        try {
+          this.busy = true;
+          await api.channels.channelsDelete(channel.channelName);
+          this.destroyed = true;
+          setTimeout(() => {
+            this.$store.commit('destroyChannel', channel);
+          }, 1000);
+        } catch (ex) {
+          alert(ex);
+        } finally {
+          this.busy = false;
+        }
       }
     },
-    pause(channel: ChannelResponse) {
-      this.busy = true;
-      channelService[channel.isPaused ? 'resume' : 'pause'](channel.channelName)
-          .then(() => {
-            this.$store.commit('pauseChannel', { channel, pause: !channel.isPaused });
-          })
-          .catch((err: AxiosError) => {
-            alert(err.response?.data);
-          })
-          .finally(() => this.busy = false);
+    async pause(channel: ChannelResponse) {
+      try {
+        this.busy = true;
+        const method = channel.isPaused ? api.channels.resumeCreate : api.channels.pauseCreate;
+        await method(channel.channelName);
+        this.$store.commit('pauseChannel', { channel, pause: !channel.isPaused });
+      } catch (err) {
+        alert(err);
+      } finally {
+        this.busy = false;
+      }
     },
     viewFolder(channel: string) {
       this.$router.push('/streams/' + channel);

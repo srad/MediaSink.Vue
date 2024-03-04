@@ -108,13 +108,10 @@
 <script lang="ts">
 
 import { defineComponent } from 'vue';
-import { DiskInfo, InfoApi } from '@/services/api/v1/infoApi';
-import { RecordingApi } from '@/services/api/v1/recordingApi';
-import { AxiosError } from 'axios';
-import { JobResponse } from '@/services/api/v1/jobApi';
+import { createClient } from '@/services/api/v1/ClientFactory';
+import { UtilsDiskInfo as DiskInfo, ModelsJob as JobResponse } from '@/services/api/v1/StreamSinkClient';
 
-const recording = new RecordingApi();
-const info = new InfoApi();
+const api = createClient();
 
 interface NavData {
   collapseNav: boolean;
@@ -150,27 +147,32 @@ export default defineComponent({
     toggle() {
       this.collapseNav = !this.collapseNav;
     },
-    query() {
-      recording.isRecording().then(res => this.recording = res.data);
-      info.disk().then(res => this.diskInfo = res.data);
+    async query() {
+      const response = await api.recorder.recorderList();
+      this.recording = response.data;
+
+      const response2 = await api.info.diskList();
+      this.diskInfo = response2.data;
     },
-    record(resume: boolean) {
+    async record(resume: boolean) {
       if (resume) {
         if (window.confirm('Start recording?')) {
-          recording.resume().then(() => {
+          try {
+            await api.recorder.resumeCreate();
             this.recording = true;
-          }).catch((err: AxiosError) => {
-            alert(err.response?.data);
-          });
+          } catch (ex) {
+            alert(ex);
+          }
         }
       } else {
         if (window.confirm('Do you want to stop all recordings?')) {
-          recording.pause().then(() => {
+          try {
+            await api.recorder.pauseCreate();
             this.$store.commit('stopChannels');
             this.recording = false;
-          }).catch((err: AxiosError) => {
-            alert(err.response?.data);
-          });
+          } catch (ex) {
+            alert(ex);
+          }
         }
       }
     },

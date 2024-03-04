@@ -1,7 +1,10 @@
 import { InjectionKey } from 'vue';
 import { createStore, Store, useStore as baseUseStore } from 'vuex';
-import { ChannelResponse } from '@/services/api/v1/channelApi';
-import { JobResponse } from '@/services/api/v1/jobApi';
+import { V1ChannelResponse, ModelsJob as JobResponse } from '@/services/api/v1/StreamSinkClient';
+
+export interface ChannelResponse extends V1ChannelResponse {
+  previewUpdate: Date;
+}
 
 export interface State {
   channels: ChannelResponse[];

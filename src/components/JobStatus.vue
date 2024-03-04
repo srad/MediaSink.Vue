@@ -4,7 +4,7 @@
     <span class="me-2">{{ $t("menu.jobs") }}</span>
     <div v-if="jobs.length > 0" class="spinner-border text-dark my-1 spinner-border-sm" role="status">
           <span class="visually-hidden">
-            {{ $t("navtop.jobsLoading") }}
+            {{ $t('navtop.jobsLoading') }}
           </span>
     </div>
   </button>

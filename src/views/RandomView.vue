@@ -34,9 +34,10 @@
 </template>
 
 <script lang="ts">
-import { RecordingApi, RecordingResponse } from '@/services/api/v1/recordingApi';
-import RecordingItem from '@/components/RecordingItem.vue';
 import { defineComponent } from 'vue';
+import { ModelsRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
+import { createClient } from '@/services/api/v1/ClientFactory';
+import RecordingItem from '@/components/RecordingItem.vue';
 import LoadIndicator from '@/components/LoadIndicator.vue';
 
 interface RecordingData {
@@ -48,7 +49,7 @@ interface RecordingData {
   filterLimit: string;
 }
 
-const recordingApi = new RecordingApi();
+const api = createClient();
 
 export default defineComponent({
   name: 'streamsink-randomview',
@@ -75,11 +76,15 @@ export default defineComponent({
     };
   },
   methods: {
-    fetch() {
-      this.recordings = [];
-      recordingApi.getRandom(this.filterLimit).then(res => {
+    async fetch() {
+      try {
+        const res = await api.recordings.randomDetail(this.filterLimit);
         this.recordings = res.data;
-      }).finally(() => this.busy = false);
+      } catch (ex) {
+        alert(ex);
+      } finally {
+        this.busy = false;
+      }
     },
     viewFolder(channel: string) {
       this.$router.push('/recordings/' + channel);
