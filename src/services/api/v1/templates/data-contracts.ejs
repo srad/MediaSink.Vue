@@ -1,40 +1,63 @@
 <%
-const { modelTypes, utils, config } = it;
-const { formatDescription, require, _, Ts } = utils;
+const {modelTypes, utils, config} = it;
+const {formatDescription, require, _, Ts} = utils;
 
+const pascalCase = /[A-Z][a-z]+(?:[A-Z][a-z]+)*/;
+
+/**
+ * TODO: Not used right now, it complicated to modify the field name / http type name etc.
+ * First try to extract a camel case substring, should be used as the meaning full name.
+ * Otherwise fallback.
+ * @param contract
+ * @returns {*}
+ * @constructor
+ */
+function GenerateTypeName(contract) {
+    return contract.name;
+
+    var match = contract.typeData.name.match(pascalCase);
+    let name = contract.name;
+    if (match != null && match.length > 0) {
+        name = match[0];
+    }
+    return name;
+}
 
 const buildGenerics = (contract) => {
-  if (!contract.genericArgs || !contract.genericArgs.length) return '';
+    if (!contract.genericArgs || !contract.genericArgs.length) return '';
 
-  return '<' + contract.genericArgs.map(({ name, default: defaultType, extends: extendsType }) => {
-    return [
-      name,
-      extendsType && `extends ${extendsType}`,
-      defaultType && `= ${defaultType}`,
-    ].join('')
-  }).join(',') + '>'
+    return '<' + contract.genericArgs.map(({name, default: defaultType, extends: extendsType}) => {
+        return [
+            name,
+            extendsType && `extends ${extendsType}`,
+            defaultType && `= ${defaultType}`,
+        ].join('')
+    }).join(',') + '>'
 }
 
 const dataContractTemplates = {
-  enum: (contract) => {
-    return `enum ${contract.name} {\r\n${contract.content} \r\n }`;
-  },
-  interface: (contract) => {
-    return `interface ${contract.name}${buildGenerics(contract)} {\r\n${contract.content}}`;
-  },
-  type: (contract) => {
-    return `type ${contract.name}${buildGenerics(contract)} = ${contract.content}`;
-  },
+    enum: (contract) => {
+        const name = GenerateTypeName(contract);
+        return `enum ${name} {\r\n${contract.content} \r\n }`;
+    },
+    interface: (contract) => {
+        const name = GenerateTypeName(contract);
+        return `interface ${name}${buildGenerics(contract)} {\r\n${contract.content}}`;
+    },
+    type: (contract) => {
+        const name = GenerateTypeName(contract);
+        return `type ${name}${buildGenerics(contract)} = ${contract.content}`;
+    },
 }
 %>
-
 <% if (config.internalTemplateOptions.addUtilRequiredKeysType) { %>
-type <%~ config.Ts.CodeGenKeyword.UtilRequiredKeys %><T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
+type <% ~ config.Ts.CodeGenKeyword.UtilRequiredKeys %>
+<T, K extends keyof T> = Omit
+<T, K> & Required
+<Pick
+<T, K>>
 <% } %>
-
 <% for (const contract of modelTypes) { %>
-  <%~ includeFile('./data-contract-jsdoc.ejs', { ...it, data: { ...contract, ...contract.typeData } }) %>
-  <%~ contract.internal ? '' : 'export'%> <%~ (dataContractTemplates[contract.typeIdentifier] || dataContractTemplates.type)(contract) %>
-
-
+<% ~ includeFile('./data-contract-jsdoc.ejs', {...it, data: {...contract, ...contract.typeData}}) %>
+<% ~ contract.internal ? '' : 'export' %> <% ~ (dataContractTemplates[contract.typeIdentifier] || dataContractTemplates.type)(contract) %>
 <% } %>

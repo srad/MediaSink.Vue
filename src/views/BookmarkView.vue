@@ -10,10 +10,9 @@
 
 <script lang="ts">
 import { createClient } from '@/services/api/v1/ClientFactory';
-import { ModelsRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
+import { DatabaseRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
 import { defineComponent } from 'vue';
 import RecordingItem from '@/components/RecordingItem.vue';
-import { AxiosError } from 'axios';
 import LoadIndicator from '@/components/LoadIndicator.vue';
 
 interface BookmarkData {

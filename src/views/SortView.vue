@@ -57,7 +57,8 @@
 </template>
 
 <script lang="ts">
-import { RecordingApi, RecordingResponse } from '@/services/api/v1/recordingApi';
+import { createClient } from "@/services/api/v1/ClientFactory";
+import { DatabaseRecording as RecordingResponse } from "@/services/api/v1/StreamSinkClient";
 import RecordingItem from '@/components/RecordingItem.vue';
 import { defineComponent } from 'vue';
 import LoadIndicator from '@/components/LoadIndicator.vue';
@@ -76,7 +77,7 @@ interface RecordingData {
   filterOrder: string;
 }
 
-const recordingApi = new RecordingApi();
+const api = createClient();
 
 export default defineComponent({
   name: 'streamsink-sortview',
@@ -121,7 +122,7 @@ export default defineComponent({
     },
     fetch() {
       this.busy = true;
-      recordingApi.getSorted(this.$route.query.column as string || 'created_at', this.$route.query.order as string || 'desc', this.$route.query.limit as string || '25').then(res => this.recordings = res.data)
+      api.recordings.filterDetail(this.$route.query.column as string || 'created_at', this.$route.query.order as string || 'desc', this.$route.query.limit as string || '25').then(res => this.recordings = res.data)
           .catch(err => alert(err))
           .finally(() => this.busy = false);
     },

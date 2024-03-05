@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { ModelsRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
+import { DatabaseRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
 import { createClient } from '@/services/api/v1/ClientFactory';
 import RecordingItem from '@/components/RecordingItem.vue';
 import LoadIndicator from '@/components/LoadIndicator.vue';

@@ -127,18 +127,16 @@
 </template>
 
 <script lang="ts">
-import { InfoApi, InfoResponse } from '@/services/api/v1/infoApi';
 import { defineComponent } from 'vue';
-import { RecordingApi } from '@/services/api/v1/recordingApi';
 import { AxiosError } from 'axios';
-import { AdminApi } from '@/services/api/v1/adminApi';
+import { createClient } from "@/services/api/v1/ClientFactory";
+import { UtilsSysInfo } from "@/services/api/v1/StreamSinkClient";
 import LoadIndicator from '@/components/LoadIndicator.vue';
 
 //import CPUChart from '@/components/charts/CPUChart.vue';
 //import NetworkChart from '@/components/charts/NetworkChart.vue';
 
-const api = new InfoApi();
-const adminApi = new AdminApi();
+const api = createClient();
 
 interface AdminData {
   importing: boolean;
@@ -146,8 +144,7 @@ interface AdminData {
   build?: string;
   isUpdating: boolean;
   id: number;
-  recordingApi: RecordingApi;
-  infoResponse: InfoResponse;
+  infoResponse: UtilsSysInfo;
   cpuData: {
     labels: string[],
     datasets: {
@@ -166,7 +163,7 @@ function getRandomInt(): number {
 export default defineComponent({
   name: 'AdminView',
   components: { LoadIndicator },
-  inject: ['build'],
+  inject: [ 'build' ],
   //components: { CPUChart, NetworkChart },
   data(): AdminData {
     return {
@@ -174,7 +171,7 @@ export default defineComponent({
       importing: false,
       isUpdating: false,
       cpuData: {
-        labels: ['A', 'B'],
+        labels: [ 'A', 'B' ],
         datasets: [
           {
             backgroundColor: 'rgb(77, 186, 135)',
@@ -194,7 +191,6 @@ export default defineComponent({
           ]
         }
       },
-      recordingApi: new RecordingApi(),
       id: 0,
       infoResponse: {
         cpuInfo: { loadCpu: [] },
@@ -204,28 +200,29 @@ export default defineComponent({
     };
   },
   methods: {
-    startImport() {
+   async startImport() {
       if (window.confirm('Start Import?')) {
-        adminApi.startImport().then(() => this.importing = true);
+        await api.admin.importCreate();
+        this.importing = true;
       }
     },
-    posters() {
+async    posters() {
       if (window.confirm('Regenerate all posters?')) {
-        this.recordingApi.posters();
+        await api.recordings.generatePostersCreate();
       }
     },
     fillData() {
       this.cpuData = {
-        labels: ['A', 'B'],
+        labels: [ 'A', 'B' ],
         datasets: [
           {
             label: 'Data One',
             backgroundColor: '#f87979',
-            data: [getRandomInt(), getRandomInt()]
+            data: [ getRandomInt(), getRandomInt() ]
           }, {
             label: 'Data One',
             backgroundColor: '#f87979',
-            data: [getRandomInt(), getRandomInt()]
+            data: [ getRandomInt(), getRandomInt() ]
           }
         ]
       };
@@ -233,18 +230,19 @@ export default defineComponent({
     updateInfo() {
       if (window.confirm('Check all durations and update in database?')) {
 
-        this.recordingApi.updateInfo()
+        api.recordings.updateinfoCreate()
             .then(() => this.isUpdating = true)
             .catch((err: AxiosError) => alert(err.response?.data));
       }
     },
     fetch() {
-      api.fetch(1).then(res => {
+      api.info.infoDetail(1).then(res => {
         this.infoResponse.netInfo = res.data.netInfo;
         this.infoResponse.diskInfo = res.data.diskInfo;
         this.infoResponse.cpuInfo = res.data.cpuInfo;
-        adminApi.isImporting().then(res => this.importing = res.data);
-        this.recordingApi.isUpdating().then(res => this.isUpdating = res.data);
+        api.admin.importingList().then(res => this.importing = res.data);
+        // TODO: not implemented yet
+        //api.recordings.isupdatingList().then(res => this.isUpdating = res.data);
       }).catch((err: AxiosError) => {
         alert(err.response?.data);
       }).finally(() => {

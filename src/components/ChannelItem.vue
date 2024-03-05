@@ -52,18 +52,18 @@ export default defineComponent({
   },
   methods: {
     async fav(channel: ChannelResponse) {
-      await api.channels.favPartialUpdate(channel.channelName);
+      await api.channels.favPartialUpdate(channel.channelName!);
       this.$store.commit('fav', channel);
     },
     async unfav(channel: ChannelResponse) {
-      await api.channels.unfavPartialUpdate(channel.channelName);
+      await api.channels.unfavPartialUpdate(channel.channelName!);
       this.$store.commit('unfav', channel);
     },
     async destroyChannel(channel: ChannelResponse) {
       if (window.confirm(this.$t('crud.destroy', [channel.channelName]))) {
         try {
           this.busy = true;
-          await api.channels.channelsDelete(channel.channelName);
+          await api.channels.channelsDelete(channel.channelName!);
           this.destroyed = true;
           setTimeout(() => {
             this.$store.commit('destroyChannel', channel);
@@ -79,7 +79,7 @@ export default defineComponent({
       try {
         this.busy = true;
         const method = channel.isPaused ? api.channels.resumeCreate : api.channels.pauseCreate;
-        await method(channel.channelName);
+        await method(channel.channelName!);
         this.$store.commit('pauseChannel', { channel, pause: !channel.isPaused });
       } catch (err) {
         alert(err);

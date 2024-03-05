@@ -44,7 +44,7 @@
 <script lang="ts">
 
 import { defineComponent } from 'vue';
-import { ModelsJob as JobResponse, UtilsDiskInfo as DiskInfo } from '@/services/api/v1/StreamSinkClient';
+import { DatabaseJob as JobResponse, UtilsDiskInfo as DiskInfo } from '@/services/api/v1/StreamSinkClient';
 import { createClient } from '@/services/api/v1/ClientFactory';
 import DiskStatus from '@/components/DiskStatus.vue';
 import RecordingControls from '@/components/RecordingControls.vue';
@@ -64,7 +64,7 @@ export default defineComponent({
     routes: { type: Array, required: true },
     title: { type: String, required: true },
   },
-  emits: ['add'],
+  emits: [ 'add' ],
   watch: {
     $route() {
       this.collapseNav = true;
@@ -88,35 +88,31 @@ export default defineComponent({
       this.collapseNav = !this.collapseNav;
     },
     async query() {
-      const res = await api.recorder.recorderList();
-      this.recording = res.data;
-
+      this.recording = await api.isRecording();
       const diskRes = await api.info.diskList();
       this.diskInfo = diskRes.data;
     },
-    record(resume: boolean) {
-      if (resume) {
-        if (window.confirm('Start recording?')) {
-          recording.resume().then(() => {
+    async record(resume: boolean) {
+      try {
+        if (resume) {
+          if (window.confirm('Start recording?')) {
+            await api.recorder.resumeCreate();
             this.recording = true;
-          }).catch((err: AxiosError) => {
-            alert(err.response?.data);
-          });
-        }
-      } else {
-        if (window.confirm('Do you want to stop all recordings?')) {
-          recording.pause().then(() => {
+          }
+        } else {
+          if (window.confirm('Do you want to stop all recordings?')) {
+            await api.recorder.pauseCreate();
             this.$store.commit('stopChannels');
             this.recording = false;
-          }).catch((err: AxiosError) => {
-            alert(err.response?.data);
-          });
+          }
         }
+      } catch (e) {
+        alert(e);
       }
-    },
+    }
   },
-  mounted() {
-    this.query();
+  async mounted() {
+    await this.query();
     setInterval(this.query, 10 * 1000);
   },
 });

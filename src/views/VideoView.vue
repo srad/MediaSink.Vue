@@ -120,11 +120,10 @@
 <script lang="ts">
 //import socket from "@/socket";
 //import event from "@/services/event";
-import { RecordingApi } from '@/services/api/v1/recordingApi';
+import { createClient } from "@/services/api/v1/ClientFactory";
 import { defineComponent } from 'vue';
 import { Marking } from '@/components/Stripe.vue';
 import Stripe from '@/components/Stripe.vue';
-import { AxiosError } from 'axios';
 
 interface VideoData {
   markings: any[];
@@ -145,7 +144,7 @@ interface VideoData {
   playbackSpeed: number;
 }
 
-const recording = new RecordingApi();
+const api = createClient();
 
 export default defineComponent({
   components: { Stripe },
@@ -260,10 +259,10 @@ export default defineComponent({
       if (!window.confirm(this.$t('videoView.destroy', [ this.filename ]))) {
         return;
       }
-      recording.destroy(this.channelName, this.filename)
+      api.recordings.recordingsDelete(this.channelName, this.filename)
           .then(() => this.$router.back())
-          .catch((err: AxiosError) => {
-            alert(err.response?.data);
+          .catch((err) => {
+            alert(err);
           });
     },
     exportVideo() {
@@ -271,14 +270,14 @@ export default defineComponent({
         const starts = this.markings.map(m => String(m.timestart.toFixed(4)));
         const ends = this.markings.map(m => String(m.timeend.toFixed(4)));
 
-        recording.cut(
+        api.recordings.cutCreate(
             this.$route.params.channelName as string,
             this.$route.params.filename as string,
             { starts, ends })
             .then(() => {
               this.markings = [];
             })
-            .catch((err: AxiosError) => alert(err.response?.data));
+            .catch((err) => alert(err));
       }
     },
     isPaused() {

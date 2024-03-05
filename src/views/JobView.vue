@@ -23,12 +23,14 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { JobApi, JobResponse } from '@/services/api/v1/jobApi';
+import { createClient } from "@/services/api/v1/ClientFactory";
 import moment from 'moment';
 import JobTable from '@/components/JobTable.vue';
 import { AxiosError } from 'axios';
+import { DatabaseRecording as JobResponse } from "@/services/api/v1/StreamSinkClient";
 
-const jobApi = new JobApi();
+const api = createClient();
+
 export default defineComponent({
   components: { JobTable },
   computed: {
@@ -53,7 +55,7 @@ export default defineComponent({
   },
   methods: {
     destroy(id: number) {
-      jobApi.destroy(id)
+      api.jobs.jobsDelete(id)
           .then(() => this.$store.commit('destroyJob', id))
           .catch((err: AxiosError) => alert(err.response?.data));
     }

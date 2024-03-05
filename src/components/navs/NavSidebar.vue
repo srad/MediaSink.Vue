@@ -109,7 +109,7 @@
 
 import { defineComponent } from 'vue';
 import { createClient } from '@/services/api/v1/ClientFactory';
-import { UtilsDiskInfo as DiskInfo, ModelsJob as JobResponse } from '@/services/api/v1/StreamSinkClient';
+import { UtilsDiskInfo as DiskInfo, DatabaseJob as JobResponse } from '@/services/api/v1/StreamSinkClient';
 
 const api = createClient();
 
@@ -148,9 +148,7 @@ export default defineComponent({
       this.collapseNav = !this.collapseNav;
     },
     async query() {
-      const response = await api.recorder.recorderList();
-      this.recording = response.data;
-
+      this.recording = await api.isRecording();
       const response2 = await api.info.diskList();
       this.diskInfo = response2.data;
     },

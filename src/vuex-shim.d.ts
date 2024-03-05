@@ -1,6 +1,5 @@
 import { Store } from 'vuex';
 import { ComponentCustomProperties } from 'vue';
-import jobre
 
 declare module '@vue/runtime-core' {
   // declare your own store states

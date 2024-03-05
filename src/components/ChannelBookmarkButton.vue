@@ -5,7 +5,7 @@
 
 <script lang="ts">
 import { createClient } from '@/services/api/v1/ClientFactory';
-import { defineComponent, PropType } from 'vue';
+import { defineComponent } from 'vue';
 import { AxiosError } from 'axios';
 import FavButton from '@/components/controls/FavButton.vue';
 
@@ -35,7 +35,7 @@ export default defineComponent({
             .catch((err: AxiosError) => alert(err.response?.data))
             .finally(() => this.busy = false);
       } else {
-        api.channels.fav(this.channel)
+        api.channels.favPartialUpdate(this.channel)
             .then(() => this.fav = true)
             .catch((err: AxiosError) => alert(err.response?.data))
             .finally(() => this.busy = false);

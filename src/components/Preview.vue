@@ -52,7 +52,7 @@ export default defineComponent({
     leaveVideo(event: any) {
       event.target.pause();
     },
-    errorLoadImage(event: Event) {
+    errorLoadImage() {
       this.errorLoad = true;
     },
   }

@@ -132,18 +132,21 @@
 
 <script lang="ts">
 import socket from '@/utils/socket';
-import { ChannelApi, ChannelRequest, ChannelResponse } from '@/services/api/v1/channelApi';
+import { createClient } from "@/services/api/v1/ClientFactory";
+import {
+  V1ChannelResponse as ChannelResponse,
+  V1ChannelRequest as ChannelRequest
+} from "@/services/api/v1/StreamSinkClient";
 import { defineComponent } from 'vue';
 import ChannelItem from '@/components/ChannelItem.vue';
 import ChannelModal from '@/components/modals/ChannelModal.vue';
-import { AxiosError, AxiosResponse } from 'axios';
 
 function filter(row: ChannelResponse, search: string, tag: string): boolean {
-  return row.channelName.indexOf(search) !== -1 && row.tags.indexOf(tag) !== -1;
+  return row.channelName!.indexOf(search) !== -1 && row.tags!.indexOf(tag) !== -1;
 }
 
 function sort(a: ChannelResponse, b: ChannelResponse) {
-  return a.channelName.localeCompare(b.channelName);
+  return a.channelName!.localeCompare(b.channelName!);
 }
 
 interface RecordingData {
@@ -156,16 +159,16 @@ interface RecordingData {
   showModal: boolean;
 
   channelId: number;
-  isPaused: boolean;
-  channelName: string;
-  displayName: string;
-  skipStart: number;
-  url: string;
+  isPaused?: boolean;
+  channelName?: string;
+  displayName?: string;
+  skipStart?: number;
+  url?: string;
 
   channelItemClass: string;
 }
 
-const channelService = new ChannelApi();
+const api = createClient();
 
 export default defineComponent({
   name: 'streamsink-streamview',
@@ -253,11 +256,14 @@ export default defineComponent({
     },
   },
   methods: {
-    save(data: ChannelRequest) {
-      channelService.update(data)
-          .then((res: AxiosResponse<ChannelResponse>) => this.$store.commit('updateChannel', res.data))
-          .catch((err: AxiosError) => alert(err.response?.data))
-          .finally(() => this.showModal = false);
+    async save(data: ChannelRequest) {
+      try {
+        const res = await api.channels.channelsPartialUpdate(this.channelName!, data);
+        this.$store.commit('updateChannel', res.data);
+        this.showModal = false;
+      } catch (e) {
+        alert(e);
+      }
     },
     editChannel(channel: ChannelRequest) {
       this.channelId = channel.channelId!;
@@ -272,11 +278,9 @@ export default defineComponent({
       this.$router.push({ name: 'Stream', params: { tag: this.tagFilter, tab } });
     }
   },
-  mounted() {
-    channelService.getChannels()
-        .then(res => res.data.forEach(channel => {
-          this.$store.commit('addChannel', channel);
-        }));
+  async mounted() {
+    const res = await api.channels.channelsList();
+    res.data.forEach(channel => this.$store.commit('addChannel', channel));
   },
   created() {
     socket.on('channel:online', data => this.$store.commit('channel:online', data));

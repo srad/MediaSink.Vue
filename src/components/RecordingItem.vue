@@ -51,7 +51,7 @@
 import RecordInfo from '@/components/RecordInfo.vue';
 import Preview from '@/components/Preview.vue';
 import { defineComponent, PropType } from 'vue';
-import { ModelsRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
+import { DatabaseRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
 import { createClient } from '@/services/api/v1/ClientFactory';
 
 const api = createClient();

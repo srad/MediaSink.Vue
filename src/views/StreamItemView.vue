@@ -64,17 +64,19 @@
 </template>
 
 <script lang="ts">
-import { RecordingApi, RecordingResponse } from '@/services/api/v1/recordingApi';
 import { defineComponent } from 'vue';
 import RecordingItem from '@/components/RecordingItem.vue';
-import { ChannelApi, ChannelResponse } from '@/services/api/v1/channelApi';
 import { Modal } from 'bootstrap';
-import { AxiosError, CancelTokenSource } from 'axios';
 import LoadIndicator from '@/components/LoadIndicator.vue';
 import ChannelBookmarkButton from "@/components/ChannelBookmarkButton.vue";
+import { createClient } from "@/services/api/v1/ClientFactory";
+import {
+  DatabaseChannel as ChannelResponse,
+  DatabaseRecording as RecordingResponse
+} from "@/services/api/v1/StreamSinkClient";
+import { AxiosError, CancelTokenSource } from 'axios';
 
-const recordingApi = new RecordingApi();
-const channelApi = new ChannelApi();
+const api = createClient();
 
 interface RecordingData {
   apiUrl?: string;
@@ -122,7 +124,7 @@ export default defineComponent({
       }
       for (let i = 0; i < this.selectedRecordings.length; i++) {
         const rec = this.selectedRecordings[i];
-        await recordingApi.destroy(rec.channelName, rec.filename);
+        await api.recordings.recordingsDelete(rec.channelName!, rec.filename!);
         const j = this.recordings.findIndex(r => r.filename === rec.filename);
         if (j !== -1) {
           this.recordings.splice(j, 1);
@@ -142,7 +144,7 @@ export default defineComponent({
     },
     deleteChannel() {
       if (window.confirm(`Delete channel "${this.channelName}"?`)) {
-        channelApi.destroy(this.channelName)
+        api.channels.channelsDelete(this.channelName)
             .then(() => this.$store.commit('destroyChannel', { channelName: this.channelName }))
             .finally(() => this.$router.back());
       }
@@ -158,7 +160,7 @@ export default defineComponent({
       if (el.files && el.files!.length > 0) {
         this.uploadProgress = 0;
         this.modal!.show();
-        const [ req, cancellationToken ] = channelApi.upload(this.channelName, el.files![0], pcent => this.uploadProgress = pcent);
+        const [ req, cancellationToken ] = api.channelUpload(this.channelName, el.files![0], pcent => this.uploadProgress = pcent);
         req.then(res => {
           this.uploadProgress = 0;
           this.recordings.unshift(res.data);
@@ -182,22 +184,21 @@ export default defineComponent({
       }
     }
   },
-  mounted() {
-    this.modal = new Modal(this.$refs.upload as HTMLElement);
+  async mounted() {
+    try {
+      this.modal = new Modal(this.$refs.upload as HTMLElement);
+      this.busy = true;
 
-    this.busy = true;
+      const response = await api.channels.channelsDetail(this.channelName);
+      this.channel = response.data as ChannelResponse;
+      this.busy = false;
 
-    channelApi.getChannel(this.channelName)
-        .then(response => {
-          this.channel = response.data
-        })
-        .finally(() => this.busy = false);
-
-    recordingApi.getRecordings(this.channelName).then(res => {
-      this.recordings = res.data;
+      const response2 = await api.recordings.recordingsDetail(this.channelName);
+      this.recordings = response2.data;
       window.scrollTo(0, 0);
-    }).catch((err: AxiosError) => alert(err.response?.data))
-        .finally(() => this.busy = false);
+    } finally {
+      this.busy = false;
+    }
   }
 });
 </script>

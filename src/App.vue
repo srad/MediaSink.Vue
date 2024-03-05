@@ -19,7 +19,7 @@
 </template>
 
 <script lang="ts">
-import { V1ChannelRequest as ChannelRequest, ModelsJob as JobResponse } from './services/api/v1/StreamSinkClient';
+import { V1ChannelRequest as ChannelRequest, DatabaseJob as JobResponse } from './services/api/v1/StreamSinkClient';
 import { defineComponent } from 'vue';
 import socket from '@/utils/socket';
 import ChannelModal from '@/components/modals/ChannelModal.vue';
@@ -61,7 +61,7 @@ export default defineComponent({
     save(data: ChannelRequest) {
       api.channels.channelsCreate(data)
           .then(res => this.$store.commit('addChannel', res.data))
-          .catch(err => alert(err.response?.data))
+          .catch(res => alert(res.error))
           .finally(() => this.showModal = false);
     },
   },
