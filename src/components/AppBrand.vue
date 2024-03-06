@@ -1,7 +1,7 @@
 <template>
   <a class="navbar-brand text-white fw-bold d-flex" href="/streams">
     <img class="px-2" style="height: 28px; width: auto" src="/icon.png"/>
-    <span class="d-none d-sm-none d-md-block">{{ title }}</span>
+    <span class="d-none d-sm-block">{{ title }}</span>
   </a>
 </template>
 

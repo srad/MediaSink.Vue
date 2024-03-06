@@ -1,40 +1,37 @@
 <template>
-  <nav class="navbar navbar-dark fixed-top m-0 d-flex bg-primary">
+  <nav class="navbar navbar-dark navbar-expand-lg fixed-top m-0 d-flex bg-primary">
     <div class="container-fluid">
       <AppBrand class="mr-auto" :title="title"/>
 
-      <div class="offcanvas offcanvas-sm offcanvas-end d-md-none" tabindex="-1" aria-labelledby="collapsibleNavbarLabel" id="collapsibleNavbar">
+      <div class="offcanvas offcanvas-end bg-dark" data-bs-backdrop="static" tabindex="-1" aria-labelledby="collapsibleNavbarLabel" id="collapsibleNavbar">
         <div class="offcanvas-header bg-primary text-white">
           <AppBrand class="mr-auto" :title="title"/>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body bg-dark">
-          <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-            <li class="nav-item text-dark">
-              <DiskStatus :pcent="diskInfo.pcent"/>
-            </li>
-            <li class="nav-item">
-              <hr class="border-white"/>
-            </li>
+        <div class="offcanvas-body">
+          <ul class="navbar-nav justify-content-end flex-grow-1">
             <li class="nav-item" v-for="link in routes" :key="link">
               <router-link :to="link.url" :custom="true" exact-active-class="active" v-slot="{ navigate, href, isActive }">
                 <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
-                  <span data-bs-toggle="offcanvas" data-bs-target="#collapsibleNavbar">{{ link.title }}</span>
+                  <span data-bs-dismiss="offcanvas" data-bs-target="#collapsibleNavbar">{{ link.title }}</span>
                 </a>
               </router-link>
+            </li>
+            <li class="nav-item d-flex align-items-center">
+              <DiskStatus :pcent="diskInfo.pcent"/>
+            </li>
+            <li class="nav-item d-none d-lg-block">
+              <RecordingControls :jobs="jobs" :recording="recording" @add="$emit('add')" @record="record"/>
             </li>
           </ul>
         </div>
       </div>
 
-      <div class="d-flex align-items-center">
-        <div class="d-none d-md-block">
-          <DiskStatus :pcent="diskInfo.pcent"/>
-        </div>
+      <div class="d-lg-none">
         <RecordingControls :jobs="jobs" :recording="recording" @add="$emit('add')" @record="record"/>
       </div>
 
-      <button class="navbar-toggler d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#collapsibleNavbar" aria-controls="collapsibleNavbar" aria-label="Toggle navigation">
+      <button class="navbar-toggler d-l-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#collapsibleNavbar" aria-controls="collapsibleNavbar" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
     </div>
@@ -64,7 +61,7 @@ export default defineComponent({
     routes: { type: Array, required: true },
     title: { type: String, required: true },
   },
-  emits: [ 'add' ],
+  emits: ['add'],
   watch: {
     $route() {
       this.collapseNav = true;
