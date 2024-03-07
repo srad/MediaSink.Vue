@@ -1,6 +1,6 @@
 import { InjectionKey } from 'vue';
 import { createStore, Store, useStore as baseUseStore } from 'vuex';
-import { V1ChannelResponse, DatabaseJob as JobResponse } from '@/services/api/v1/StreamSinkClient';
+import { V1ChannelResponse, DatabaseJob as JobResponse, DatabaseJob } from '@/services/api/v1/StreamSinkClient';
 
 export interface ChannelResponse extends V1ChannelResponse {
   previewUpdate: Date;
@@ -41,29 +41,24 @@ export const store = createStore<State>({
     'job:preview:progress'(state: State, data) {
       console.log('Progrss: ', data);
     },
+    'job:create'(state: State, data: DatabaseJob) {
+      state.jobs.push(data);
+    },
     'job:destroy'(state: State, data: JobMessage) {
       const i = state.jobs.findIndex(j => j.filename === data.channelName);
       if (i !== -1) {
         state.jobs.splice(i, 1);
       }
     },
-    'job:start'(state: State, job: JobMessage) {
+    'job:start'(state: State, job: DatabaseJob) {
       let i = state.jobs.findIndex(j => j.jobId === job.jobId);
       if (i === -1) {
-        i = state.jobs.push({
-          jobId: job.jobId,
-          active: false,
-          progress: '0',
-          channelName: job.channelName,
-          filename: job.filename,
-          status: job.type,
-          createdAt: new Date().toString(),
-          args: ''
-        });
+        i = state.jobs.push(job);
       }
       state.jobs[i].active = true;
     },
     'job:progress'(state: State, job: JobMessage) {
+      console.log(job);
       const i = state.jobs.findIndex(j => j.jobId === job.jobId);
       if (i !== -1) {
         state.jobs[i].progress = String(job.data.frame / job.data.packets * 100);

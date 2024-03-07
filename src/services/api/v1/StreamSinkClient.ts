@@ -22,6 +22,9 @@ export interface DatabaseChannel {
   displayName: string;
   fav: boolean;
   isPaused: boolean;
+  /** 1:n */
+  recordings?: DatabaseRecording[];
+  /** Only for query result. */
   recordingsCount: number;
   recordingsSize: number;
   skipStart: number;
@@ -29,20 +32,20 @@ export interface DatabaseChannel {
   url: string;
 }
 export interface DatabaseJob {
-  active?: boolean;
+  active: boolean;
   args?: string;
   /** Unique entry, this is the actual primary key */
-  channelName?: string;
+  channelName: string;
   command?: string;
-  createdAt?: string;
-  filename?: string;
+  createdAt: string;
+  filename: string;
   info?: string;
-  jobId?: number;
-  pathRelative?: string;
+  jobId: number;
+  pathRelative: string;
   /** Additional information */
   pid?: number;
   progress?: string;
-  status?: string;
+  status: string;
 }
 export interface DatabaseNetInfo {
   createdAt: string;
@@ -53,45 +56,49 @@ export interface DatabaseNetInfo {
 export interface DatabaseRecording {
   bitRate: number;
   bookmark: boolean;
+  channelId: number;
   channelName: string;
   createdAt: string;
   duration: number;
   filename: string;
   height: number;
   lastAccess?: string;
+  /** Total number of video packets/frames. */
   packets: number;
-  pathRelative: string;
+  pathRelative?: string;
   previewCover?: string;
+  previewScreens?: string[];
   previewStripe?: string;
   previewVideo?: string;
+  recordingId: number;
   size: number;
   videoType?: string;
   width: number;
 }
-export interface UtilsCPUInfo {
-  loadCpu?: UtilsCPULoad[];
+export interface HelpersCPUInfo {
+  loadCpu?: HelpersCPULoad[];
 }
-export interface UtilsCPULoad {
+export interface HelpersCPULoad {
   cpu?: string;
   createdAt?: string;
   load?: number;
 }
-export interface UtilsDiskInfo {
+export interface HelpersDiskInfo {
   avail?: string;
   pcent?: string;
   size?: string;
   used?: string;
 }
-export interface UtilsNetInfo {
+export interface HelpersNetInfo {
   createdAt?: string;
   dev?: string;
   receiveBytes?: number;
   transmitBytes?: number;
 }
-export interface UtilsSysInfo {
-  cpuInfo?: UtilsCPUInfo;
-  diskInfo?: UtilsDiskInfo;
-  netInfo?: UtilsNetInfo;
+export interface HelpersSysInfo {
+  cpuInfo?: HelpersCPUInfo;
+  diskInfo?: HelpersDiskInfo;
+  netInfo?: HelpersNetInfo;
 }
 export interface V1ChannelRequest {
   channelId?: number;
@@ -115,6 +122,9 @@ export interface V1ChannelResponse {
   isTerminating: boolean;
   minRecording: number;
   preview: string;
+  /** 1:n */
+  recordings?: DatabaseRecording[];
+  /** Only for query result. */
   recordingsCount: number;
   recordingsSize: number;
   skipStart: number;
@@ -602,7 +612,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> extends HttpClie
      * @request GET:/info/disk
      */
     diskList: (params: RequestParams = {}) =>
-      this.request<UtilsDiskInfo, any>({
+      this.request<HelpersDiskInfo, any>({
         path: `/info/disk`,
         method: "GET",
         type: ContentType.Json,
@@ -619,7 +629,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> extends HttpClie
      * @request GET:/info/{seconds}
      */
     infoDetail: (seconds: number, params: RequestParams = {}) =>
-      this.request<UtilsSysInfo, any>({
+      this.request<HelpersSysInfo, any>({
         path: `/info/${seconds}`,
         method: "GET",
         type: ContentType.Json,

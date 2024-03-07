@@ -36,6 +36,7 @@ import {
   Tooltip,
   SubTitle
 } from "chart.js";
+import {createClient} from "@/services/api/v1/ClientFactory";
 
 Chart.register(
     ArcElement,
@@ -64,10 +65,12 @@ Chart.register(
     SubTitle
 );
 
+const api = createClient();
+
 export default {
   name: "CPUChart",
   async mounted() {
-    const data = await (await fetch("http://localhost:3000/api/v1/metric/net")).json();
+    const data = api.metric.netList();
 
     const ctx = this.$refs.myChart.getContext("2d");
     new Chart(ctx, {

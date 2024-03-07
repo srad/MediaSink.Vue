@@ -29,8 +29,8 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'streamsink-preview',
-  inject: ['fileUrl'],
-  emits: ['selected'],
+  inject: [ 'fileUrl' ],
+  emits: [ 'selected' ],
   data() {
     return {
       errorLoad: false
@@ -52,14 +52,14 @@ export default defineComponent({
     leaveVideo(event: any) {
       event.target.pause();
     },
-    errorLoadImage() {
+    errorLoadImage(event: Event) {
       this.errorLoad = true;
     },
   }
 });
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .preview-container img, .preview-container video {
   //position: relative;
   width: 100%;

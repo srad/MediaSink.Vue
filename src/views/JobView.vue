@@ -25,25 +25,30 @@
 import { defineComponent } from 'vue';
 import { createClient } from '@/services/api/v1/ClientFactory';
 import JobTable from '@/components/JobTable.vue';
-import { DatabaseRecording as Recording, DatabaseRecording as JobResponse } from '@/services/api/v1/StreamSinkClient';
+import { DatabaseJob, DatabaseRecording } from '@/services/api/v1/StreamSinkClient';
 import moment from 'moment';
 
 const api = createClient();
 
+export interface JobTableItem extends DatabaseJob {
+  fromNow: string;
+}
+
 export default defineComponent({
   components: { JobTable },
   computed: {
-    recordings(): Recording[] {
+    recordings(): JobTableItem[] {
       return this.$store.state.jobs.filter(job => job.status === 'recording').map(job => {
-        job.createdAt = moment(job.createdAt).fromNow();
-        return job;
+        const newJob = { ...job };
+        newJob.fromNow = moment(newJob.createdAt).fromNow();
+        return newJob;
       });
     },
-    workerJobs(): JobResponse[] {
-      //@ts-ignore
+    workerJobs(): JobTableItem[] {
       return this.$store.state.jobs.filter(job => job.status !== 'recording').map(job => {
-        job.createdAt = moment(job.createdAt).fromNow();
-        return job;
+        const newJob = { ...job };
+        newJob.fromNow = moment(newJob.createdAt).fromNow();
+        return newJob;
       });
     }
   },

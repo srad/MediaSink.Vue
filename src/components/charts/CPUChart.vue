@@ -37,6 +37,8 @@ import {
   SubTitle
 } from "chart.js";
 
+import {createClient} from "@/services/api/v1/ClientFactory";
+
 Chart.register(
     ArcElement,
     LineElement,
@@ -64,10 +66,12 @@ Chart.register(
     SubTitle
 );
 
+const api = createClient();
+
 export default {
   name: "NetworkChart",
   async mounted() {
-    const data = await (await fetch("http://localhost:3000/api/v1/metric/cpu")).json();
+    const data = await api.metric.cpuList();
 
     const ctx = this.$refs.myChart.getContext("2d");
     new Chart(ctx, {

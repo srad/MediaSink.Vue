@@ -74,7 +74,7 @@ import {
   DatabaseChannel as ChannelResponse,
   DatabaseRecording as RecordingResponse
 } from "@/services/api/v1/StreamSinkClient";
-import { AxiosError, CancelTokenSource } from 'axios';
+import { CancelTokenSource } from 'axios';
 
 const api = createClient();
 
@@ -168,8 +168,8 @@ export default defineComponent({
           this.modal!.hide();
           // clear old file
           el.value = '';
-        }).catch((err: AxiosError) => {
-          alert(err.response?.data);
+        }).catch(res => {
+          alert(res.error);
           this.modal!.hide();
         });
         this.cancellationToken = cancellationToken;

@@ -2,17 +2,16 @@
   <div class="modal show m-0 p-0m position-absolute" tabindex="-1" ref="modalVideo" style="display: block !important;">
     <div class="modal-dialog modal-fullscreen p-0">
       <div class="modal-content">
-        <div class="modal-body bg-light p-1" style="overflow: hidden">
+        <div class="modal-body bg-light p-0" style="overflow: hidden">
 
           <div class="d-flex flex-row" style="height: 90%;">
 
             <div class="d-flex flex-column m-0" :class="{'w-80': markings.length > 0, 'w-100': markings.length===0}">
               <video class="view h-100" controls
-                     @click="paused=!paused"
-                     @touchstart="paused=!paused"
                      ref="video"
+                     @volumechange="event => {cookies.set('muted', event.target.muted); cookies.set('volume', event.target.volume); }"
                      @loadeddata="loaddata"
-                     @timeupdate="timeupdate" muted autoplay>
+                     @timeupdate="timeupdate" :muted="cookies.get<boolean>('muted')" autoplay>
                 <source :src="videoUrl" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
@@ -46,70 +45,52 @@
                     :timecode="timecode"
                     :duration="duration"
                     :markings="markings"
+                    @width="stripeWidth"
                     @selecting="paused=true"
-                    @update="(m) => markings=m"
+                    @marking="(m) => markings=m"
                     @seek="seek"
-                    @scroll="scrollStripe"
                     @offset="offset"/>
           </div>
         </div>
 
         <div class="modal-footer p-1" v-if="previewPath">
-          <div class="d-flex w-100">
-            <input class="form-control form-range flex-fill me-2"
-                   type="range"
-                   v-model="timecode"
-                   step="1"
-                   @input="customSeek($event)"
-                   min="0"
-                   :max="duration">
+          <div class="d-flex justify-content-end">
+            <button class="btn bg-primary text-white btn-sm me-2" @click="() => this.$refs.video.currentTime -= 30">
+              <i class="bi bi-chevron-double-left"/>
+            </button>
+
+            <button class="btn bg-primary text-white btn-sm me-2" @click="() => this.$refs.video.currentTime += 30">
+              <i class="bi bi-chevron-double-right"/>
+            </button>
+
+            <button class="btn btn-danger btn-sm me-2" @click="destroy">
+              <i class="bi bi-trash3-fill"/>
+            </button>
+
             <!--
-            <input type="range" class="m-1 p-4 form-control form-range" v-model="playbackSpeed" step="0.1"
-                   min="0.1"
-                   max="5.0"/>-->
-
-            <div class="d-flex justify-content-evenly flex-fill" style="width: 30%">
-              <div class="fw-6 me-2">
-                {{ (timecode / 60).toFixed(2) }}/{{ durationMin }} min
-              </div>
-
-              <button class="btn bg-primary text-white btn-sm me-2" @click="() => this.$refs.video.currentTime -= 30">
-                <i class="bi bi-chevron-left"/>
-              </button>
-
-              <button class="btn bg-primary text-white btn-sm me-2" @click="() => this.$refs.video.currentTime += 30">
-                <i class="bi bi-chevron-right"/>
-              </button>
-
-              <button class="btn btn-danger btn-sm me-2" @click="destroy">
-                {{ $t('videoView.button.destroy') }}
-              </button>
-
-              <!--
-                            <div class="fw-6 me-2">
-                {{ durationMin }}/{{ (timecode / 60).toFixed(2) }}min
-              </div>
-
-              <button v-if="!muted" class="btn btn-primary btn-sm me-2" type="button" @click="muted=true">
-                <i class="bi bi-volume-up"/>
-              </button>
-
-              <button v-else class="btn btn-outline-primary btn-sm me-2" type="button" @click="muted=false">
-                <i class="bi bi-volume-mute"/>
-              </button>
-
-              <button v-if="paused" class="btn btn-warning btn-sm" type="button" @click="play()">
-                <i class="bi bi-play"></i>
-              </button>
-              <button v-else class="btn btn-success btn-sm" type="button" @click="pause()">
-                <i class="bi bi-pause"></i>
-              </button>
-              -->
-
-              <button v-if="markings.length > 0" class="btn btn-warning btn-sm ms-2" type="button" @click="exportVideo">
-                {{ $t('videoView.button.cut') }} <i class="bi bi-scissors"></i>
-              </button>
+                          <div class="fw-6 me-2">
+              {{ durationMin }}/{{ (timecode / 60).toFixed(2) }}min
             </div>
+
+            <button v-if="!muted" class="btn btn-primary btn-sm me-2" type="button" @click="muted=true">
+              <i class="bi bi-volume-up"/>
+            </button>
+
+            <button v-else class="btn btn-outline-primary btn-sm me-2" type="button" @click="muted=false">
+              <i class="bi bi-volume-mute"/>
+            </button>
+
+            <button v-if="paused" class="btn btn-warning btn-sm" type="button" @click="play()">
+              <i class="bi bi-play"></i>
+            </button>
+            <button v-else class="btn btn-success btn-sm" type="button" @click="pause()">
+              <i class="bi bi-pause"></i>
+            </button>
+            -->
+
+            <button v-if="markings.length > 0" class="btn btn-warning btn-sm ms-2" type="button" @click="exportVideo">
+              {{ $t('videoView.button.cut') }} <i class="bi bi-scissors"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -124,8 +105,10 @@ import { createClient } from "@/services/api/v1/ClientFactory";
 import { defineComponent } from 'vue';
 import { Marking } from '@/components/Stripe.vue';
 import Stripe from '@/components/Stripe.vue';
+import { useCookies } from '@vueuse/integrations/useCookies';
 
 interface VideoData {
+  isMounted: boolean;
   markings: any[];
   show: boolean;
   loaded: boolean;
@@ -133,8 +116,8 @@ interface VideoData {
   timecode: number;
   duration: number;
   segments: any[],
+  stripeWidth: number;
   baseUrl?: string;
-  muted: boolean;
   channel: string;
   file: string;
   fileUrl?: string;
@@ -147,6 +130,12 @@ interface VideoData {
 const api = createClient();
 
 export default defineComponent({
+  setup() {
+    const cookies = useCookies([ 'locale' ]);
+    return {
+      cookies,
+    };
+  },
   components: { Stripe },
   inject: [ 'fileUrl' ],
   props: {
@@ -169,7 +158,9 @@ export default defineComponent({
   },
   data(): VideoData {
     return {
-      videoUrl: this.fileUrl + '/recordings/' + this.channelName + '/' + this.filename,
+      stripeWidth: 0,
+      isMounted: false,
+      videoUrl: this.fileUrl + '/' + this.channelName + '/' + this.filename,
       channel: this.channelName,
       file: this.filename,
       markings: [],
@@ -181,7 +172,6 @@ export default defineComponent({
       timecode: 0,
       duration: 0,
       segments: [],
-      muted: true,
       playbackSpeed: 1.0,
     };
   },
@@ -195,9 +185,15 @@ export default defineComponent({
   },
   watch: {
     muted(val) {
-      (this.$refs.video as HTMLVideoElement).muted = val;
+      if (this.isMounted) {
+        (this.$refs.video as HTMLVideoElement).muted = val;
+      }
     },
     paused(val) {
+      if (!this.isMounted) {
+        return;
+      }
+
       if (val) {
         (this.$refs.video as HTMLVideoElement).pause();
       } else {
@@ -205,6 +201,10 @@ export default defineComponent({
       }
     },
     playbackSpeed(newVal) {
+      if (!this.isMounted) {
+        return;
+      }
+
       (this.$refs.video as HTMLVideoElement).playbackRate = newVal;
     },
   },
@@ -232,10 +232,6 @@ export default defineComponent({
       //@ts-ignore
       (this.$refs.video as HTMLVideoElement).currentTime = event.target.value;
       this.paused = !this.paused;
-    },
-    scrollStripe(event: WheelEvent) {
-      (this.$refs.video as HTMLVideoElement).currentTime += event.deltaY / 10;
-      return (this.$refs.stripeContainer as HTMLDivElement).scrollLeft += event.deltaY;
     },
     play() {
       this.paused = false;
@@ -283,24 +279,29 @@ export default defineComponent({
     isPaused() {
       return (this.$refs.video as HTMLVideoElement).paused;
     },
-    seek(timecode: number) {
+    seek({ clientX, width }: { clientX: number, width: number }) {
       this.paused = true;
-      (this.$refs.video as HTMLVideoElement).currentTime = timecode;
+      const div = this.$refs.stripeContainer as HTMLDivElement;
+      const video = this.$refs.video as HTMLVideoElement;
+      video.currentTime = video.duration * (clientX / width);
     },
-    offset({ offset, clientX }: { offset: number, clientX: number }) {
+    offset(offset: number, clientX: number) {
       requestAnimationFrame(() => {
+        const div = this.$refs.stripeContainer as HTMLDivElement;
         //(this.$refs.stripeContainer as HTMLDivElement).scrollLeft = left - window.innerWidth / 2;
-        (this.$refs.stripeContainer as HTMLDivElement).scrollLeft = offset - clientX;
+        //div.scrollLeft = clientX;
       });
     },
     loaddata() {
-      if (this.$refs.video != null) {
-        this.duration = (this.$refs.video as HTMLVideoElement).duration;
+      if (this.isMounted) {
+        const video = this.$refs.video as HTMLVideoElement;
+        this.duration = video.duration;
         this.loaded = true;
+        video.volume = this.cookies.get('volume') || 0.0;
       }
     },
     timeupdate() {
-      if (this.$refs.video != null) {
+      if (this.isMounted) {
         this.timecode = (this.$refs.video as HTMLVideoElement).currentTime;
       }
     },
@@ -316,13 +317,9 @@ export default defineComponent({
     window.removeEventListener('orientationchange', this.rotate);
   },
   mounted() {
-    //this.modal = new window.bootstrap.Modal(this.$refs.modalVideo);
+    this.isMounted = true;
     window.addEventListener('orientationchange', this.rotate);
-    //this.modal.show();
     this.show = true;
   },
 });
 </script>
-
-<style scoped>
-</style>

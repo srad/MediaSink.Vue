@@ -74,7 +74,7 @@ export default defineComponent({
     socket.on('job:preview:progress', data => this.$store.commit('job:preview:progress', data));
     api.jobs.jobsList()
         .then(result => result.data.forEach((job: JobResponse) => this.$store.commit('addJob', job)))
-        .catch(err => alert(err.response?.data));
+        .catch(res => alert(res.error));
   }
 });
 </script>

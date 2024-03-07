@@ -8,7 +8,7 @@
     <Preview class="card-img-top"
              @selected="viewFolder(channel.channelName)"
              :data="{channelName: channel}"
-             :image="fileUrl +'/'+ channel.preview + (channel.previewUpdate ? '?' + String(channel.previewUpdate.getTime()) : '')"/>
+             :image="fileUrl +'/'+ channel.preview + '?' +Date.now()"/>
     <div class="card-body">
       <div class="card-title p-1 m-0" :class="{'bg-primary' : !channel.isRecording && !channel.isOnline, 'bg-danger': channel.isRecording, 'bg-success': channel.isOnline && !channel.isRecording}">
         <h6 class="p-2 m-0 text-white">
@@ -27,20 +27,16 @@
 import { defineComponent, PropType } from 'vue';
 import StreamInfo from '@/components/StreamInfo.vue';
 import Preview from '@/components/Preview.vue';
-import { V1ChannelResponse } from '@/services/api/v1/StreamSinkClient';
+import { V1ChannelResponse as ChannelResponse } from '@/services/api/v1/StreamSinkClient';
 import { createClient } from '@/services/api/v1/ClientFactory';
-
-interface ChannelResponse extends V1ChannelResponse {
-  previewUpdate: Date;
-}
 
 const api = createClient();
 
 export default defineComponent({
   name: 'streamsink-channel-item',
   components: { StreamInfo, Preview },
-  emits: ['edit'],
-  inject: ['baseUrl', 'apiUrl', 'fileUrl'],
+  emits: [ 'edit' ],
+  inject: [ 'baseUrl', 'apiUrl', 'fileUrl' ],
   props: {
     channel: { type: Object as PropType<ChannelResponse>, required: true }
   },
@@ -60,7 +56,7 @@ export default defineComponent({
       this.$store.commit('unfav', channel);
     },
     async destroyChannel(channel: ChannelResponse) {
-      if (window.confirm(this.$t('crud.destroy', [channel.channelName]))) {
+      if (window.confirm(this.$t('crud.destroy', [ channel.channelName ]))) {
         try {
           this.busy = true;
           await api.channels.channelsDelete(channel.channelName!);
@@ -93,6 +89,3 @@ export default defineComponent({
   }
 });
 </script>
-
-<style scoped>
-</style>

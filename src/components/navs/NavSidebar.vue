@@ -109,7 +109,7 @@
 
 import { defineComponent } from 'vue';
 import { createClient } from '@/services/api/v1/ClientFactory';
-import { UtilsDiskInfo as DiskInfo, DatabaseJob as JobResponse } from '@/services/api/v1/StreamSinkClient';
+import { HelpersDiskInfo as DiskInfo, DatabaseJob as JobResponse } from '@/services/api/v1/StreamSinkClient';
 
 const api = createClient();
 

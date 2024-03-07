@@ -31,7 +31,7 @@
       </div>
     </div>
     <RecordInfo
-        :url="apiUrl + '/recordings/' + recording.channelName + '/' + recording.filename"
+        :url="apiUrl + recording.channelName + '/' + recording.filename"
         :duration="recording.duration"
         :size="recording.size"
         :bit-rate="recording.bitRate"

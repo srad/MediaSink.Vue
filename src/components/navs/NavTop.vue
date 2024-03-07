@@ -39,9 +39,8 @@
 </template>
 
 <script lang="ts">
-
 import { defineComponent } from 'vue';
-import { DatabaseJob as JobResponse, UtilsDiskInfo as DiskInfo } from '@/services/api/v1/StreamSinkClient';
+import { DatabaseJob as JobResponse, HelpersDiskInfo as DiskInfo } from '@/services/api/v1/StreamSinkClient';
 import { createClient } from '@/services/api/v1/ClientFactory';
 import DiskStatus from '@/components/DiskStatus.vue';
 import RecordingControls from '@/components/RecordingControls.vue';
@@ -61,7 +60,7 @@ export default defineComponent({
     routes: { type: Array, required: true },
     title: { type: String, required: true },
   },
-  emits: ['add'],
+  emits: [ 'add' ],
   watch: {
     $route() {
       this.collapseNav = true;
@@ -110,11 +109,7 @@ export default defineComponent({
   },
   async mounted() {
     await this.query();
-    setInterval(this.query, 10 * 1000);
+    setInterval(async () => await this.query(), 10 * 1000);
   },
 });
 </script>
-
-<style scoped>
-
-</style>

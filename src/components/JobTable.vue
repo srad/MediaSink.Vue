@@ -6,7 +6,10 @@
         <th class="bg-light p-2" style="width: 20px">{{ $t('jobTable.col.pid') }}</th>
         <th class="bg-light p-2" style="width: 50px">{{ $t('jobTable.col.channel') }}</th>
         <th class="bg-light p-2 align-bottom" style="width: 50px">{{ $t('jobTable.col.file') }}</th>
-        <th class="bg-light p-2 align-bottom d-none d-lg-table-cell" style="width: 60px">{{ $t('jobTable.col.task') }}</th>
+        <th class="bg-light p-2 align-bottom d-none d-lg-table-cell" style="width: 60px">{{
+            $t('jobTable.col.task')
+          }}
+        </th>
         <th class="bg-light p-2 align-bottom" style="width:70px">{{ $t('jobTable.col.progress') }}</th>
         <th class="bg-light p-2 align-bottom" style="width:110px">{{ $t('jobTable.col.created') }}</th>
         <th class="bg-light p-2 align-bottom" style="width:50px">{{ $t('jobTable.col.destroy') }}</th>
@@ -20,16 +23,16 @@
           </div>
           {{ job.pid }}
         </td>
-        <td class="p-2">{{ job.channelName }}</td>
-        <td class="p-2">{{ job.filename }}</td>
-        <td class="p-2">{{ job.status }}</td>
-        <td class="p-2">
+        <td class="p-1">{{ job.channelName }}</td>
+        <td class="p-1">{{ job.filename }}</td>
+        <td class="p-1">{{ job.status }}</td>
+        <td class="p-1">
           <div v-if="job.active" class="progress">
             <div class="progress-bar progress-bar-striped bg-info progress-bar-animated" role="progressbar" :style="'width:'+ job.progress + '%'" :aria-valuenow="job.progress" aria-valuemin="0" :aria-valuemax="100"></div>
           </div>
         </td>
-        <td class="p-2">{{ job.createdAt }}</td>
-        <td class="p-2">
+        <td class="p-1">{{ job.fromNow }}</td>
+        <td class="p-1">
           <div class="btn-group-sm btn-group w-100">
             <button class="btn btn-outline-danger btn-sm" @click="$emit('destroy', job.jobId)">Destroy</button>
             <button class="btn btn-outline-info btn-sm" @click="$emit('info', job.jobId)">Info</button>
@@ -48,13 +51,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
+import {JobTableItem} from "@/views/JobView.vue";
 
 export default defineComponent({
   name: 'JobTable',
-  emits: ['destroy'],
+  emits: [ 'destroy' ],
   props: {
-    jobs: { type: Array, required: true },
+    jobs: { type: Array as PropType<Array<JobTableItem>>, required: true },
   }
 });
 </script>

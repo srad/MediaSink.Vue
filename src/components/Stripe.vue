@@ -57,10 +57,12 @@ interface StripeData {
   inserted: boolean;
   showBar: boolean;
   clientX: number;
+  isMounted: boolean;
 }
 
 export default defineComponent({
   name: 'streamsink-stripe',
+  emits: [ "offset", "seek", "selecting", "marking", "width" ],
   data(): StripeData {
     return {
       startDown: false,
@@ -78,12 +80,15 @@ export default defineComponent({
       markerX: 0,
       inserted: false,
       showBar: true,
-      clientX: 10,
+      clientX: 0,
+      isMounted: false,
     };
   },
   computed: {
     offset(): number {
-      return this.timecode / this.duration * this.width;
+      const offset = (this.timecode / this.duration) * this.width;
+      this.$emit('offset', offset, this.clientX);
+      return offset;
     }
   },
   props: {
@@ -92,16 +97,11 @@ export default defineComponent({
     duration: { type: Number, required: true },
     paused: { type: Boolean, required: true },
   },
-  watch: {
-    timecode() {
-      this.$emit('offset', { offset: this.offset, clientX: this.clientX });
-    },
-  },
   methods: {
     seek(event: MouseEvent) {
       //this.$emit('seek', this.getMouseX(event) / this.width * this.duration);
       this.clientX = this.getX(event);
-      this.$emit('seek', this.getMouseX(event) / this.width * this.duration);
+      this.$emit('seek', { clientX: this.getMouseX(event), width: this.width });
     },
     moveMarker(event: MouseEvent) {
       const x = this.getMouseX(event);
@@ -153,10 +153,11 @@ export default defineComponent({
     },
     load() {
       this.width = (this.$refs.stripeimage as HTMLImageElement).clientWidth;
+      this.$emit('width', this.width);
     },
     destroyMarking(index: number) {
       this.markings.splice(index, 1);
-      this.$emit('update', this.markings);
+      this.$emit('marking', this.markings);
     },
     getMouseX(event: MouseEvent): number {
       const stripe = this.$refs.stripe as HTMLImageElement;
@@ -206,7 +207,7 @@ export default defineComponent({
       const startX = this.left as number;
       const endX = this.getMouseX(event);
 
-      if (this.overlaps([startX, endX])) {
+      if (this.overlaps([ startX, endX ])) {
         return;
       }
 
@@ -218,7 +219,7 @@ export default defineComponent({
           timestart: startX / this.width * this.duration,
           timeend: endX / this.width * this.duration
         });
-        this.$emit('update', this.markings);
+        this.$emit('marking', this.markings);
       }
       // Reset
       this.mouseOffsetX = 0;
@@ -235,9 +236,6 @@ export default defineComponent({
 
       this.markings[index].selected = !this.markings[index].selected;
       this.$emit('seek', this.markings[index].timestart);
-    },
-    scroll(event: WheelEvent) {
-      this.$emit('scroll', event);
     },
     resizePreview(event: WheelEvent) {
       const el = this.$refs.stripeimage as HTMLImageElement;
@@ -268,6 +266,7 @@ export default defineComponent({
   },
   mounted() {
     (this.$refs.stripe as HTMLDivElement)?.addEventListener('wheel', this.resizePreview, true);
+    this.isMounted = true;
   }
 });
 </script>

@@ -128,9 +128,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { AxiosError } from 'axios';
 import { createClient } from "@/services/api/v1/ClientFactory";
-import { UtilsSysInfo } from "@/services/api/v1/StreamSinkClient";
+import { HelpersSysInfo } from "@/services/api/v1/StreamSinkClient";
 import LoadIndicator from '@/components/LoadIndicator.vue';
 
 //import CPUChart from '@/components/charts/CPUChart.vue';
@@ -144,7 +143,7 @@ interface AdminData {
   build?: string;
   isUpdating: boolean;
   id: number;
-  infoResponse: UtilsSysInfo;
+  infoResponse: HelpersSysInfo;
   cpuData: {
     labels: string[],
     datasets: {
@@ -200,13 +199,13 @@ export default defineComponent({
     };
   },
   methods: {
-   async startImport() {
+    async startImport() {
       if (window.confirm('Start Import?')) {
         await api.admin.importCreate();
         this.importing = true;
       }
     },
-async    posters() {
+    async posters() {
       if (window.confirm('Regenerate all posters?')) {
         await api.recordings.generatePostersCreate();
       }
@@ -232,7 +231,7 @@ async    posters() {
 
         api.recordings.updateinfoCreate()
             .then(() => this.isUpdating = true)
-            .catch((err: AxiosError) => alert(err.response?.data));
+            .catch(res => alert(res.error));
       }
     },
     fetch() {
@@ -243,11 +242,8 @@ async    posters() {
         api.admin.importingList().then(res => this.importing = res.data);
         // TODO: not implemented yet
         //api.recordings.isupdatingList().then(res => this.isUpdating = res.data);
-      }).catch((err: AxiosError) => {
-        alert(err.response?.data);
-      }).finally(() => {
-        this.loaded = true;
-      });
+      }).catch(res => alert(res.error))
+          .finally(() => this.loaded = true);
     }
   },
   beforeRouteLeave() {
