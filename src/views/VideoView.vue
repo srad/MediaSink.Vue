@@ -17,23 +17,38 @@
               </video>
             </div>
 
-            <div v-if="markings.length > 0" class="d-flex flex-column m-0 px-1" :class="{'w-20': markings.length > 0}">
-              <ul class="list-group fw-6 fw-bold">
-                <li class="list-group-item d-flex text-white bg-info justify-content-between w-100 align-middle">
-                  <span>{{ $t('videoView.segment.start') }}</span>
-                  <span>{{ $t('videoView.segment.end') }}</span>
-                  <span>{{ $t('videoView.segment.destroy') }}</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between w-100 align-middle" :class="{'bg-secondary': marking.selected}" @click="selectMarking(marking)" :key="String(marking.timestart)+String(marking.timeend)" v-for="marking in markings">
-                  <span class="p-1">{{ (marking.timestart / 60).toFixed(1) }}min</span>
-                  <span class="p-1">{{ (marking.timeend / 60).toFixed(1) }}min</span>
-                  <button @click="destroyMarking(marking)" class="btn btn-sm btn-danger">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </li>
-              </ul>
-              <button class="btn btn-info mt-2">
-                Play Cut <i class="bi bi-scissors"></i>
+            <div v-if="markings.length > 0" class="d-flex flex-column m-0 p-2" :class="{'w-20': markings.length > 0}">
+              <table class="table table-sm bg-white table-bordered text-center">
+                <thead>
+                <tr>
+                  <th class="bg-light">{{ $t('videoView.segment.start') }}</th>
+                  <th class="bg-light">{{ $t('videoView.segment.end') }}</th>
+                  <th class="bg-light">
+                    <i class="bi bi-trash text-danger"></i>
+                  </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="align-middle" :class="{'bg-secondary': marking.selected}" @click="selectMarking(marking)" :key="String(marking.timestart)+String(marking.timeend)" v-for="marking in markings">
+                  <td>{{ (marking.timestart / 60).toFixed(1) }}min</td>
+                  <td class="p-1">{{ (marking.timeend / 60).toFixed(1) }}min</td>
+                  <td>
+                    <button @click="destroyMarking(marking)" class="btn btn-sm bg-transparent">
+                      <i class="bi bi-trash text-danger"></i>
+                    </button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+
+              <button class="btn btn-primary" @click="playCut" v-if="!cutInterval">
+                Play Cut <i class="bi bi-play-fill"></i>
+              </button>
+              <button v-else class="btn btn-primary" @click="stopCut">
+                <span>Stop cut</span> <i class="bi bi-stop-fill"></i>
+              </button>
+              <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="exportVideo">
+                {{ $t('videoView.button.cut') }} <i class="bi bi-scissors"></i>
               </button>
             </div>
 
@@ -41,6 +56,7 @@
 
           <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative overflow-y-scroll" style="height: 10%;">
             <Stripe :src="stripePath"
+                    :disabled="cutInterval != undefined"
                     :paused="paused"
                     :timecode="timecode"
                     :duration="duration"
@@ -87,10 +103,6 @@
               <i class="bi bi-pause"></i>
             </button>
             -->
-
-            <button v-if="markings.length > 0" class="btn btn-warning btn-sm ms-2" type="button" @click="exportVideo">
-              {{ $t('videoView.button.cut') }} <i class="bi bi-scissors"></i>
-            </button>
           </div>
         </div>
       </div>
@@ -109,6 +121,7 @@ import { useCookies } from '@vueuse/integrations/useCookies';
 
 interface VideoData {
   isMounted: boolean;
+  cutInterval?: number;
   markings: any[];
   show: boolean;
   loaded: boolean;
@@ -194,10 +207,12 @@ export default defineComponent({
         return;
       }
 
+      const video = this.$refs.video as HTMLVideoElement;
+
       if (val) {
-        (this.$refs.video as HTMLVideoElement).pause();
+        video.pause();
       } else {
-        (this.$refs.video as HTMLVideoElement).play();
+        video.play();
       }
     },
     playbackSpeed(newVal) {
@@ -209,6 +224,40 @@ export default defineComponent({
     },
   },
   methods: {
+    stopCut() {
+      const video = this.$refs.video as HTMLVideoElement;
+      video.pause();
+      clearInterval(this.cutInterval);
+      this.cutInterval = undefined;
+    },
+    playCut() {
+      if (this.markings.length == 0) {
+        return;
+      }
+
+      let i = 0;
+
+      const lastTime = this.markings[this.markings.length - 1].timeend;
+      let marking = this.markings[i];
+
+      const video = this.$refs.video as HTMLVideoElement;
+      video.currentTime = marking.timestart;
+      video.play();
+
+      this.cutInterval = setInterval(() => {
+        requestAnimationFrame(() => {
+          if (video.currentTime >= lastTime) {
+            this.stopCut();
+          } else {
+            marking = this.markings[i];
+            if (video.currentTime >= marking.timeend) {
+              marking = this.markings[++i];
+              video.currentTime = marking.timestart;
+            }
+          }
+        });
+      }, 100);
+    },
     resetSelection() {
       for (let i = 0; i < this.markings.length; i++) {
         this.markings[i].selected = false;
@@ -283,7 +332,14 @@ export default defineComponent({
       this.paused = true;
       const div = this.$refs.stripeContainer as HTMLDivElement;
       const video = this.$refs.video as HTMLVideoElement;
-      video.currentTime = video.duration * (clientX / width);
+
+      const offset = video.duration * (clientX / width);
+
+      if (isNaN(offset)) {
+        return;
+      }
+
+      video.currentTime = offset;
     },
     offset(offset: number, clientX: number) {
       requestAnimationFrame(() => {

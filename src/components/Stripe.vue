@@ -1,10 +1,10 @@
 <template>
   <!-- Disable draggable, otherwise browsers do that pseudo-dragging ghosting movement of images -->
-  <div class="position-relative" ref="stripe" style="height: 100%;" @click="seek($event)" draggable="false">
+  <div class="position-relative user-select-none" ref="stripe" style="height: 100%;" @click="seek($event)" draggable="false">
     <img draggable="false"
          alt="stripe"
          @load="load"
-         class="stripe position-absolute user-select-none"
+         class="stripe position-absolute"
          ref="stripeimage"
          :src="src"
          style="height: 100%"
@@ -25,6 +25,7 @@
       <span class="bar bar-end position-absolute" @mousedown="markerDown($event, marking, i, 'end')" draggable="false"></span>
       <i @click="destroyMarking(i)" class="text-white bg-danger p-1 bi bi-x marking-destroy position-absolute" style="opacity: 1"></i>
     </div>
+
     <div v-if="showBar" class="timecode position-absolute" :style="{left: `${offset}px`}"></div>
   </div>
 </template>
@@ -96,9 +97,14 @@ export default defineComponent({
     timecode: { type: Number, required: true },
     duration: { type: Number, required: true },
     paused: { type: Boolean, required: true },
+    disabled: { type: Boolean, required: false },
   },
   methods: {
     seek(event: MouseEvent) {
+      if (this.disabled) {
+        return;
+      }
+
       //this.$emit('seek', this.getMouseX(event) / this.width * this.duration);
       this.clientX = this.getX(event);
       this.$emit('seek', { clientX: this.getMouseX(event), width: this.width });
@@ -135,7 +141,7 @@ export default defineComponent({
       window.removeEventListener('mouseup', this.markerUp);
     },
     markerDown(event: MouseEvent, marker: Object, i: number, pos: string) {
-      if (!this.paused) {
+      if (this.disabled || !this.paused) {
         return;
       }
 
@@ -156,6 +162,9 @@ export default defineComponent({
       this.$emit('width', this.width);
     },
     destroyMarking(index: number) {
+      if (this.disabled) {
+        return;
+      }
       this.markings.splice(index, 1);
       this.$emit('marking', this.markings);
     },
@@ -185,20 +194,29 @@ export default defineComponent({
       window.addEventListener('mousemove', this.move);
       this.left = this.getMouseX(event);
     },
-    overlaps(xs: number[]) {
+    overlaps(selectionStart: number, selectionEnd: number) {
       for (let i = 0; i < this.markings.length; i++) {
         const start = this.markings[i].start;
         const end = this.markings[i].end;
 
-        for (let j = 0; j < xs.length; j++) {
-          if (xs[j] >= start && xs[j] <= end) {
-            return true;
-          }
+        // Multiple cases:
+        // |----******----| -> start >= selectionStart && selectionEnd <= end
+        // ****|****------| -> selectionStart <= start && end >= selectionStart && end <= selectionEnd
+        //|-------***|****  -> selectionStart >= start && selectionStart <= end && selectionEnd >= end
+        //****|*****|*****  -> selectionStart => start && selectionEnd <= end
+
+        const overlaps = (start >= selectionStart && selectionEnd <= end) || (selectionStart <= start && end >= selectionStart && end <= selectionEnd) || (start && selectionStart <= end && selectionEnd >= end) || (selectionStart <= start && selectionEnd >= end);
+
+        if (overlaps) {
+          return true;
         }
       }
       return false;
     },
     up(event: MouseEvent) {
+      event.stopPropagation();
+      event.preventDefault();
+
       if (!this.paused) {
         return;
       }
@@ -207,7 +225,7 @@ export default defineComponent({
       const startX = this.left as number;
       const endX = this.getMouseX(event);
 
-      if (this.overlaps([ startX, endX ])) {
+      if (this.overlaps(startX, endX)) {
         return;
       }
 
@@ -227,7 +245,7 @@ export default defineComponent({
     },
     markingSelect(index: number) {
       // catch event order from stripe before the delete button
-      if (!this.markings[index]) {
+      if (this.disabled || !this.markings[index]) {
         return;
       }
 
