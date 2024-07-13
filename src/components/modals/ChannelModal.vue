@@ -4,7 +4,7 @@
       <div class="modal-content border-primary shadow-sm border-2 border">
         <div class="modal-header bg-primary text-white rounded-0">
           <h5 class="modal-title" id="exampleModalToggleLabel2">{{ myTitle }}</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @click="$emit('close')"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @click="emit('close')"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
@@ -57,9 +57,9 @@
 
         <div class="modal-footer bg-light">
           <button class="btn btn-primary" @click="save" :disabled="saving">
-            <div class="spinner-border spinner-border-sm text-light" role="status" v-show="saving">
+            <span class="spinner-border spinner-border-sm text-light" role="status" v-show="saving">
               <span class="visually-hidden">Loading...</span>
-            </div>
+            </span>
             Save
           </button>
         </div>
@@ -69,129 +69,145 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { Modal } from 'bootstrap';
-import { defineComponent } from 'vue';
+import { defineProps, defineEmits, watch, onMounted, ref } from 'vue';
+
+// --------------------------------------------------------------------------------------
+// Props
+// --------------------------------------------------------------------------------------
+
+const props = defineProps<{
+  channelDisabled?: boolean
+  clear: boolean
+  isPaused: boolean
+  show: boolean
+  channelId?: number
+  channelName?: string
+  displayName?: string
+  url?: string
+  skipStart?: number
+  title: string
+}>();
+
+// --------------------------------------------------------------------------------------
+// Declarations
+// --------------------------------------------------------------------------------------
 
 const channelParser = /^[a-z_0-9]+$/i;
 
-interface ChannelModalData {
-  channelId?: number;
-  modal?: Modal;
-  myChannelName: string;
-  myDisplayName: string;
-  mySkipStart: number;
-  myUrl: string;
-  myTitle: string;
-  myIsPaused: boolean;
-  saving: boolean;
+let modal: Modal | null = null;
+const myIsPaused = ref(props.isPaused);
+const myTitle = ref(props.title);
+const myUrl = ref(props.url || '');
+const myDisplayName = ref(props.displayName || '');
+const myChannelName = ref(props.channelName || '');
+const mySkipStart = ref(props.skipStart || 0);
+const saving = ref(false);
+
+const url = ref<HTMLInputElement | null>(null);
+const addChannelModal = ref<HTMLDivElement | null>(null);
+
+// --------------------------------------------------------------------------------------
+// Emits
+// --------------------------------------------------------------------------------------
+
+export interface ChannelUpdate {
+  isPaused: boolean,
+  channelId: number,
+  channelName: string,
+  url: string,
+  displayName: string,
+  skipStart: number
 }
 
-export default defineComponent({
-  name: 'ChannelModal',
-  emits: ['save', 'close'],
-  props: {
-    channelDisabled: { type: Boolean, required: false, default: false },
-    clear: { type: Boolean, required: true },
-    isPaused: { type: Boolean, required: true },
-    show: { type: Boolean, required: true },
-    channelId: { type: Number, required: false },
-    channelName: { type: String, required: false },
-    displayName: { type: String, required: false },
-    url: { type: String, required: false },
-    skipStart: { type: Number, required: false },
-    title: { type: String, required: true },
-  },
-  data(): ChannelModalData {
-    return {
-      modal: undefined,
-      myIsPaused: this.isPaused,
-      myTitle: this.title,
-      myUrl: this.url || '',
-      myDisplayName: this.displayName || '',
-      myChannelName: this.channelName || '',
-      mySkipStart: this.skipStart || 0,
-      saving: false,
-    };
-  },
-  watch: {
-    clear(val) {
-      if (val) {
-        this.myChannelName = '';
-        this.myUrl = '';
-        this.myDisplayName = '';
-        this.mySkipStart = 0;
-      }
-    },
-    show(val) {
-      if (val) {
-        this.modal?.show();
-        this.saving = false;
-        (this.$refs.url as HTMLInputElement).focus();
-      } else {
-        this.modal?.hide();
-      }
-    },
-    url(val) {
-      this.myUrl = val;
-    },
-    channelName(val) {
-      this.myChannelName = val;
-    },
-    displayName(val) {
-      this.myDisplayName = val;
-    },
-    skipStart(val) {
-      this.mySkipStart = val;
-    },
-    isPaused(val) {
-      this.myIsPaused = val;
-    }
-  },
-  methods: {
-    async paste() {
-      this.myUrl = await navigator.clipboard.readText();
-      this.recommendChannelName();
-    },
-    recommendChannelName() {
-      if (this.channelDisabled) {
-        return;
-      }
-      const find = this.myUrl.toLowerCase()
-          .split('/')
-          .find(s => channelParser.test(s));
+const emit = defineEmits<{
+  (e: 'save', value: ChannelUpdate): void
+  (e: 'close'): void
+}>();
 
-      if (find) {
-        if (this.myChannelName === '') {
-          this.myChannelName = find;
-        }
-        if (this.myDisplayName === '') {
-          this.myDisplayName = find;
-        }
-      }
-    },
-    save() {
-      if (/[a-z_]+/i.test(this.myChannelName)) {
-        this.$emit('save', {
-          isPaused: this.myIsPaused,
-          channelId: this.channelId,
-          channelName: this.myChannelName,
-          url: this.myUrl,
-          displayName: this.myDisplayName,
-          skipStart: this.mySkipStart
-        });
-        this.saving = true;
-      } else {
-        alert('Invalid values');
-      }
-    }
-  },
-  mounted() {
-    this.modal = new Modal(this.$refs.addChannelModal as HTMLElement);
+// --------------------------------------------------------------------------------------
+// Hooks
+// --------------------------------------------------------------------------------------
+
+onMounted(() => modal = new Modal(addChannelModal.value!));
+
+// --------------------------------------------------------------------------------------
+// Watchers
+// --------------------------------------------------------------------------------------
+
+watch(() => props.clear, (val) => {
+  if (val) {
+    myChannelName.value = '';
+    myUrl.value = '';
+    myDisplayName.value = '';
+    mySkipStart.value = 0;
   }
 });
+
+watch(() => props.show, (val) => {
+  if (val) {
+    modal?.show();
+    saving.value = false;
+    url.value?.focus();
+  } else {
+    modal?.hide();
+  }
+});
+
+// Listen for form changes.
+// Reason for all this: This is an optimisation to only have one modal instance.
+watch(() => props.title, _ => myTitle.value = props.title);
+watch(() => props.isPaused, _ => myIsPaused.value = props.isPaused);
+watch(() => props.url, _ => myUrl.value = props.url || "");
+watch(() => props.displayName, _ => myDisplayName.value = props.displayName || "");
+watch(() => props.channelName, _ => myChannelName.value = props.channelName || "");
+watch(() => props.skipStart, _ => mySkipStart.value = props.skipStart || 0);
+
+// --------------------------------------------------------------------------------------
+// Methods
+// --------------------------------------------------------------------------------------
+
+const paste = async () => {
+  myUrl.value = await navigator.clipboard.readText();
+  recommendChannelName();
+};
+
+const recommendChannelName = () => {
+  if (props.channelDisabled) {
+    return;
+  }
+
+  const find = myUrl.value.toLowerCase()
+      .split('/')
+      .find(s => channelParser.test(s));
+
+  if (find) {
+    if (myChannelName.value === '') {
+      myChannelName.value = find;
+    }
+    if (myDisplayName.value === '') {
+      myDisplayName.value = find;
+    }
+  }
+};
+
+const save = () => {
+  if (/[a-z_]+/i.test(myChannelName.value)) {
+    emit('save', {
+      isPaused: myIsPaused.value,
+      channelId: props.channelId!,
+      channelName: myChannelName.value,
+      url: myUrl.value,
+      displayName: myDisplayName.value,
+      skipStart: mySkipStart.value
+    });
+    saving.value = true;
+  } else {
+    alert('Invalid values');
+  }
+};
 </script>
 
 <style scoped>
-
 </style>

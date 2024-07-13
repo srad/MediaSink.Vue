@@ -40,7 +40,7 @@ $nav-tabs-link-active-color: $white;
 $nav-tabs-link-active-bg: $primary;
 $nav-tabs-link-active-border-color: $primary;
 
-@import "~bootstrap/scss/bootstrap";
+@import "bootstrap/scss/bootstrap";
 
 .bg-info-light {
   background: tint-color($primary, 90%);

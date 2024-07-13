@@ -7,39 +7,39 @@
     </div>
     <div class="position-relative">
       <div @click="checked=!checked" class="position-absolute" style="padding: 10px; right: 0; top: 0; z-index: 10;">
-        <input v-if="showSelection" type="checkbox" :checked="checked" style="width: 20px; height: 20px">
+        <input v-if="props.showSelection" type="checkbox" :checked="checked" style="width: 20px; height: 20px">
       </div>
       <span class="badge bg-success position-absolute" style="user-select: none; z-index: 10; top: 10px; left: 10px">
-        <span v-if="recording.width===1920">1080p</span>
-        <span v-else-if="recording.width===2560">1440p</span>
-        <span v-else-if="recording.width===1280">720p</span>
-        <span v-else-if="recording.width===3840">4k</span>
-        <span v-else>{{ recording.width }}x{{ recording.height }}</span>
+        <span v-if="props.recording.width===1920">1080p</span>
+        <span v-else-if="props.recording.width===2560">1440p</span>
+        <span v-else-if="props.recording.width===1280">720p</span>
+        <span v-else-if="props.recording.width===3840">4k</span>
+        <span v-else>{{ props.recording.width }}x{{ props.recording.height }}</span>
       </span>
-      <span v-if="recording.videoType==='cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
-      <router-link :to="{ name: 'Video', params: { channelName: recording.channelName, fileName: recording.filename }, query: { channelName: recording.channelName, filename: recording.filename, pathRelative: recording.pathRelative, previewStripe: recording.previewStripe} }">
-        <Preview class="card-img-top" :data="recording" :preview-video="fileUrl + '/' + recording.previewVideo"/>
-      </router-link>
+      <span v-if="props.recording.videoType==='cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
+      <RouterLink :to="link">
+        <Preview class="card-img-top" :data="recording.recordingId" :preview-video="previewVideoUrl"/>
+      </RouterLink>
     </div>
-    <div v-if="showTitle" class="card-body">
-      <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="$router.push('/streams/' + recording.channelName)">
+    <div v-if="props.showTitle" class="card-body">
+      <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="$router.push('/streams/' + props.recording.channelName)">
         <h6 class="p-2 m-0 text-white">
           <a class="text-white" target="_blank">
-            {{ recording.channelName }}
+            {{ props.recording.channelName }}
           </a>
         </h6>
       </div>
     </div>
     <RecordInfo
-        :url="apiUrl + recording.channelName + '/' + recording.filename"
-        :duration="recording.duration"
-        :size="recording.size"
-        :bit-rate="recording.bitRate"
-        :bookmark="recording.bookmark"
-        :created-at="recording.createdAt"
+        :url="recordingUrl"
+        :duration="props.recording.duration"
+        :size="props.recording.size"
+        :bit-rate="props.recording.bitRate"
+        :bookmark="props.recording.bookmark"
+        :created-at="props.recording.createdAt"
         :data="recording"
-        :width="recording.width"
-        :height="recording.height"
+        :width="props.recording.width"
+        :height="props.recording.height"
         @convert="convert"
         @bookmarked="bookmark"
         @preview="generatePreview"
@@ -47,95 +47,124 @@
   </div>
 </template>
 
-<script lang="ts">
-import RecordInfo from '@/components/RecordInfo.vue';
-import Preview from '@/components/Preview.vue';
-import { defineComponent, PropType } from 'vue';
-import { DatabaseRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
-import { createClient } from '@/services/api/v1/ClientFactory';
+<script setup lang="ts">
+import RecordInfo from './RecordInfo.vue';
+import Preview from './Preview.vue';
+import { inject, ref, defineEmits, watch } from 'vue';
+import { ModelsRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
+import { createClient } from '../services/api/v1/ClientFactory';
+import { useI18n } from "vue-i18n";
+
+// --------------------------------------------------------------------------------------
+// Emits
+// --------------------------------------------------------------------------------------
+
+const emit = defineEmits<{
+  (e: 'destroyed', value: RecordingResponse): void
+  (e: 'checked', value: { checked: boolean, recording: RecordingResponse }): void
+  (e: 'bookmark', value: RecordingResponse): void
+}>();
+
+// --------------------------------------------------------------------------------------
+// Props
+// --------------------------------------------------------------------------------------
+
+const props = defineProps<{
+  showSelection: boolean
+  showTitle: boolean
+  recording: RecordingResponse
+}>();
+
+// --------------------------------------------------------------------------------------
+// Declarations
+// --------------------------------------------------------------------------------------
 
 const api = createClient();
 
-export default defineComponent({
-  name: 'RecordingItem',
-  components: { RecordInfo, Preview },
-  emits: ['destroyed', 'load', 'checked', 'converted', 'bookmark'],
-  inject: ['baseUrl', 'apiUrl', 'fileUrl'],
-  props: {
-    showSelection: { type: Boolean, default: false },
-    showTitle: { type: Boolean, default: false },
-    recording: { type: Object as PropType<RecordingResponse>, required: true }
-  },
-  watch: {
-    checked(val) {
-      this.$emit('checked', { checked: val, recording: this.recording });
-    }
-  },
-  data() {
-    return {
-      checked: false,
-      busy: false,
-      destroyed: false,
-    };
-  },
-  methods: {
-    async bookmark(recording: RecordingResponse, yesNo: boolean) {
-      try {
-        this.busy = true;
-        const method = yesNo ? api.recordings.favCreate : api.recordings.unfavCreate;
-        await method(recording.channelName!, recording.filename!);
-        recording.bookmark = yesNo;
-        this.$emit('bookmark', recording);
-      } catch (ex) {
-        alert(ex);
-      } finally {
-        this.busy = false;
-      }
-    },
-    async generatePreview(recording: RecordingResponse) {
-      if (window.confirm('Generate new preview?')) {
-        try {
-          this.busy = true;
-          await api.recordings.previewCreate(recording.channelName!, recording.filename!);
-        } catch (ex) {
-          alert(ex);
-        } finally {
-          this.busy = false;
-        }
-      }
-    },
-    async convert({ recording, mediaType }: { recording: RecordingResponse, mediaType: string }) {
-      if (!window.confirm(`Convert '${recording.filename}' video to type '${mediaType}'?`)) {
-        return;
-      }
+const checked = ref(false);
+const busy = ref(false);
+const destroyed = ref(false);
 
-      try {
-        this.busy = true;
-        await api.recordings.convertCreate(recording.channelName!, recording.filename!, mediaType);
-      } catch (ex) {
-        alert(ex);
-      } finally {
-        this.busy = false;
-      }
-    },
-    async destroyRecording(recording: RecordingResponse) {
-      if (!window.confirm(this.$t('crud.destroy', [recording.filename]))) {
-        return;
-      }
+const apiUrl = inject('apiUrl');
+const fileUrl = inject('fileUrl');
 
-      try {
-        this.busy = true;
-        await api.recordings.recordingsDelete(recording.channelName!, recording.filename!);
-        this.destroyed = true;
-        setTimeout(() => this.$emit('destroyed', recording), 1000);
-      } catch (ex) {
-        alert(ex);
-      } finally {
-        this.busy = false;
-      }
-    },
-  }
+const previewVideoUrl = `${fileUrl}/${props.recording.previewVideo}`;
+const recordingUrl = `${apiUrl + props.recording.channelName}/${props.recording.filename}`;
+
+const { t } = useI18n();
+
+const link = `/recordings/${props.recording.recordingId}`;
+
+// --------------------------------------------------------------------------------------
+// Watchers
+// --------------------------------------------------------------------------------------
+
+watch(checked, (val) => {
+  emit('checked', { checked: val, recording: props.recording });
 });
+
+// --------------------------------------------------------------------------------------
+// Methods
+// --------------------------------------------------------------------------------------
+
+const bookmark = async (recording: RecordingResponse, yesNo: boolean) => {
+  try {
+    busy.value = true;
+    const method = yesNo ? api.recordings.favCreate : api.recordings.unfavCreate;
+    await method(recording.recordingId);
+    recording.bookmark = yesNo;
+    emit('bookmark', recording);
+  } catch (ex) {
+    alert(ex);
+  } finally {
+    busy.value = false;
+  }
+};
+
+const generatePreview = async (recording: RecordingResponse) => {
+  if (window.confirm('Generate new preview?')) {
+    try {
+      busy.value = true;
+      await api.recordings.previewCreate(recording.recordingId);
+    } catch (ex) {
+      alert(ex);
+    } finally {
+      busy.value = false;
+    }
+  }
+};
+
+const convert = async ({ recording, mediaType }: { recording: RecordingResponse, mediaType: string }) => {
+  if (!window.confirm(`Convert '${recording.filename}' video to type '${mediaType}'?`)) {
+    return;
+  }
+
+  try {
+    busy.value = true;
+    await api.recordings.convertCreate(recording.recordingId, mediaType);
+  } catch (ex) {
+    alert(ex);
+  } finally {
+    busy.value = false;
+  }
+};
+
+const destroyRecording = async (recording: RecordingResponse) => {
+  if (!window.confirm(t('crud.destroy', [ recording.filename ]))) {
+    return;
+  }
+
+  try {
+    busy.value = true;
+    await api.recordings.recordingsDelete(recording.recordingId);
+    destroyed.value = true;
+    setTimeout(() => emit('destroyed', recording), 1000);
+  } catch (ex) {
+    alert(ex);
+  } finally {
+    busy.value = false;
+  }
+};
 </script>
 
 <style scoped>

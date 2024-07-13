@@ -52,16 +52,16 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(cpu, i) in infoResponse.cpuInfo.loadCpu" :key="i">
+                <tr v-for="(cpu, i) in cpuInfo.datasets[0].data" :key="i">
                   <td class="text-end align-middle">{{ cpu.cpu }}</td>
                   <td class="align-middle">
                     <div class="progress m-2">
-                      <div class="progress-bar" role="progressbar" :style="{width: (cpu.load*100) + '%'}" aria-valuenow="0"
+                      <div class="progress-bar" role="progressbar" :style="{width: (cpu.load!*100) + '%'}" aria-valuenow="0"
                            aria-valuemin="0"
                            aria-valuemax="100"></div>
                     </div>
                   </td>
-                  <td class="text-end align-middle">{{ (cpu.load * 100).toFixed(0) }}%</td>
+                  <td class="text-end align-middle">{{ (cpu.load! * 100).toFixed(0) }}%</td>
                 </tr>
                 </tbody>
               </table>
@@ -85,7 +85,7 @@
                 <tr>
                   <td class="align-middle">
                     <div class="progress m-2">
-                      <div class="progress-bar" role="progressbar" :style="{width: infoResponse.diskInfo.pcent}" aria-valuenow="0"
+                      <div class="progress-bar" role="progressbar" :style="{width: info.diskInfo!.pcent}" aria-valuenow="0"
                            aria-valuemin="0"
                            aria-valuemax="100"></div>
                     </div>
@@ -93,8 +93,8 @@
                 </tr>
                 <tr>
                   <td class="text-center">
-                    <span class="fs-5">{{ infoResponse.diskInfo.pcent }}</span> |
-                    <span class="fs-5">Usage {{ infoResponse.diskInfo.used }}/{{ infoResponse.diskInfo.size }}</span>
+                    <span class="fs-5">{{ info.diskInfo!.pcent }}</span> |
+                    <span class="fs-5">Usage {{ info.diskInfo!.used }}/{{ info.diskInfo!.size }}</span>
                   </td>
                 </tr>
                 </tbody>
@@ -110,12 +110,12 @@
             </div>
             <div class="card-body p-2">
               <ul class="list-group">
-                <li class="list-group-item">Name: {{ infoResponse.netInfo.dev }}</li>
+                <li class="list-group-item">Name: {{ info.netInfo!.dev }}</li>
                 <li class="list-group-item">
-                  Received: {{ (infoResponse.netInfo.receiveBytes / 1024 / 1024).toFixed(2) }}MB
+                  Received: {{ receiveBytes }}MB
                 </li>
                 <li class="list-group-item">
-                  Transmitted: {{ (infoResponse.netInfo.transmitBytes / 1024 / 1024).toFixed(2) }}MB
+                  Transmitted: {{ transmitBytes }}MB
                 </li>
               </ul>
             </div>
@@ -126,138 +126,104 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { createClient } from "@/services/api/v1/ClientFactory";
-import { HelpersSysInfo } from "@/services/api/v1/StreamSinkClient";
-import LoadIndicator from '@/components/LoadIndicator.vue';
+<script setup lang="ts">
+import { inject, computed, ref, reactive, onMounted } from 'vue';
+import { createClient } from "../services/api/v1/ClientFactory";
+import { HelpersCPULoad } from "../services/api/v1/StreamSinkClient";
+import LoadIndicator from '../components/LoadIndicator.vue';
+import { onBeforeRouteLeave } from "vue-router";
 
-//import CPUChart from '@/components/charts/CPUChart.vue';
-//import NetworkChart from '@/components/charts/NetworkChart.vue';
+//import CPUChart from '../charts/CPUChart.vue';
+//import NetworkChart from '../charts/NetworkChart.vue';
 
 const api = createClient();
 
-interface AdminData {
-  importing: boolean;
-  loaded: boolean;
-  build?: string;
-  isUpdating: boolean;
-  id: number;
-  infoResponse: HelpersSysInfo;
-  cpuData: {
-    labels: string[],
-    datasets: {
-      label: string,
-      backgroundColor: string,
-      data: any[]
-    }[]
-  } | null;
-  options: any;
-}
+const build = inject('build');
 
-function getRandomInt(): number {
-  return Math.floor(Math.random() * (50 - 5 + 1)) + 5;
-}
+const loaded = ref(false);
+const importing = ref(false);
+const isUpdating = ref(false);
 
-export default defineComponent({
-  name: 'AdminView',
-  components: { LoadIndicator },
-  inject: [ 'build' ],
-  //components: { CPUChart, NetworkChart },
-  data(): AdminData {
-    return {
-      loaded: false,
-      importing: false,
-      isUpdating: false,
-      cpuData: {
-        labels: [ 'A', 'B' ],
-        datasets: [
-          {
-            backgroundColor: 'rgb(77, 186, 135)',
-            label: 'Game Overs',
-            data: []
-          }
-        ]
-      },
-      options: {
-        scales: {
-          yAxes: [
-            {
-              ticks: {
-                beginAtZero: true
-              }
-            }
-          ]
-        }
-      },
-      id: 0,
-      infoResponse: {
-        cpuInfo: { loadCpu: [] },
-        diskInfo: { avail: '', pcent: '', size: '', used: '' },
-        netInfo: { dev: '', receiveBytes: 0, transmitBytes: 0 },
-      }
-    };
-  },
-  methods: {
-    async startImport() {
-      if (window.confirm('Start Import?')) {
-        await api.admin.importCreate();
-        this.importing = true;
-      }
-    },
-    async posters() {
-      if (window.confirm('Regenerate all posters?')) {
-        await api.recordings.generatePostersCreate();
-      }
-    },
-    fillData() {
-      this.cpuData = {
-        labels: [ 'A', 'B' ],
-        datasets: [
-          {
-            label: 'Data One',
-            backgroundColor: '#f87979',
-            data: [ getRandomInt(), getRandomInt() ]
-          }, {
-            label: 'Data One',
-            backgroundColor: '#f87979',
-            data: [ getRandomInt(), getRandomInt() ]
-          }
-        ]
-      };
-    },
-    updateInfo() {
-      if (window.confirm('Check all durations and update in database?')) {
+const info = reactive({
+  cpuInfo: { loadCpu: [] },
+  diskInfo: { avail: '', pcent: '', size: '', used: '' },
+  netInfo: { dev: '', receiveBytes: 0, transmitBytes: 0 },
+});
 
-        api.recordings.updateinfoCreate()
-            .then(() => this.isUpdating = true)
-            .catch(res => alert(res.error));
-      }
-    },
-    fetch() {
-      api.info.infoDetail(1).then(res => {
-        this.infoResponse.netInfo = res.data.netInfo;
-        this.infoResponse.diskInfo = res.data.diskInfo;
-        this.infoResponse.cpuInfo = res.data.cpuInfo;
-        api.admin.importingList().then(res => this.importing = res.data);
-        // TODO: not implemented yet
-        //api.recordings.isupdatingList().then(res => this.isUpdating = res.data);
-      }).catch(res => alert(res.error))
-          .finally(() => this.loaded = true);
+const cpuInfo = reactive<{
+  labels: string[],
+  datasets: { backgroundColor: string, label: string, data: HelpersCPULoad[] }[]
+}>({
+  labels: [ 'A', 'B' ],
+  datasets: [
+    {
+      backgroundColor: 'rgb(77, 186, 135)',
+      label: 'Game Overs',
+      data: []
     }
-  },
-  beforeRouteLeave() {
-    clearInterval(this.id);
-  },
-  created() {
-    this.id = setInterval(this.fetch, 2500);
-  },
-  mounted() {
-    this.fillData();
-  },
+  ]
+});
+
+const id = ref(0);
+
+const receiveBytes = computed(() => (info.netInfo!.receiveBytes! / 1024 / 1024).toFixed(2));
+const transmitBytes = computed(() => (info.netInfo!.transmitBytes! / 1024 / 1024).toFixed(2));
+
+const startImport = async () => {
+  if (window.confirm('Start Import?')) {
+    await api.admin.importCreate();
+    importing.value = true;
+  }
+};
+
+const posters = async () => {
+  if (window.confirm('Regenerate all posters?')) {
+    await api.recordings.generatePostersCreate();
+  }
+};
+
+const fillData = () => {
+  cpuInfo.labels = [ 'A', 'B' ];
+  cpuInfo.datasets = []
+};
+
+const updateInfo = () => {
+  if (window.confirm('Check all durations and update in database?')) {
+
+    api.recordings.updateinfoCreate()
+        .then(() => isUpdating.value = true)
+        .catch(res => alert(res.error));
+  }
+};
+
+const fetch = () => {
+  api.info.infoDetail(1).then(res => {
+    if (res.data.netInfo) {
+      info.netInfo.dev = res.data.netInfo.dev!;
+      info.netInfo.receiveBytes = res.data.netInfo.receiveBytes!;
+      info.netInfo.transmitBytes = res.data.netInfo.transmitBytes!;
+    }
+
+    if (res.data.cpuInfo) {
+      cpuInfo.datasets[0].data = res.data.cpuInfo.loadCpu!;
+    }
+
+    api.admin.importingList().then(res => importing.value = res.data);
+    // TODO: not implemented yet
+    //api.recordings.isupdatingList().then(res => this.isUpdating = res.data);
+  }).catch(res => alert(res.error))
+      .finally(() => loaded.value = true);
+};
+
+onBeforeRouteLeave(() => {
+  clearInterval(id.value);
+});
+
+onMounted(() => {
+  fillData();
+  id.value = setInterval(fetch, 2500);
 });
 </script>
 
 <style scoped>
-
 </style>

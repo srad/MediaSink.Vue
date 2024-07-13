@@ -1,20 +1,15 @@
 <template>
   <button @click="$router.push('/jobs')" type="button" class="d-flex position-relative me-2 btn btn-info">
-    <span class="me-2">{{ jobs.length }}</span> <span class="me-2">{{ $t('menu.jobs') }}</span>
+    <span class="me-2">{{ props.jobs.length }}</span> <span class="me-2">{{ $t('menu.jobs') }}</span>
   </button>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { defineProps } from 'vue';
+import { ModelsJob } from "../services/api/v1/StreamSinkClient.ts";
 
-export default defineComponent({
-  name: 'JobStatus',
-  props: {
-    jobs: { type: Array, required: true }
-  }
-});
+const props = defineProps<{ jobs: ModelsJob[] }>();
 </script>
 
 <style scoped>
-
 </style>

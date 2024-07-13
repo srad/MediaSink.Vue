@@ -18,64 +18,51 @@
   </main>
 </template>
 
-<script lang="ts">
-import { V1ChannelRequest as ChannelRequest, DatabaseJob as JobResponse } from './services/api/v1/StreamSinkClient';
-import { defineComponent } from 'vue';
-import socket from '@/utils/socket';
-import ChannelModal from '@/components/modals/ChannelModal.vue';
-import NavSidebar from '@/components/navs/NavSidebar.vue';
-import NavTop from '@/components/navs/NavTop.vue';
-import { createClient } from '@/services/api/v1/ClientFactory';
+<script setup lang="ts">
+import { onMounted, ref } from 'vue';
+import { V1ChannelRequest as ChannelRequest, ModelsJob as JobResponse } from './services/api/v1/StreamSinkClient';
+import { socket, MessageType } from "./utils/socket";
+import ChannelModal from './components/modals/ChannelModal.vue';
+import NavTop from './components/navs/NavTop.vue';
+import { createClient } from './services/api/v1/ClientFactory';
+import { useI18n } from "vue-i18n";
+import { useStore } from "./store";
+
+const { t } = useI18n();
+const store = useStore();
 
 const api = createClient();
 
-interface AppData {
-  title: string;
-  showModal: boolean;
-  recording: boolean;
-  online: boolean;
-  routes: { icon: string, url: string, title: string }[];
-}
+const title = window.VUE_APP_NAME;
+const showModal = ref(false);
 
-export default defineComponent({
-  name: 'App',
-  inject: [ 'socketUrl' ],
-  components: { NavTop, ChannelModal, NavSidebar },
-  data(): AppData {
-    return {
-      title: window.VUE_APP_NAME,
-      showModal: false,
-      recording: false,
-      online: false,
-      routes: [
-        { icon: 'bi-water', url: '/streams', title: this.$t('menu.streams') },
-        { icon: 'bi-stopwatch', url: '/filter', title: this.$t('menu.latest') },
-        { icon: 'bi-hypnotize', url: '/random', title: this.$t('menu.random') },
-        { icon: 'bi-star-fill', url: '/bookmarks', title: this.$t('menu.favs') },
-        { icon: 'bi-list-check', url: '/jobs', title: this.$t('menu.jobs') },
-        { icon: 'bi-eye-fill', url: '/admin', title: this.$t('menu.admin') }
-      ]
-    };
-  },
-  methods: {
-    save(data: ChannelRequest) {
-      api.channels.channelsCreate(data)
-          .then(res => this.$store.commit('addChannel', res.data))
-          .catch(res => alert(res.error))
-          .finally(() => this.showModal = false);
-    },
-  },
-  created() {
-    // Dispatch
-    socket.on('job:create', data => this.$store.commit('job:create', data));
-    socket.on('job:destroy', data => this.$store.commit('job:destroy', data));
-    socket.on('job:preview:done', data => this.$store.commit('job:preview:done', data));
-    socket.on('job:progress', data => this.$store.commit('job:progress', data));
-    socket.on('job:preview:progress', data => this.$store.commit('job:preview:progress', data));
-    api.jobs.jobsList()
-        .then(result => result.data.forEach((job: JobResponse) => this.$store.commit('addJob', job)))
-        .catch(res => alert(res.error));
-  }
+const routes = [
+  { icon: 'bi-water', url: '/streams', title: t('menu.streams') },
+  { icon: 'bi-stopwatch', url: '/filter', title: t('menu.latest') },
+  { icon: 'bi-hypnotize', url: '/random', title: t('menu.random') },
+  { icon: 'bi-star-fill', url: '/bookmarks', title: t('menu.favs') },
+  { icon: 'bi-list-check', url: '/jobs', title: t('menu.jobs') },
+  { icon: 'bi-eye-fill', url: '/admin', title: t('menu.admin') }
+];
+
+const save = (data: ChannelRequest) => {
+  api.channels.channelsCreate(data)
+      .then(res => store.commit('addChannel', res.data))
+      .catch(res => alert(res.error))
+      .finally(() => showModal.value = false);
+};
+
+onMounted(() => {
+  // Dispatch
+  socket.on(MessageType.JOB_CREATE, data => store.commit('job:create', data));
+  socket.on(MessageType.JOB_DESTROY, data => store.commit('job:destroy', data));
+  socket.on(MessageType.JOB_PREVIEW_DONE, data => store.commit('job:preview:done', data));
+  socket.on(MessageType.JOB_PROGRESS, data => store.commit('job:progress', data));
+  socket.on(MessageType.JOB_PREVIEW_PROGRESS, data => store.commit('job:preview:progress', data));
+
+  api.jobs.jobsList()
+      .then(result => result.data.forEach((job: JobResponse) => store.commit('addJob', job)))
+      .catch(res => alert(res.error));
 });
 </script>
 

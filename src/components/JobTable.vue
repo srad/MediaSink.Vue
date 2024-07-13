@@ -16,7 +16,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr class="align-middle" :key="i" v-for="(job, i) in jobs" :class="{'table-success': job.active}">
+      <tr class="align-middle" :key="i" v-for="(job, i) in props.jobs" :class="{'table-success': job.active}">
         <td class="text-end p-2">
           <div v-if="job.active" style="width: 1rem; height: 1rem" class="spinner-border text-success" role="status">
             <span class="visually-hidden">{{ $t('jobTable.loading') }}</span>
@@ -34,8 +34,8 @@
         <td class="p-1">{{ job.fromNow }}</td>
         <td class="p-1">
           <div class="btn-group-sm btn-group w-100">
-            <button class="btn btn-outline-danger btn-sm" @click="$emit('destroy', job.jobId)">Destroy</button>
-            <button class="btn btn-outline-info btn-sm" @click="$emit('info', job.jobId)">Info</button>
+            <button class="btn btn-outline-danger btn-sm" @click="emit('destroy', job.jobId)">Destroy</button>
+            <button class="btn btn-outline-info btn-sm" @click="emit('info', job.jobId)">Info</button>
           </div>
         </td>
       </tr>
@@ -50,19 +50,17 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import {JobTableItem} from "@/views/JobView.vue";
+<script setup lang="ts">
+import { defineProps, defineEmits } from 'vue';
+import { JobTableItem } from "../views/JobView.vue";
 
-export default defineComponent({
-  name: 'JobTable',
-  emits: [ 'destroy' ],
-  props: {
-    jobs: { type: Array as PropType<Array<JobTableItem>>, required: true },
-  }
-});
+const emit = defineEmits<{
+  (e: 'destroy', value: number): void
+  (e: 'info', value: number): void
+}>();
+
+const props = defineProps<{ jobs: JobTableItem[] }>();
 </script>
 
 <style scoped>
-
 </style>

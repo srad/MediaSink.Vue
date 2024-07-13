@@ -26,10 +26,10 @@
     <ul class="list-group bg-white" style="max-height: 400px; overflow-y: scroll">
       <li v-for="time in sortedTimestamps" class="list-group list-group-flush" :key="time.id">
         <div class="btn-group btn-group-sm m-1">
-          <button class="btn btn-outline-success" @click="$emit('start', time.start)">
+          <button class="btn btn-outline-success" @click="emit('start', time.start)">
             {{ time.start }}
           </button>
-          <button class="btn btn-outline-dark" @click="$emit('end', time.end)">
+          <button class="btn btn-outline-dark" @click="emit('end', time.end)">
             {{ time.end }}
           </button>
           <button class="btn btn-danger" @click="destroy(time.id)">
@@ -39,15 +39,48 @@
       </li>
     </ul>
     <hr/>
-    <button class="btn btn-primary btn-sm"
-            @click="$emit('data', timestamps.map(time => ([time.start, time.end])))">Export
+    <button class="btn btn-primary btn-sm" @click="emit('data', timestamps.map(time => [time.start, time.end]))">
+      Export
     </button>
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, defineProps, watch, computed } from 'vue';
 
-import { defineComponent } from 'vue';
+// --------------------------------------------------------------------------------------
+// Emits
+// --------------------------------------------------------------------------------------
+
+const emit = defineEmits<{
+  (e: 'add', value: { id: number, start: number, end: number }): void
+  (e: 'destroy', value: Timestamp): void
+  (e: 'data', value: number[][]): void
+  (e: 'start', value: number): void
+  (e: 'end', value: number): void
+}>();
+
+/**
+ * TODO: Check if needed
+ *   model: {
+ *     prop: 'timestamp',
+ *     event: 'change'
+ *   },
+ */
+//const model = defineModel({
+//  prop: 'timestamp',
+//  event: 'change'
+//});
+
+// --------------------------------------------------------------------------------------
+// Props
+// --------------------------------------------------------------------------------------
+
+const props = defineProps<{ timestamp: number }>();
+
+// --------------------------------------------------------------------------------------
+// Declarations
+// --------------------------------------------------------------------------------------
 
 interface Timestamp {
   id: number;
@@ -55,76 +88,57 @@ interface Timestamp {
   end: number;
 }
 
-interface EditorData {
-  counter: number;
-  start: number;
-  end: number;
-  timestamps: Timestamp[];
-}
+const counter = ref(0);
+const start = ref(0);
+const end = ref(0);
+const timestamps = ref<Timestamp[]>([]);
 
-export default defineComponent({
-  name: 'Editor',
-  data(): EditorData {
-    return {
-      counter: 0,
-      start: 0,
-      end: 0,
-      timestamps: []
-    };
-  },
-  model: {
-    prop: 'timestamp',
-    event: 'change'
-  },
-  props: {
-    timestamp: {
-      type: Number,
-      default: 0
-    }
-  },
-  watch: {
-    start(val) {
-      if (this.end <= val) {
-        this.end = this.start;
-      }
-    }
-  },
-  computed: {
-    sortedTimestamps() {
-      return this.timestamps.slice().sort((a, b) => a.start - b.start);
-    }
-  },
-  methods: {
-    add() {
-      if (this.end <= this.start) {
-        alert(`End time ${this.end} must be bigger than start time ${this.start}`);
-      }
-      if (Math.abs(this.end - this.start) < 0.1) {
-        alert(`Start and end time too close ${this.start}:${this.end}`);
-        return;
-      }
-      const data = { id: this.counter, start: this.start, end: this.end };
-      this.timestamps.push(data);
-      this.counter += 1;
-      this.$emit('add', data);
-    },
-    markStart() {
-      this.start = this.timestamp;
-    },
-    markEnd() {
-      this.end = this.timestamp;
-    },
-    destroy(id: number) {
-      for (let i = 0; i < this.timestamps.length; i += 1) {
-        if (this.timestamps[i].id === id) {
-          this.$emit('destroy', this.timestamps[i]);
-          this.timestamps.splice(i, 1);
-          break;
-        }
-      }
-    }
+// --------------------------------------------------------------------------------------
+// Watchers
+// --------------------------------------------------------------------------------------
+
+watch(start, (val) => {
+  if (end.value <= val) {
+    end.value = start.value;
   }
 });
+
+// --------------------------------------------------------------------------------------
+// Computed
+// --------------------------------------------------------------------------------------
+
+const sortedTimestamps = computed(() => timestamps.value.slice().sort((a, b) => a.start - b.start))
+
+// --------------------------------------------------------------------------------------
+// Methods
+// --------------------------------------------------------------------------------------
+
+const add = () => {
+  if (end.value <= start.value) {
+    alert(`End time ${end.value} must be bigger than start time ${start.value}`);
+  }
+  if (Math.abs(end.value - start.value) < 0.1) {
+    alert(`Start and end time too close ${start.value}:${end.value}`);
+    return;
+  }
+  const data = { id: counter.value, start: start.value, end: end.value };
+  timestamps.value.push(data);
+  counter.value += 1;
+  emit('add', data);
+};
+
+const markStart = () => start.value = props.timestamp;
+const markEnd = () => end.value = props.timestamp;
+
+const destroy = (id: number) => {
+  for (let i = 0; i < timestamps.value.length; i += 1) {
+    if (timestamps.value[i].id === id) {
+      emit('destroy', timestamps.value[i]);
+      timestamps.value.splice(i, 1);
+      break;
+    }
+  }
+};
 </script>
 
 <style scoped>

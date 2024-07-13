@@ -1,14 +1,14 @@
-import { StreamSinkClient, DatabaseRecording as RecordingResponse, V1RecordingStatus } from '@/services/api/v1/StreamSinkClient';
+import { StreamSinkClient, ModelsRecording as RecordingResponse, V1RecordingStatus } from './StreamSinkClient';
 import axios, { AxiosResponse } from "axios";
 import { CancelTokenSource } from 'axios';
 
 class MyClient extends StreamSinkClient<any> {
-  channelUpload(channelName: string, file: File, progress: (pcent: number) => void): [ Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource ] {
+  channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [ Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource ] {
     const source = axios.CancelToken.source();
     const formData = new FormData();
     formData.append('file', file);
 
-    return [ axios.post(`${window.VUE_APP_APIURL}/channels/${channelName}/upload`, formData, {
+    return [ axios.post(`${window.VUE_APP_APIURL}/channels/${channelId}/upload`, formData, {
       cancelToken: source.token,
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: progressEvent => progressEvent.total ? progress(progressEvent.loaded / progressEvent.total) : 0

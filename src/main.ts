@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
+import { i18n } from './i18n/i18n';
 import App from './App.vue';
 import router from './route';
-import { store } from './store/index';
-import { i18n } from '@/i18n/i18n';
+import { store, key } from "./store";
 
 // The whole point of this is to allow docker runtime environment variables.
 // See also: docker-entrypoint.sh
@@ -19,7 +19,7 @@ declare global {
 }
 
 const app = createApp(App).use(i18n)
-  .use(store)
+  .use(store, key)
   .use(i18n);
 
 app.provide('baseUrl', window.VUE_APP_BASE);

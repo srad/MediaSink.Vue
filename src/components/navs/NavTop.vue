@@ -10,7 +10,7 @@
         </div>
         <div class="offcanvas-body">
           <ul class="navbar-nav justify-content-end flex-grow-1">
-            <li class="nav-item" v-for="link in routes" :key="link">
+            <li class="nav-item" v-for="link in props.routes" :key="link.url">
               <router-link :to="link.url" :custom="true" exact-active-class="active" v-slot="{ navigate, href, isActive }">
                 <a :href="href" :class="{active: isActive}" @click="navigate" class="nav-link">
                   <span data-bs-dismiss="offcanvas" data-bs-target="#collapsibleNavbar">{{ link.title }}</span>
@@ -21,14 +21,14 @@
               <DiskStatus :pcent="diskInfo.pcent"/>
             </li>
             <li class="nav-item d-none d-lg-block">
-              <RecordingControls :jobs="jobs" :recording="recording" @add="$emit('add')" @record="record"/>
+              <RecordingControls :jobs="jobs" :recording="recording" @add="emit('add')" @record="record"/>
             </li>
           </ul>
         </div>
       </div>
 
       <div class="d-lg-none">
-        <RecordingControls :jobs="jobs" :recording="recording" @add="$emit('add')" @record="record"/>
+        <RecordingControls :jobs="jobs" :recording="recording" @add="emit('add')" @record="record"/>
       </div>
 
       <button class="navbar-toggler d-l-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#collapsibleNavbar" aria-controls="collapsibleNavbar" aria-label="Toggle navigation">
@@ -38,78 +38,94 @@
   </nav>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { DatabaseJob as JobResponse, HelpersDiskInfo as DiskInfo } from '@/services/api/v1/StreamSinkClient';
-import { createClient } from '@/services/api/v1/ClientFactory';
-import DiskStatus from '@/components/DiskStatus.vue';
-import RecordingControls from '@/components/RecordingControls.vue';
-import AppBrand from '@/components/AppBrand.vue';
+<script setup lang="ts">
+import { defineProps, watch, defineEmits, computed, ref, reactive, onMounted } from 'vue';
+import { createClient } from '../../services/api/v1/ClientFactory';
+import DiskStatus from '../DiskStatus.vue';
+import RecordingControls from '../RecordingControls.vue';
+import AppBrand from '../AppBrand.vue';
+import { useRoute } from "vue-router";
+import { useStore } from "../../store";
+
+// --------------------------------------------------------------------------------------
+// Props
+// --------------------------------------------------------------------------------------
+
+const props = defineProps<{
+  routes: { icon: string, url: string, title: string }[]
+  title: string
+}>();
+
+// --------------------------------------------------------------------------------------
+// Emits
+// --------------------------------------------------------------------------------------
+
+const emit = defineEmits<{(e: 'add'): void}>();
+
+// --------------------------------------------------------------------------------------
+// Declarations
+// --------------------------------------------------------------------------------------
 
 const api = createClient();
 
-interface NavTopData {
-  collapseNav: boolean;
-  diskInfo: DiskInfo;
-  recording: boolean;
-}
+const diskInfo = reactive({ avail: '', pcent: '', size: '', used: '' });
+const collapseNav = ref(true);
+const recording = ref(false);
 
-export default defineComponent({
-  components: { AppBrand, RecordingControls, DiskStatus },
-  props: {
-    routes: { type: Array, required: true },
-    title: { type: String, required: true },
-  },
-  emits: [ 'add' ],
-  watch: {
-    $route() {
-      this.collapseNav = true;
-    }
-  },
-  computed: {
-    jobs(): JobResponse[] {
-      return this.$store.state.jobs.slice().filter(job => job.status !== 'recording');
-    }
-  },
-  data(): NavTopData {
-    return {
-      diskInfo: { avail: '', pcent: '', size: '', used: '' },
-      collapseNav: true,
-      recording: false,
-    };
-  },
-  name: 'NavTop',
-  methods: {
-    toggle() {
-      this.collapseNav = !this.collapseNav;
-    },
-    async query() {
-      this.recording = await api.isRecording();
-      const diskRes = await api.info.diskList();
-      this.diskInfo = diskRes.data;
-    },
-    async record(resume: boolean) {
-      try {
-        if (resume) {
-          if (window.confirm('Start recording?')) {
-            await api.recorder.resumeCreate();
-            this.recording = true;
-          }
-        } else {
-          if (window.confirm('Do you want to stop all recordings?')) {
-            await api.recorder.pauseCreate();
-            this.$store.commit('stopChannels');
-            this.recording = false;
-          }
-        }
-      } catch (e) {
-        alert(e);
+const route = useRoute();
+const store = useStore();
+
+// --------------------------------------------------------------------------------------
+// Watchers
+// --------------------------------------------------------------------------------------
+
+watch(route, () => collapseNav.value = true)
+
+// --------------------------------------------------------------------------------------
+// Computes
+// --------------------------------------------------------------------------------------
+
+const jobs = computed(() => store.state.jobs.slice().filter(job => job.status !== 'recording'));
+
+// --------------------------------------------------------------------------------------
+// Methods
+// --------------------------------------------------------------------------------------
+
+const query = async () => {
+  recording.value = await api.isRecording();
+
+  const diskRes = await api.info.diskList();
+  diskInfo.avail = diskRes.data.avail!;
+  diskInfo.pcent = diskRes.data.pcent!;
+  diskInfo.size = diskRes.data.size!;
+  diskInfo.used = diskRes.data.used!;
+};
+
+const record = async (resume: boolean) => {
+  try {
+    if (resume) {
+      if (window.confirm('Start recording?')) {
+        await api.recorder.resumeCreate();
+        recording.value = true;
+      }
+    } else {
+      if (window.confirm('Do you want to stop all recordings?')) {
+        await api.recorder.pauseCreate();
+        store.commit('stopChannels');
+        recording.value = false;
       }
     }
-  },
-  async mounted() {
-    await this.query();
-    setInterval(async () => await this.query(), 10 * 1000);
-  },
+  } catch (e) {
+    alert(e);
+  }
+};
+
+// --------------------------------------------------------------------------------------
+// Hooks
+// --------------------------------------------------------------------------------------
+
+onMounted(async () => {
+  await query();
+  setInterval(async () => await query(), 10 * 1000);
 });
 </script>

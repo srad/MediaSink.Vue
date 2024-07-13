@@ -21,50 +21,43 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { createClient } from '@/services/api/v1/ClientFactory';
-import JobTable from '@/components/JobTable.vue';
-import { DatabaseJob, DatabaseRecording } from '@/services/api/v1/StreamSinkClient';
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import { createClient } from '../services/api/v1/ClientFactory';
+import JobTable from '../components/JobTable.vue';
+import { ModelsJob } from '../services/api/v1/StreamSinkClient';
 import moment from 'moment';
+import { useStore } from "../store";
 
 const api = createClient();
+const store = useStore();
 
-export interface JobTableItem extends DatabaseJob {
-  fromNow: string;
+export interface JobTableItem extends ModelsJob {
+  fromNow?: string;
 }
 
-export default defineComponent({
-  components: { JobTable },
-  computed: {
-    recordings(): JobTableItem[] {
-      return this.$store.state.jobs.filter(job => job.status === 'recording').map(job => {
-        const newJob = { ...job };
-        newJob.fromNow = moment(newJob.createdAt).fromNow();
-        return newJob;
-      });
-    },
-    workerJobs(): JobTableItem[] {
-      return this.$store.state.jobs.filter(job => job.status !== 'recording').map(job => {
-        const newJob = { ...job };
-        newJob.fromNow = moment(newJob.createdAt).fromNow();
-        return newJob;
-      });
-    }
-  },
-  data() {
-    return {};
-  },
-  methods: {
-    destroy(id: number) {
-      api.jobs.jobsDelete(id)
-          .then(() => this.$store.commit('destroyJob', id))
-          .catch(res => alert(res.error));
-    }
-  },
+const recordings = computed(() => {
+  return store.state.jobs.filter(job => job.status === 'recording').map(job => {
+    const newJob: JobTableItem = { ...job };
+    newJob.fromNow = moment(newJob.createdAt).fromNow();
+    return newJob;
+  });
 });
+
+const workerJobs = computed(() => {
+  return store.state.jobs.filter(job => job.status !== 'recording').map(job => {
+    const newJob: JobTableItem = { ...job };
+    newJob.fromNow = moment(newJob.createdAt).fromNow();
+    return newJob;
+  });
+});
+
+const destroy = (id: number) => {
+  api.jobs.jobsDelete(id)
+      .then(() => store.commit('destroyJob', id))
+      .catch(res => alert(res.error));
+};
 </script>
 
 <style scoped>
-
 </style>

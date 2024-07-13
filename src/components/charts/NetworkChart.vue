@@ -8,7 +8,9 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { onMounted, ref } from 'vue';
+
 import {
   Chart,
   ArcElement,
@@ -36,7 +38,7 @@ import {
   Tooltip,
   SubTitle
 } from "chart.js";
-import {createClient} from "@/services/api/v1/ClientFactory";
+import { createClient } from "../../services/api/v1/ClientFactory";
 
 Chart.register(
     ArcElement,
@@ -66,58 +68,58 @@ Chart.register(
 );
 
 const api = createClient();
+const myChart = ref<HTMLCanvasElement | null>(null);
 
-export default {
-  name: "CPUChart",
-  async mounted() {
-    const data = api.metric.netList();
+onMounted(async () => {
+  const response = await api.metric.netList();
 
-    const ctx = this.$refs.myChart.getContext("2d");
-    new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: data.map(d => new Date(d.createdAt).toLocaleDateString("de-DE", {
-          hour: "numeric",
-          minute: "numeric",
-          day: "numeric",
-          month: "numeric",
-        })),
-        datasets: [
-          {
-            data: data.map(d => (d.transmitBytes / 1024 / 1024).toFixed(2)),
-            label: "Transmitted",
-            borderColor: "Red",
-            fill: false
-          },
-          {
-            data: data.map(d => (d.receiveBytes / 1024 / 1024).toFixed(2)),
-            label: "Received",
-            borderColor: "Blue",
-            fill: false
-          }
-        ]
-      },
-      options: {
-        title: {
-          display: true,
-          text: "World population per region (in millions)"
+  const ctx = myChart.value!.getContext("2d");
+
+  const chart = new Chart(ctx!, {
+    type: "line",
+    data: {
+      //labels: response.map(d => new Date(d.createdAt).toLocaleDateString("de-DE", {
+      labels: [ response.data ].map(d => new Date(d.createdAt).toLocaleDateString("de-DE", {
+        hour: "numeric",
+        minute: "numeric",
+        day: "numeric",
+        month: "numeric",
+      })),
+      datasets: [
+        {
+          data: [ response.data ].map(d => (d.transmitBytes / 1024 / 1024).toFixed(2)),
+          label: "Transmitted",
+          borderColor: "Red",
+          fill: false
         },
-        scales: {
-          y: {
-            min: 0,
-            max: 40,
-          },
-          x: {
-            ticks: {
-              autoSkip: true,
-              maxTicksLimit: 20
-            }
+        {
+          data: [ response.data ].map(d => (d.receiveBytes / 1024 / 1024).toFixed(2)),
+          label: "Received",
+          borderColor: "Blue",
+          fill: false
+        }
+      ]
+    },
+    options: {
+      // title: {
+      //   display: true,
+      //   text: "World population per region (in millions)"
+      // },
+      scales: {
+        y: {
+          min: 0,
+          max: 40,
+        },
+        x: {
+          ticks: {
+            autoSkip: true,
+            maxTicksLimit: 20
           }
         }
       }
-    });
-  }
-};
+    }
+  });
+});
 </script>
 
 <style scoped>

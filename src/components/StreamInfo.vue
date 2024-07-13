@@ -20,7 +20,9 @@
     </li>
     <li class="list-group-item bg-info-light-2">
       <template v-if="!showTagInput && tagArray.length > 0">
-        <span v-for="tag in tagArray" @click="$router.push({query: {tag}})" class="badge bg-secondary text-dark me-1 user-select-none" :key="tag">{{ tag }}
+        <span v-for="tag in tagArray" @click="$router.push({query: {tag}})" class="badge bg-secondary text-dark me-1 user-select-none" :key="tag">{{
+            tag
+          }}
           <span @click="destroyTag(tag)" class="bi bi-x" style="z-index: 1"></span>
         </span>
       </template>
@@ -36,17 +38,17 @@
 
       <div class="d-flex w-75">
         <span class="form-check form-switch me-2">
-          <input @click="$emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" id="flexSwitchCheckDefault">
+          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" id="flexSwitchCheckDefault">
           <label class="form-check-label" for="flexSwitchCheckDefault">Record</label>
         </span>
-        <FavButton :data="channel" :faved="fav" @fav="$emit('unfav', channel)" @unfav="$emit('fav', channel)"/>
+        <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)"/>
       </div>
 
       <div class="d-flex justify-content-evenly w-25">
-        <a @click="$emit('edit', channel)" class="me-2">
+        <a @click="emit('edit', channel)" class="me-2">
           <i class="bi bi-pencil-square"></i>
         </a>
-        <a class="text-danger" @click="$emit('destroy', channel)">
+        <a class="text-danger" @click="emit('destroy', channel)">
           <i class="bi bi-trash3-fill"></i>
         </a>
       </div>
@@ -55,96 +57,112 @@
   </ul>
 </template>
 
-<script lang="ts">
-import { V1ChannelResponse as ChannelResponse } from '@/services/api/v1/StreamSinkClient';
-import { createClient } from '@/services/api/v1/ClientFactory';
-import { PropType, defineComponent } from 'vue';
-import { parseTags } from '@/utils/parser';
-import FavButton from '@/components/controls/FavButton.vue';
+<script setup lang="ts">
+import { watch, defineEmits, ref, computed, onMounted, onUnmounted } from 'vue';
+import { V1ChannelResponse as ChannelResponse } from '../services/api/v1/StreamSinkClient';
+import { createClient } from '../services/api/v1/ClientFactory';
+import { parseTags } from '../utils/parser';
+import FavButton from "./controls/FavButton.vue";
+
+// --------------------------------------------------------------------------------------
+// Props
+// --------------------------------------------------------------------------------------
+
+const props = defineProps<{
+  fav: boolean,
+  channel: ChannelResponse,
+}>();
+
+// --------------------------------------------------------------------------------------
+// Emits
+// --------------------------------------------------------------------------------------
+
+const emit = defineEmits<{
+  (e: 'unfav', value: ChannelResponse): void
+  (e: 'fav', value: ChannelResponse): void
+  (e: 'edit', value: ChannelResponse): void
+  (e: 'destroy', value: ChannelResponse): void
+  (e: 'pause', value: ChannelResponse): void
+}>();
+
+// --------------------------------------------------------------------------------------
+// Declarations
+// --------------------------------------------------------------------------------------
 
 const api = createClient();
 
-interface ChannelItemData {
-  tagVal: string;
-  showTagInput: boolean;
-  thread: number;
-  secRecording: number;
-  tagArray: string[];
-}
+const tagArray = ref(parseTags(props.channel.tags));
+const tagVal = ref('');
+const showTagInput = ref(false);
+const thread = ref(0);
+const secRecording = ref(props.channel.minRecording * 60);
+const tagInput = ref<HTMLInputElement | null>(null);
 
-export default defineComponent({
-  name: 'StreamInfo',
-  components: { FavButton },
-  emits: ['unfav', 'fav', 'edit', 'destroy', 'pause'],
-  props: {
-    fav: Boolean,
-    channel: { type: Object as PropType<ChannelResponse>, required: true }
-  },
-  watch: {
-    showTagInput(val) {
-      if (val) {
-        (this.$refs.tagInput as HTMLInputElement).focus();
-      }
-    }
-  },
-  computed: {
-    minutes(): string {
-      return (this.secRecording / 60).toFixed(0);
-    },
-    seconds(): string {
-      let x = (this.secRecording % 60).toFixed(0);
-      return (x.length < 2 ? '0' + String(x) : x);
-    },
-  },
-  data(): ChannelItemData {
-    return {
-      tagArray: parseTags(this.channel.tags!),
-      tagVal: '',
-      showTagInput: false,
-      thread: 0,
-      secRecording: this.channel.minRecording! * 60
-    };
-  },
-  methods: {
-    async destroyTag(tag: string) {
-      const removeTag = this.tagArray.filter(t => t !== tag);
-      await api.channels.tagsCreate(this.channel.channelName!, { tags: removeTag });
-      this.tagArray = removeTag;
-    },
-    addTag() {
-      const tag = this.tagVal.trim().toLowerCase();
+// --------------------------------------------------------------------------------------
+// Watchers
+// --------------------------------------------------------------------------------------
 
-      // No value, cancel
-      if (tag === '') {
-        this.showTagInput = false;
-        return;
-      }
+watch(showTagInput, (val) => {
+  if (val) {
+    tagInput.value!.focus();
+  }
+});
 
-      const parsed = parseTags(tag);
-      const newTags = [...this.tagArray];
-      newTags.push(parsed[0]);
+const minutes = computed(() => (secRecording.value / 60).toFixed(0));
+const seconds = computed(() => {
+  let x = (secRecording.value % 60).toFixed(0);
+  return (x.length < 2 ? '0' + String(x) : x);
+});
 
-      api.channels.tagsCreate(this.channel.channelName!, { tags: newTags })
-          .then(() => {
-            this.tagArray = newTags;
-            this.showTagInput = false;
-            this.tagVal = '';
-          })
-          .catch(e => alert(e.message))
-          .finally(() => this.tagVal = '');
-    }
-  },
-  mounted() {
-    if (this.channel.isRecording) {
-      this.thread = setInterval(() => {
-        this.secRecording += 1;
-      }, 1000);
-    }
-  },
-  unmounted() {
-    if (this.channel.isRecording) {
-      clearInterval(this.thread);
-    }
+// --------------------------------------------------------------------------------------
+// Methods
+// --------------------------------------------------------------------------------------
+
+const destroyTag = async (tag: string) => {
+  const removeTag = tagArray.value.filter(t => t !== tag);
+  await api.channels.tagsCreate(props.channel.channelId!, { tags: removeTag });
+  tagArray.value = removeTag;
+};
+
+const addTag = () => {
+  const tag = tagVal.value.trim().toLowerCase();
+
+  // No value, cancel
+  if (tag === '') {
+    showTagInput.value = false;
+    return;
+  }
+
+  const parsed = parseTags(tag);
+  const newTags = [ ...tagArray.value ];
+  newTags.push(parsed[0]);
+
+  api.channels.tagsCreate(props.channel.channelId!, { tags: newTags })
+      .then(() => {
+        tagArray.value = newTags;
+        showTagInput.value = false;
+        tagVal.value = '';
+      })
+      .catch(e => alert(e.message))
+      .finally(() => tagVal.value = '');
+};
+
+// --------------------------------------------------------------------------------------
+// Hooks
+// --------------------------------------------------------------------------------------
+
+onMounted(() => {
+  if (props.channel.isRecording) {
+    // Increase the seconds to indicate liveness.
+    thread.value = setInterval(() => {
+      secRecording.value += 1;
+    }, 1000);
+  }
+});
+
+onUnmounted(() => {
+  if (props.channel.isRecording) {
+    clearInterval(thread.value);
   }
 });
 </script>

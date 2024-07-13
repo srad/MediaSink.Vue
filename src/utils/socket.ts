@@ -9,7 +9,7 @@ const c = new WebSocket(window.VUE_APP_SOCKETURL);
 const listeners = {};
 
 function addListener(event: string, fn: (data: Object) => void) {
-  
+
   if (!listeners[event]) {
     listeners[event] = [];
   }
@@ -39,6 +39,19 @@ c.onerror = (ev: Event) => {
   console.error(ev);
 };
 
-export default {
+export const socket = {
   on: addListener
+};
+
+export const MessageType = {
+  CHANNEL_ONLINE: 'channel:online',
+  CHANNEL_OFFLINE: 'channel:offline',
+  CHANNEL_THUMBNAIL: 'channel:thumbnail',
+  CHANNEL_START: 'channel:start',
+
+  JOB_CREATE: 'job:create',
+  JOB_DESTROY: 'job:destroy',
+  JOB_PREVIEW_DONE: 'job:preview:done',
+  JOB_PROGRESS: 'job:progress',
+  JOB_PREVIEW_PROGRESS: 'job:preview:progress'
 };

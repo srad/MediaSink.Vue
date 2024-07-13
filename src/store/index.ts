@@ -1,10 +1,6 @@
 import { InjectionKey } from 'vue';
 import { createStore, Store, useStore as baseUseStore } from 'vuex';
-import { V1ChannelResponse, DatabaseJob as JobResponse, DatabaseJob } from '@/services/api/v1/StreamSinkClient';
-
-export interface ChannelResponse extends V1ChannelResponse {
-  previewUpdate: Date;
-}
+import { V1ChannelResponse as ChannelResponse, ModelsJob as JobResponse } from '../services/api/v1/StreamSinkClient';
 
 export interface State {
   channels: ChannelResponse[];
@@ -27,21 +23,19 @@ export const key: InjectionKey<Store<State>> = Symbol();
 ///////////////////////////////////////////////////
 
 export const store = createStore<State>({
-  state() {
-    return {
-      channels: [],
-      jobs: [],
-      loggedIn: false,
-    };
+  state: {
+    channels: [],
+    jobs: [],
+    loggedIn: false,
   },
   mutations: {
     'job:preview:done'(state: State, data: JobMessage) {
       console.log('Job done', data);
     },
     'job:preview:progress'(state: State, data) {
-      console.log('Progrss: ', data);
+      console.log('Progress: ', data);
     },
-    'job:create'(state: State, data: DatabaseJob) {
+    'job:create'(state: State, data: JobResponse) {
       state.jobs.push(data);
     },
     'job:destroy'(state: State, data: JobMessage) {
@@ -50,7 +44,7 @@ export const store = createStore<State>({
         state.jobs.splice(i, 1);
       }
     },
-    'job:start'(state: State, job: DatabaseJob) {
+    'job:start'(state: State, job: JobResponse) {
       let i = state.jobs.findIndex(j => j.jobId === job.jobId);
       if (i === -1) {
         i = state.jobs.push(job);
@@ -80,7 +74,7 @@ export const store = createStore<State>({
     'channel:thumbnail'(state: State, data: { channelName: string }) {
       const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
       if (i !== -1) {
-        state.channels[i].previewUpdate = new Date();
+        // TODO: state.channels[i].previewUpdate = new Date();
       }
     },
     'channel:start'(state: State, data: { channelName: string }) {
@@ -117,14 +111,14 @@ export const store = createStore<State>({
           });
       }
     },
-    destroyChannel(state: State, channel: ChannelResponse) {
-      const i = state.channels.findIndex(c => c.channelName === channel.channelName);
+    destroyChannel(state: State, id: number) {
+      const i = state.channels.findIndex(c => c.channelId === id);
       if (i !== -1) {
         state.channels.splice(i, 1);
       }
     },
-    pauseChannel(state: State, data: { channel: ChannelResponse, pause: boolean }) {
-      const i = state.channels.findIndex(c => c.channelName === data.channel.channelName);
+    pauseChannel(state: State, data: { id: number, pause: boolean }) {
+      const i = state.channels.findIndex(c => c.channelId === data.id);
       if (i !== -1) {
         state.channels[i].isPaused = data.pause;
       }
@@ -135,12 +129,12 @@ export const store = createStore<State>({
         state.jobs.splice(i, 1);
       }
     },
-    fav(state: State, channel: ChannelResponse) {
-      const i = state.channels.findIndex(ch => ch.channelName === channel.channelName);
+    fav(state: State, id: number) {
+      const i = state.channels.findIndex(ch => ch.channelId === id);
       state.channels[i].fav = true;
     },
-    unfav(state: State, channel: ChannelResponse) {
-      const i = state.channels.findIndex(ch => ch.channelName === channel.channelName);
+    unfav(state: State, id: number) {
+      const i = state.channels.findIndex(ch => ch.channelId === id);
       state.channels[i].fav = false;
     },
     clearChannels(state: State) {
@@ -154,6 +148,6 @@ export const store = createStore<State>({
   }
 });
 
-export function useStore() {
-  return baseUseStore(key);
+export const useStore = function () {
+  return baseUseStore(key)
 }

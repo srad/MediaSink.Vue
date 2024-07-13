@@ -34,6 +34,7 @@ FROM nginx:stable as production-stage
 
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 COPY ./nginx.conf.default /etc/nginx/nginx.conf
+# Add only if you want simple basic authentication protection to the app
 #COPY .htpasswd /etc/nginx
 
 EXPOSE 80

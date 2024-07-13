@@ -1,98 +1,36 @@
 {
   "name": "streamsink-vue",
-  "version": "0.1.0",
   "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "test:unit": "vue-cli-service test:unit",
-    "lint": "vue-cli-service lint",
-    "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/src/i18n/**/*.json\""
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
-    "@types/bootstrap": "^5.2.10",
-    "@vueuse/integrations": "^10.9.0",
+    "@vueuse/integrations": "^10.11.0",
     "animate.css": "^4.1.1",
-    "axios": "^1.6.8",
+    "axios": "^1.7.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
-    "browserslist": "^4.23.0",
-    "chart.js": "^4.4.2",
-    "core-js": "^3.36.0",
+    "chart.js": "^4.4.3",
     "moment": "^2.30.1",
-    "nswag": "^14.0.3",
-    "socket.io-client": "^4.7.5",
-    "universal-cookie": "^7.1.0",
-    "vue": "^3.4.21",
-    "vue-i18n": "^9.10.2",
-    "vue-router": "^4.3.0",
+    "universal-cookie": "^6.1.3",
+    "vue": "^3.4.29",
+    "vue-i18n": "^9.13.1",
+    "vue-router": "^4.4.0",
     "vuex": "^4.1.0"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.18.6",
-    "@intlify/vue-i18n-loader": "^4.2.0",
-    "@types/chai": "^4.3.12",
-    "@types/mocha": "^10.0.6",
-    "@typescript-eslint/eslint-plugin": "^7.2.0",
-    "@typescript-eslint/parser": "^7.2.0",
-    "@vue/cli-plugin-babel": "~5.0.8",
-    "@vue/cli-plugin-eslint": "~5.0.8",
-    "@vue/cli-plugin-typescript": "~5.0.8",
-    "@vue/cli-plugin-unit-mocha": "~5.0.8",
-    "@vue/cli-plugin-vuex": "~5.0.8",
-    "@vue/cli-service": "^5.0.8",
-    "@vue/compiler-sfc": "^3.4.21",
-    "@vue/eslint-config-typescript": "^13.0.0",
-    "@vue/test-utils": "^2.4.5",
-    "babel-eslint": "^10.1.0",
-    "chai": "^5.1.0",
-    "eslint": "^8.57.0",
-    "eslint-plugin-vue": "^9.23.0",
-    "node-sass": "^9.0.0",
-    "sass": "^1.72.0",
-    "sass-loader": "^14.1.1",
-    "typescript": "~5.4.2",
-    "vue-cli-plugin-i18n": "~2.3.2"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended",
-      "@vue/typescript"
-    ],
-    "parserOptions": {
-      "parser": "@typescript-eslint/parser"
-    },
-    "rules": {},
-    "overrides": [
-      {
-        "files": [
-          "**/__tests__/*.{j,t}s?(x)",
-          "**/tests/unit/**/*.spec.{j,t}s?(x)"
-        ],
-        "env": {
-          "mocha": true
-        }
-      },
-      {
-        "files": [
-          "**/__tests__/*.{j,t}s?(x)",
-          "**/tests/unit/**/*.spec.{j,t}s?(x)"
-        ],
-        "env": {
-          "mocha": true
-        }
-      }
-    ]
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ]
+    "@types/bootstrap": "^5.2.10",
+    "@vitejs/plugin-vue": "^5.0.5",
+    "sass": "^1.77.6",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1",
+    "vitest": "^1.6.0",
+    "vue-tsc": "^2.0.21"
+  }
 }

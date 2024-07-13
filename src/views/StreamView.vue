@@ -40,17 +40,18 @@
 
     <!-- Body -->
     <div class="row">
+      <!-- Search -->
       <div v-if="searchVal !== '' || favs" class="col">
         <div class="row">
           <div v-if="searchResults.length===0" class="justify-content-center d-flex">
             <h5 class="m-5">No results...</h5>
           </div>
-          <div v-else v-for="channel in searchResults" :key="channel.channelName" :class="channelItemClass">
+          <div v-else v-for="channel in searchResults" :key="channel.channelId" :class="channelItemClass">
             <ChannelItem :channel="channel"/>
           </div>
         </div>
       </div>
-
+      <!-- No search -->
       <div v-else class="col">
         <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
           <li class="nav-item" role="presentation">
@@ -74,8 +75,14 @@
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link d-flex justify-content-between"
-                    :class="{'active': $route.params.tab === 'disabled'}" @click="tab('disabled')" id="disabled-tab"
-                    data-bs-toggle="tab" data-bs-target="#disabled" type="button" role="tab" aria-controls="disabled"
+                    :class="{'active': $route.params.tab === 'disabled'}"
+                    @click="tab('disabled')"
+                    id="disabled-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#disabled"
+                    type="button"
+                    role="tab"
+                    aria-controls="disabled"
                     aria-selected="false">
               <span class="d-none d-lg-inline">Disabled</span>
               <span class="d-flex justify-content-between">
@@ -86,37 +93,34 @@
         </ul>
 
         <div class="tab-content py-2" id="myTabContent">
-          <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'live'}" id="home" role="tabpanel"
-               aria-labelledby="home-tab">
+          <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'live'}" id="home" role="tabpanel" aria-labelledby="home-tab">
             <div class="row">
               <div v-if="recordingStreams.length===0" class="justify-content-center d-flex">
                 <h5 class="m-5">No active streams</h5>
               </div>
-              <div v-else v-for="channel in recordingStreams" :key="channel.channelName" :class="channelItemClass">
+              <div v-else v-for="channel in recordingStreams" :key="channel.channelId" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
             </div>
           </div>
 
-          <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'offline'}" id="profile"
-               role="tabpanel" aria-labelledby="profile-tab">
+          <div class="tab-pane fade" :class="{'active show': route.params.tab === 'offline'}" id="profile" role="tabpanel" aria-labelledby="profile-tab">
             <div class="row">
               <div v-if="notRecordingStreams.length===0" class="justify-content-center d-flex">
                 <h5 class="m-5">Empty</h5>
               </div>
-              <div v-else v-for="channel in notRecordingStreams" :key="channel.channelName" :class="channelItemClass">
+              <div v-else v-for="channel in notRecordingStreams" :key="channel.channelId" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
             </div>
           </div>
 
-          <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'disabled'}" id="disabled"
-               role="tabpanel" aria-labelledby="disabled-tab">
+          <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'disabled'}" id="disabled" role="tabpanel" aria-labelledby="disabled-tab">
             <div class="row">
               <div v-if="disabledStreams.length===0" class="justify-content-center d-flex">
                 <h5 class="m-5">Empty</h5>
               </div>
-              <div v-else v-for="channel in disabledStreams" :key="channel.channelName" :class="channelItemClass">
+              <div v-else v-for="channel in disabledStreams" :key="channel.channelId" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
             </div>
@@ -130,164 +134,136 @@
   </div>
 </template>
 
-<script lang="ts">
-import socket from '@/utils/socket';
-import { createClient } from "@/services/api/v1/ClientFactory";
-import {
-  V1ChannelResponse as ChannelResponse,
-  V1ChannelRequest as ChannelRequest
-} from "@/services/api/v1/StreamSinkClient";
-import { defineComponent } from 'vue';
-import ChannelItem from '@/components/ChannelItem.vue';
-import ChannelModal from '@/components/modals/ChannelModal.vue';
+<script setup lang="ts">
+import { socket, MessageType } from '../utils/socket';
+import { createClient } from "../services/api/v1/ClientFactory";
+import { V1ChannelResponse as ChannelResponse } from "../services/api/v1/StreamSinkClient";
+import { watch, computed, ref, onMounted } from 'vue';
+import ChannelItem from '../components/ChannelItem.vue';
+import ChannelModal, { ChannelUpdate } from '../components/modals/ChannelModal.vue';
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "../store";
 
-function filter(row: ChannelResponse, search: string, tag: string): boolean {
-  return row.channelName!.indexOf(search) !== -1 && row.tags!.indexOf(tag) !== -1;
-}
-
-function sort(a: ChannelResponse, b: ChannelResponse) {
-  return a.channelName!.localeCompare(b.channelName!);
-}
-
-interface RecordingData {
-  apiUrl?: string;
-  baseUrl?: string;
-  searchVal: string;
-  busy: boolean;
-  tagFilter: string;
-  favs: boolean;
-  showModal: boolean;
-
-  channelId: number;
-  isPaused?: boolean;
-  channelName?: string;
-  displayName?: string;
-  skipStart?: number;
-  url?: string;
-
-  channelItemClass: string;
-}
+const filter = (row: ChannelResponse, search: string, tag: string) => row.channelName!.indexOf(search) !== -1 && row.tags!.indexOf(tag) !== -1;
+const sort = (a: ChannelResponse, b: ChannelResponse) => a.channelName!.localeCompare(b.channelName!);
 
 const api = createClient();
+const route = useRoute();
+const props = defineProps<{ channel: string, showModal: boolean }>();
 
-export default defineComponent({
-  name: 'streamsink-streamview',
-  components: { ChannelItem, ChannelModal },
-  inject: [ 'baseUrl', 'apiUrl', 'fileUrl', 'socketUrl' ],
-  props: {
-    channel: String,
-  },
-  data(): RecordingData {
-    return {
-      channelItemClass: 'col-lg-6 col-xl-6 col-xxl-4 col-md-6',
-      channelId: 0,
-      showModal: false,
-      channelName: '',
-      displayName: '',
-      isPaused: false,
-      url: '',
-      skipStart: 0,
-      favs: false,
-      //@ts-ignore
-      searchVal: this.$route.query.search || this.$route.query.tag || this.$route.params.tag || '',
-      busy: false,
-      //@ts-ignore
-      tagFilter: this.$route.params.tag || this.$route.query.tag || '',
-    };
-  },
-  watch: {
-    searchVal(search) {
-      this.$router.replace({ query: { search } });
-    },
-    '$route.query'(params) {
-      if (params.tag && params.tag !== '') {
-        this.searchVal = `#${params.tag}`;
-      } else {
-        this.searchVal = params.search || '';
-      }
-    },
-    tagFilter(val) {
-      this.$router.replace({ params: { tag: val } });
-    }
-  },
-  computed: {
-    tags(): string[] {
-      const unionTags: { [key: string]: boolean; } = {};
-      this.$store.state.channels.map<string[]>(channel => channel.tags !== '' ? channel.tags.split(',') : [])
-          .forEach(tags => tags.forEach(tag => unionTags[tag] = true));
+const channelItemClass = 'col-lg-6 col-xl-6 col-xxl-4 col-md-6';
+const channelId = ref(0);
+const showModal = ref(props.showModal);
+const channelName = ref('');
+const displayName = ref('');
+const isPaused = ref(false);
+const url = ref('');
 
-      return Object.keys(unionTags);
-    },
-    search(): string {
-      return this.searchVal.trim().toLowerCase();
-    },
-    searchTerms(): string {
-      return this.search.split(' ').filter(s => s[0] !== '#').join(' ');
-    },
-    tagTerms(): string {
-      return this.search.split(' ').filter(s => s[0] === '#').map(s => s.slice(1, s.length)).join(' ');
-    },
-    notRecordingStreams(): ChannelResponse[] {
-      return this.$store.state.channels.slice()
-          .filter(row => !row.isRecording && !row.isPaused)
-          .sort(sort);
-    },
-    disabledStreams(): ChannelResponse[] {
-      return this.$store.state.channels.slice()
-          .filter(row => row.isPaused)
-          .sort(sort);
-    },
-    recordingStreams(): ChannelResponse[] {
-      return this.$store.state.channels.slice()
-          .filter(row => row.isRecording)
-          .sort(sort);
-    },
-    favStreams(): ChannelResponse[] {
-      return this.$store.state.channels.slice()
-          .filter(row => row.fav)
-          .filter(row => this.favs ? row.fav : true)
-          .sort(sort);
-    },
-    searchResults(): ChannelResponse[] {
-      return this.$store.state.channels.slice()
-          .filter(row => filter(row, this.searchTerms, this.tagTerms))
-          .filter(row => this.favs ? row.fav : true)
-          .sort(sort);
-    },
-  },
-  methods: {
-    async save(data: ChannelRequest) {
-      try {
-        const res = await api.channels.channelsPartialUpdate(this.channelName!, data);
-        this.$store.commit('updateChannel', res.data);
-        this.showModal = false;
-      } catch (e) {
-        alert(e);
-      }
-    },
-    editChannel(channel: ChannelRequest) {
-      this.channelId = channel.channelId!;
-      this.channelName = channel.channelName;
-      this.displayName = channel.displayName;
-      this.isPaused = channel.isPaused;
-      this.url = channel.url;
-      this.skipStart = channel.skipStart;
-      this.showModal = true;
-    },
-    tab(tab: string) {
-      this.$router.push({ name: 'Stream', params: { tag: this.tagFilter, tab } });
-    }
-  },
-  async mounted() {
-    const res = await api.channels.channelsList();
-    res.data.forEach(channel => this.$store.commit('addChannel', channel));
-  },
-  created() {
-    socket.on('channel:online', data => this.$store.commit('channel:online', data));
-    socket.on('channel:offline', data => this.$store.commit('channel:offline', data));
-    socket.on('channel:thumbnail', data => this.$store.commit('channel:thumbnail', data));
-    socket.on('channel:start', data => this.$store.commit('channel:start', data));
+const skipStart = ref(0);
+const favs = ref(false);
+
+const searchVal = ref<string>((route.query.search || route.query.tag || route.params.tag || '') as string);
+
+const tagFilter = ref<string>((route.params.tag || route.query.tag || '') as string);
+const store = useStore();
+const router = useRouter();
+
+// --------------------------------------------------------------------------------------
+// Watchers
+// --------------------------------------------------------------------------------------
+
+watch(searchVal, (search) => router.replace({ query: { search } }));
+
+watch(route.query, params => {
+  if (params.tag && params.tag !== '') {
+    searchVal.value = `#${params.tag}`;
+  } else {
+    searchVal.value = (params.search || '') as string;
   }
+});
+
+watch(tagFilter, val => {
+  router.replace({ params: { tag: val } });
+});
+
+// --------------------------------------------------------------------------------------
+// Computes
+// --------------------------------------------------------------------------------------
+
+const tags = computed(() => {
+  const unionTags: { [key: string]: boolean; } = {};
+  store.state.channels.map<string[]>(channel => channel.tags !== '' ? channel.tags.split(',') : [])
+      .forEach(tags => tags.forEach(tag => unionTags[tag] = true));
+
+  return Object.keys(unionTags);
+});
+
+const search = computed(() => searchVal.value.trim().toLowerCase());
+
+const searchTerms = computed(() => search.value.split(' ').filter(s => s[0] !== '#').join(' '));
+
+const tagTerms = computed(() => search.value.split(' ').filter(s => s[0] === '#').map(s => s.slice(1, s.length)).join(' '));
+
+const notRecordingStreams = computed(() => store.state.channels.slice()
+    .filter(row => !row.isRecording && !row.isPaused)
+    .sort(sort));
+
+const disabledStreams = computed(() => store.state.channels.slice()
+    .filter(row => row.isPaused)
+    .sort(sort));
+
+const recordingStreams = computed(() => store.state.channels.slice()
+    .filter(row => row.isRecording)
+    .sort(sort));
+
+const favStreams = computed(() => store.state.channels.slice()
+    .filter(row => row.fav)
+    .filter(row => favs.value ? row.fav : true)
+    .sort(sort));
+
+const searchResults = computed(() => store.state.channels.slice()
+    .filter(row => filter(row, searchTerms.value, tagTerms.value))
+    .filter(row => favs.value ? row.fav : true)
+    .sort(sort));
+
+// --------------------------------------------------------------------------------------
+// Methods
+// --------------------------------------------------------------------------------------
+
+const save = async (data: ChannelUpdate) => {
+  try {
+    const res = await api.channels.channelsPartialUpdate(data.channelId, data);
+    store.commit('updateChannel', res.data);
+    showModal.value = false;
+  } catch (e) {
+    alert(e);
+  }
+};
+
+const editChannel = (channel: ChannelResponse) => {
+  channelId.value = channel.channelId!;
+  channelName.value = channel.channelName;
+  displayName.value = channel.displayName;
+  isPaused.value = channel.isPaused;
+  url.value = channel.url;
+  skipStart.value = channel.skipStart;
+  showModal.value = true;
+};
+
+const tab = (tab: string) => router.push({ name: 'Stream', params: { tag: tagFilter.value, tab } });
+
+// --------------------------------------------------------------------------------------
+// Hooks
+// --------------------------------------------------------------------------------------
+
+onMounted(async () => {
+  const res = await api.channels.channelsList();
+  res.data.forEach(channel => store.commit('addChannel', channel));
+
+  socket.on(MessageType.CHANNEL_ONLINE, data => store.commit('channel:online', data));
+  socket.on(MessageType.CHANNEL_OFFLINE, data => store.commit('channel:offline', data));
+  socket.on(MessageType.CHANNEL_THUMBNAIL, data => store.commit('channel:thumbnail', data));
+  socket.on(MessageType.CHANNEL_START, data => store.commit('channel:start', data));
 });
 </script>
 

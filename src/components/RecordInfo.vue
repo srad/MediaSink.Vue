@@ -2,7 +2,7 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item d-flex justify-content-center">
       <span>
-        {{ $t('recording.durationMinutes', [durationFormatted]) }}
+        {{ t('recording.durationMinutes', [ durationFormatted ]) }}
       </span>
       <span class="text-secondary px-2">/</span>
       <span>
@@ -12,26 +12,26 @@
       <span class="text-cut">{{ ago }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <span>{{ $t('recording.bitRate') }}</span>
+      <span>{{ t('recording.bitRate') }}</span>
       <span>{{ (bitRate / 1024 / 1024).toFixed(2) }} MBit</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <span>{{ $t('recording.resolution') }}</span> <span>{{ width }}x{{ height }}</span>
+      <span>{{ t('recording.resolution') }}</span> <span>{{ width }}x{{ height }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <span>{{ $t('recording.started') }}</span>
-      <span>{{ new Date(createdAt).toLocaleDateString(undefined, { hour: 'numeric', minute: 'numeric' }) }}</span>
+      <span>{{ t('recording.started') }}</span>
+      <span>{{ createdAtFormatted }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <div>{{ $t('recording.convert') }}</div>
+      <div>{{ t('recording.convert') }}</div>
       <div class="btn-group">
-        <button v-if="height !== 720" class="btn btn-light" @click="$emit('convert', {recording: data, mediaType: '720'})">
+        <button v-if="height !== 720" class="btn btn-light" @click="emit('convert', {recording: data, mediaType: '720'})">
           720p
         </button>
-        <button v-if="height !== 1080" class="btn btn-light" @click="$emit('convert', {recording: data, mediaType: '1080'})">
+        <button v-if="height !== 1080" class="btn btn-light" @click="emit('convert', {recording: data, mediaType: '1080'})">
           1080p
         </button>
-        <!--<button class="btn btn-sm btn-warning" @click="$emit('convert', {recording: data, mediaType: 'mp3'})">MP3</button>-->
+        <!--<button class="btn btn-sm btn-warning" @click="emit('convert', {recording: data, mediaType: 'mp3'})">MP3</button>-->
       </div>
     </li>
     <li @click="expand=!expand" class="expand p-0 list-group-item d-flex justify-content-center">
@@ -45,14 +45,14 @@
           <a :href="url + '/download'">
             <i class="bi bi-download text-dark"></i>
           </a>
-          <FavButton :data="data" :faved="bookmark" @fav="$emit('bookmarked', data, false)" @unfav="$emit('bookmarked', data, true)"/>
+          <FavButton :data="data" :faved="bookmark" @fav="emit('bookmarked', props.data, false)" @unfav="emit('bookmarked', props.data, true)"/>
         </div>
 
         <div class="d-flex justify-content-evenly w-25">
-          <a @click="$emit('preview', data)">
+          <a @click="emit('preview', data)">
             <i class="bi bi-film"></i>
           </a>
-          <a class="text-danger" @click="$emit('destroy', data)">
+          <a class="text-danger" @click="emit('destroy', data)">
             <i class="bi bi-trash3-fill px-2"/>
           </a>
         </div>
@@ -62,43 +62,45 @@
   </ul>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import moment from 'moment';
-import FavButton from '@/components/controls/FavButton.vue';
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import FavButton from './controls/FavButton.vue';
+import { useI18n } from "vue-i18n";
+import { ModelsRecording as RecordingResponse } from "../services/api/v1/StreamSinkClient.ts";
+import moment from "moment";
 
-export default defineComponent({
-  name: 'RecordInfo',
-  components: { FavButton },
-  emits: ['preview', 'destroy', 'bookmarked', 'convert'],
-  props: {
-    index: Number,
-    url: String,
-    bookmark: Boolean,
-    data: Object,
-    duration: { type: Number, required: true },
-    size: Number,
-    bitRate: Number,
-    width: Number,
-    height: Number,
-    createdAt: String,
-  },
-  computed: {
-    durationFormatted(): string {
-      return (this.duration / 60).toFixed(2);
-    }
-  },
-  data() {
-    //@ts-ignore
-    const ago = moment(Date.parse(this.createdAt)).fromNow();
+const { t } = useI18n();
 
-    return {
-      expand: false,
-      ago: ago
-    };
-  },
-  methods: {},
-});
+const emit = defineEmits<{
+  (e: 'preview', value: RecordingResponse): void
+  (e: 'destroy', value: RecordingResponse): void
+  (e: 'bookmarked', data: RecordingResponse, value: boolean): void
+  (e: 'convert', value: { recording: RecordingResponse, mediaType: string }): void
+}>();
+
+const props = defineProps<{
+  //index: number
+  url: string
+  bookmark: boolean
+  data: RecordingResponse
+  duration: number
+  size: number
+  bitRate: number
+  width: number
+  height: number
+  createdAt: string
+}>();
+
+const durationFormatted = computed(() => (props.duration / 60).toFixed(2));
+
+const createdAtFormatted = computed(() => new Date(props.createdAt).toLocaleDateString(undefined, {
+  hour: 'numeric',
+  minute: 'numeric'
+}));
+
+const ago = ref(moment(Date.parse(props.createdAt)).fromNow());
+
+const expand = ref(false);
 </script>
 
 <style lang="scss" scoped>

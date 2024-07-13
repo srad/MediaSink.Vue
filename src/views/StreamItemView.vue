@@ -32,7 +32,7 @@
           <i class="bi bi-trash3-fill px-2"/>
         </button>
 
-        <button class="btn btn-light" @click="$refs.file.click()" v-if="selectedRecordings.length == 0">
+        <button class="btn btn-light" @click="clickFile" v-if="selectedRecordings.length == 0">
           <input ref="file" name="file" v-show="false" accept="video/mp4" @change="submit" type="file">
           <i class="bi bi-upload px-2"/>
         </button>
@@ -42,7 +42,7 @@
         </button>
 
         <button class="btn btn-light" style="color: goldenrod">
-          <ChannelBookmarkButton :channel-name="channelName" :bookmarked="fav"/>
+          <ChannelBookmarkButton :channel-id="channelId" :bookmarked="fav"/>
         </button>
       </div>
     </nav>
@@ -54,155 +54,165 @@
 
       <hr/>
 
-      <LoadIndicator :busy="busy" :empty="recordings.length === 0" empty-text="No Videos">
-        <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-          <RecordingItem :show-selection="true" @checked="selectRecording" :recording="recording" @destroyed="destroyRecording"/>
+      <LoadIndicator :busy="busy" :empty="channel?.recordings?.length === 0" empty-text="No Videos">
+        <div v-for="recording in channel?.recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
+          <RecordingItem
+              @destroyed="destroyRecording"
+              @checked="selectRecording"
+              :show-selection="true"
+              :recording="recording"
+              :show-title="false"/>
         </div>
       </LoadIndicator>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import RecordingItem from '@/components/RecordingItem.vue';
+<script setup lang="ts">
+import { computed, ref, onMounted } from 'vue';
+import RecordingItem from '../components/RecordingItem.vue';
 import { Modal } from 'bootstrap';
-import LoadIndicator from '@/components/LoadIndicator.vue';
-import ChannelBookmarkButton from "@/components/ChannelBookmarkButton.vue";
-import { createClient } from "@/services/api/v1/ClientFactory";
+import LoadIndicator from '../components/LoadIndicator.vue';
+import ChannelBookmarkButton from "../components/ChannelBookmarkButton.vue";
+import { createClient } from "../services/api/v1/ClientFactory";
 import {
-  DatabaseChannel as ChannelResponse,
-  DatabaseRecording as RecordingResponse
-} from "@/services/api/v1/StreamSinkClient";
+  ModelsChannel as ChannelResponse,
+  ModelsRecording as RecordingResponse
+} from "../services/api/v1/StreamSinkClient";
 import { CancelTokenSource } from 'axios';
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "../store";
+
+// --------------------------------------------------------------------------------------
+// Declarations
+// --------------------------------------------------------------------------------------
 
 const api = createClient();
+const route = useRoute();
+const router = useRouter();
+const store = useStore();
 
-interface RecordingData {
-  apiUrl?: string;
-  baseUrl?: string;
-  channelName: string;
-  recordings: RecordingResponse[];
-  busy: boolean;
-  uploadProgress: number;
-  modal?: Modal;
-  channel?: ChannelResponse;
-  cancellationToken?: CancelTokenSource;
-  selectedRecordings: RecordingResponse[];
-}
+// Elements
+const file = ref<HTMLInputElement | null>(null);
+const upload = ref<HTMLDivElement | null>(null);
 
-export default defineComponent({
-  name: 'StreamItemView',
-  components: { ChannelBookmarkButton, LoadIndicator, RecordingItem },
-  inject: [ 'baseUrl', 'apiUrl', 'fileUrl' ],
-  watch: {
-    $route() {
-      this.recordings = [];
-    },
-  },
-  data(): RecordingData {
-    return {
-      selectedRecordings: [],
-      modal: undefined,
-      cancellationToken: undefined,
-      uploadProgress: 0,
-      busy: false,
-      recordings: [],
-      channel: undefined,
-      channelName: this.$route.params.channel as string,
-    };
-  },
-  computed: {
-    fav() {
-      return this.channel && this.channel.fav || false
+const selectedRecordings = ref<RecordingResponse[]>([]);
+const modal = ref<Modal | null>(null);
+const uploadProgress = ref(0);
+const busy = ref(false);
+const channel = ref<ChannelResponse | null>(null);
+const channelId = route.params.id as unknown as number;
+
+let cancellationToken: CancelTokenSource | null = null;
+
+// --------------------------------------------------------------------------------------
+// Watchers
+// --------------------------------------------------------------------------------------
+
+// watch(route, () => {
+//   chan.value = [];
+// });
+
+// --------------------------------------------------------------------------------------
+// Methods
+// --------------------------------------------------------------------------------------
+
+const fav = computed(() => channel.value && channel.value.fav || false);
+
+const clickFile = () => file.value?.click();
+
+const destroySelection = async () => {
+  if (!window.confirm('Delete selection?')) {
+    return;
+  }
+  for (let i = 0; i < selectedRecordings.value.length; i++) {
+    const rec = selectedRecordings.value[i];
+    await api.recordings.recordingsDelete(rec.recordingId);
+    const j = channel.value?.recordings?.findIndex(r => r.filename === rec.filename);
+    if (j && j !== -1) {
+      channel.value?.recordings?.splice(j, 1);
     }
-  },
-  methods: {
-    async destroySelection() {
-      if (!window.confirm('Delete selection?')) {
-        return;
-      }
-      for (let i = 0; i < this.selectedRecordings.length; i++) {
-        const rec = this.selectedRecordings[i];
-        await api.recordings.recordingsDelete(rec.channelName!, rec.filename!);
-        const j = this.recordings.findIndex(r => r.filename === rec.filename);
-        if (j !== -1) {
-          this.recordings.splice(j, 1);
-        }
-      }
-      this.selectedRecordings = [];
-    },
-    selectRecording(data: { checked: boolean, recording: RecordingResponse }) {
-      if (data.checked) {
-        this.selectedRecordings.push(data.recording);
-      } else {
-        const i = this.selectedRecordings.findIndex(rec => rec.filename === data.recording.filename);
-        if (i !== -1) {
-          this.selectedRecordings.splice(i, 1);
-        }
-      }
-    },
-    deleteChannel() {
-      if (window.confirm(`Delete channel "${this.channelName}"?`)) {
-        api.channels.channelsDelete(this.channelName)
-            .then(() => this.$store.commit('destroyChannel', { channelName: this.channelName }))
-            .finally(() => this.$router.back());
-      }
-    },
-    cancelUpload() {
-      if (this.cancellationToken) {
-        this.cancellationToken.cancel();
-      }
-      this.modal!.hide();
-    },
-    submit() {
-      const el = this.$refs.file as HTMLInputElement;
-      if (el.files && el.files!.length > 0) {
-        this.uploadProgress = 0;
-        this.modal!.show();
-        const [ req, cancellationToken ] = api.channelUpload(this.channelName, el.files![0], pcent => this.uploadProgress = pcent);
-        req.then(res => {
-          this.uploadProgress = 0;
-          this.recordings.unshift(res.data);
-          this.cancellationToken = undefined;
-          this.modal!.hide();
-          // clear old file
-          el.value = '';
-        }).catch(res => {
-          alert(res.error);
-          this.modal!.hide();
-        });
-        this.cancellationToken = cancellationToken;
-      }
-    },
-    destroyRecording(recording: RecordingResponse) {
-      for (let i = 0; i < this.recordings.length; i += 1) {
-        if (this.recordings[i].filename === recording.filename) {
-          this.recordings.splice(i, 1);
-          break;
-        }
+  }
+  selectedRecordings.value = [];
+};
+
+const selectRecording = (data: { checked: boolean, recording: RecordingResponse }) => {
+  if (data.checked) {
+    selectedRecordings.value.push(data.recording);
+  } else {
+    const i = selectedRecordings.value.findIndex(rec => rec.filename === data.recording.filename);
+    if (i !== -1) {
+      selectedRecordings.value.splice(i, 1);
+    }
+  }
+};
+
+const deleteChannel = () => {
+  if (window.confirm(`Delete channel "${channelId}"?`)) {
+    api.channels.channelsDelete(channelId)
+        .then(() => store.commit('destroyChannel', channelId))
+        .finally(() => router.back());
+  }
+};
+
+const cancelUpload = () => {
+  if (cancellationToken) {
+    cancellationToken.cancel();
+  }
+  modal.value!.hide();
+};
+
+const submit = () => {
+  const el = file as unknown as HTMLInputElement;
+  if (el.files && el.files!.length > 0) {
+    uploadProgress.value = 0;
+    modal.value!.show();
+    const [ req, cancelToken ] = api.channelUpload(channelId, el.files![0], pcent => uploadProgress.value = pcent);
+    req.then(res => {
+      uploadProgress.value = 0;
+      channel.value?.recordings?.unshift(res.data);
+      cancellationToken = null;
+      modal.value!.hide();
+      // clear old file
+      el.value = '';
+    }).catch(res => {
+      alert(res.error);
+      modal.value!.hide();
+    });
+    cancellationToken = cancelToken;
+  }
+};
+
+const destroyRecording = (recording: RecordingResponse) => {
+  if (channel.value?.recordings) {
+    for (let i = 0; i < channel.value?.recordings?.length; i += 1) {
+      if (channel.value?.recordings && channel.value?.recordings[i].recordingId === recording.recordingId) {
+        channel.value?.recordings?.splice(i, 1);
+        break;
       }
     }
-  },
-  async mounted() {
-    try {
-      this.modal = new Modal(this.$refs.upload as HTMLElement);
-      this.busy = true;
+  }
+};
 
-      const response = await api.channels.channelsDetail(this.channelName);
-      this.channel = response.data as ChannelResponse;
-      this.busy = false;
+// --------------------------------------------------------------------------------------
+// Hooks
+// --------------------------------------------------------------------------------------
 
-      const response2 = await api.recordings.recordingsDetail(this.channelName);
-      this.recordings = response2.data;
-      window.scrollTo(0, 0);
-    } finally {
-      this.busy = false;
-    }
+onMounted(async () => {
+  try {
+    modal.value = new Modal(upload.value as unknown as HTMLElement);
+    busy.value = true;
+
+    const response = await api.channels.channelsDetail(channelId);
+    channel.value = response.data;
+    busy.value = false;
+
+    window.scrollTo(0, 0);
+  } finally {
+    busy.value = false;
   }
 });
 </script>
 
 <style scoped>
-
 </style>

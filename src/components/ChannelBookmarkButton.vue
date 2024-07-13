@@ -3,47 +3,37 @@
   <span v-else class="spinner-border spinner-border-sm" aria-hidden="true"></span>
 </template>
 
-<script lang="ts">
-import { createClient } from '@/services/api/v1/ClientFactory';
-import { defineComponent } from 'vue';
-import FavButton from '@/components/controls/FavButton.vue';
+<script setup lang="ts">
+import { createClient } from '../services/api/v1/ClientFactory';
+import { ref, defineProps } from 'vue';
+import FavButton from './controls/FavButton.vue';
 
 const api = createClient();
 
-export default defineComponent({
-  name: 'ChannelBookmarkButton',
-  components: { FavButton },
-  props: {
-    bookmarked: { type: Boolean, required: true },
-    channelName: { type: String, required: true },
-  },
-  data() {
-    return {
-      channel: this.channelName,
-      file: this.fileName,
-      busy: false,
-      fav: this.bookmarked,
-    };
-  },
-  methods: {
-    bookmark() {
-      this.busy = true;
-      if (this.fav) {
-        api.channels.unfavPartialUpdate(this.channel)
-            .then(() => this.fav = false)
-            .catch(res => alert(res.error))
-            .finally(() => this.busy = false);
-      } else {
-        api.channels.favPartialUpdate(this.channel)
-            .then(() => this.fav = true)
-            .catch(res => alert(res.error))
-            .finally(() => this.busy = false);
-      }
-    },
+const props = defineProps<{
+  bookmarked: boolean
+  channelId: number
+}>();
+
+const busy = ref(false);
+const fav = ref(props.bookmarked);
+
+const bookmark = () => {
+  busy.value = true;
+  if (fav.value) {
+    alert(props.channelId);
+    api.channels.unfavPartialUpdate(props.channelId)
+        .then(() => fav.value = false)
+        .catch(res => alert(res.error))
+        .finally(() => busy.value = false);
+  } else {
+    api.channels.favPartialUpdate(props.channelId)
+        .then(() => fav.value = true)
+        .catch(res => alert(res.error))
+        .finally(() => busy.value = false);
   }
-});
+};
 </script>
 
 <style scoped>
-
 </style>

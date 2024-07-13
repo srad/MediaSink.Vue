@@ -27,83 +27,63 @@
   <div class="row">
     <LoadIndicator :busy="busy" :empty="recordings.length === 0" empty-text="No Videos">
       <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-        <RecordingItem :show-title="true" :recording="recording" @destroyed="destroyRecording"/>
+        <RecordingItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false"/>
       </div>
     </LoadIndicator>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { DatabaseRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
-import { createClient } from '@/services/api/v1/ClientFactory';
-import RecordingItem from '@/components/RecordingItem.vue';
-import LoadIndicator from '@/components/LoadIndicator.vue';
+<script setup lang="ts">
+import { watch, ref, onMounted } from 'vue';
+import { createClient } from '../services/api/v1/ClientFactory';
+import RecordingItem from '../components/RecordingItem.vue';
+import LoadIndicator from '../components/LoadIndicator.vue';
+import { useRoute } from "vue-router";
+import { ModelsRecording as RecordingResponse } from "../services/api/v1/StreamSinkClient.ts";
 
-interface RecordingData {
-  baseUrl?: string;
-  busy: boolean;
-  recordings: RecordingResponse[];
-  selectedStream: string;
-  limits: number[];
-  filterLimit: string;
-}
+const route = useRoute();
 
 const api = createClient();
 
-export default defineComponent({
-  name: 'streamsink-randomview',
-  components: { LoadIndicator, RecordingItem },
-  inject: ['baseUrl', 'apiUrl'],
-  emits: ['load'],
-  watch: {
-    $route() {
-      this.fetch();
-    }
-  },
-  data(): RecordingData {
-    return {
-      busy: true,
-      filterLimit: this.$route.params.limit as string || '25',
-      limits: [
-        25,
-        50,
-        100,
-        200,
-      ],
-      recordings: [],
-      selectedStream: '',
-    };
-  },
-  methods: {
-    async fetch() {
-      try {
-        const res = await api.recordings.randomDetail(this.filterLimit);
-        this.recordings = res.data;
-      } catch (ex) {
-        alert(ex);
-      } finally {
-        this.busy = false;
-      }
-    },
-    viewFolder(channel: string) {
-      this.$router.push('/recordings/' + channel);
-    },
-    destroyRecording(recording: RecordingResponse) {
-      for (let i = 0; i < this.recordings.length; i += 1) {
-        if (this.recordings[i].filename === recording.filename) {
-          this.recordings.splice(i, 1);
-          break;
-        }
-      }
-    }
-  },
-  mounted() {
-    this.fetch();
+watch(route, () => {
+  fetch();
+});
+
+const busy = ref(true);
+const filterLimit = route.params.limit as string || '25';
+const limits = ref([
+  25,
+  50,
+  100,
+  200,
+]);
+
+const recordings = ref<RecordingResponse[]>([]);
+
+const fetch = async () => {
+  try {
+    const res = await api.recordings.randomDetail(filterLimit);
+    recordings.value = res.data;
+  } catch (ex) {
+    alert(ex);
+  } finally {
+    busy.value = false;
   }
+};
+
+const destroyRecording = (recording: RecordingResponse) => {
+  for (let i = 0; i < recordings.value.length; i += 1) {
+    if (recordings.value[i].filename === recording.filename) {
+      recordings.value.splice(i, 1);
+      break;
+    }
+  }
+};
+
+onMounted(() => {
+  fetch();
 });
 </script>
 
 <style scoped>
-
 </style>

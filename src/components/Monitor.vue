@@ -27,7 +27,7 @@
     <h5>
     <span class="badge ">
       <i class="bi bi-hdd-network"></i>
-      {{ (netInput / 1024 / 1024).toFixed(1) }}MB (in) {{ (netOutput / 1024 / 1024).toFixed(1) }}MB (out)
+      {{ netInputMB }}MB (in) {{ netOutputMB }}MB (out)
     </span>
     </h5>
     |
@@ -42,46 +42,39 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 // function pad(num, size) {
 //   const s = "000000000" + num;
 //   return s.substr(s.length - size);
 // }
 
-export default {
-  name: "Monitor",
-  computed: {
-    uptimeHours() {
-      return (this.uptime / 60 / 60).toFixed(2);
-    },
-    cpuFormatted() {
-      return this.cpu; //pad(this.cpu, 6);
-    },
-    usedMem() {
-      return (this.memUsed / 1024).toFixed(2);
-    },
-    totalMem() {
-      return (this.memTotal / 1024).toFixed(2);
-    },
-    diskPercent() {
-      const u = parseInt(this.diskUsed, 10);
-      const t = parseInt(this.diskTotal, 10);
-      return (u / t * 100).toFixed(2);
-    }
-  },
-  props: {
-    cpu: Number,
-    uptime: Number,
-    memTotal: Number,
-    memUsed: Number,
-    netInput: Number,
-    netOutput: Number,
-    netInTraffic: Number,
-    netOutTraffic: Number,
-    diskUsed: String,
-    diskTotal: String,
-  },
-};
+import { computed, defineProps } from "vue";
+
+const props = defineProps<{
+  cpu: number
+  uptime: number
+  memTotal: number
+  memUsed: number
+  netInput: number
+  netOutput: number
+  netInTraffic: number
+  netOutTraffic: number
+  diskUsed: string
+  diskTotal: string
+}>();
+
+const uptimeHours = computed(() => (props.uptime / 60 / 60).toFixed(2));
+const cpuFormatted = computed(() => (props.cpu /*pad(this.cpu, 6)*/));
+const usedMem = computed(() => (props.memUsed / 1024).toFixed(2));
+const totalMem = computed(() => (props.memTotal / 1024).toFixed(2));
+const diskPercent = computed(() => {
+  const u = parseInt(props.diskUsed, 10);
+  const t = parseInt(props.diskTotal, 10);
+  return (u / t * 100).toFixed(2);
+});
+
+const netInputMB = computed(() => (props.netInput / 1024 / 1024).toFixed(1));
+const netOutputMB = computed(() => (props.netOutput / 1024 / 1024).toFixed(1));
 </script>
 
 <style scoped>
