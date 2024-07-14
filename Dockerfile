@@ -12,7 +12,7 @@ RUN npm install --fetch-timeout=600000 --save-dev
 
 COPY . .
 
-RUN npm run test:unit
+RUN npm run test
 RUN npm run build
 
 ARG APP_API_URL
