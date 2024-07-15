@@ -58,6 +58,9 @@ export const store = createStore<State>({
         state.jobs[i].progress = String(job.data.frame / job.data.packets * 100);
       }
     },
+    'jobs:refresh'(state: State, jobs: JobResponse[]) {
+      state.jobs = jobs;
+    },
     'channel:online'(state: State, data: { channelName: string }) {
       const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
       if (i !== -1) {

@@ -27,7 +27,7 @@
         </span>
       </template>
       <div v-show="showTagInput" class="input-group input-group-sm">
-        <input type="text" class="form-control form-control-sm" ref="tagInput" v-model.lazy="tagVal" autocapitalize="off" autocomplete="off">
+        <input class="form-control form-control-sm" ref="tagInput" v-model.lazy="tagVal" type="text" :name="`${channel.channelId}_tag`" autocapitalize="off" autocomplete="off">
         <button class="btn btn-sm btn-success" @click="addTag">save</button>
       </div>
       <span v-show="!showTagInput" class="badge bg-success" @click="showTagInput=true">
@@ -38,8 +38,8 @@
 
       <div class="d-flex w-75">
         <span class="form-check form-switch me-2">
-          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" id="flexSwitchCheckDefault">
-          <label class="form-check-label" for="flexSwitchCheckDefault">Record</label>
+          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`">
+          <label class="form-check-label" :for="`${channel.channelId}_isPaused`">Record</label>
         </span>
         <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)"/>
       </div>

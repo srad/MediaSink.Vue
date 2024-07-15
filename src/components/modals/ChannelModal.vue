@@ -1,31 +1,31 @@
 <template>
-  <div class="modal fade border-primary" ref="addChannelModal" aria-hidden="true" aria-labelledby="exampleModalToggleLabel2" tabindex="-1">
+  <div class="modal fade border-primary" ref="addChannelModal" aria-hidden="true" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-primary shadow-sm border-2 border">
         <div class="modal-header bg-primary text-white rounded-0">
-          <h5 class="modal-title" id="exampleModalToggleLabel2">{{ myTitle }}</h5>
+          <h5 class="modal-title">{{ myTitle }}</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @click="emit('close')"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label for="url" class="form-label fw-bold">URL</label>
+            <label :for="`${id}_url`" class="form-label fw-bold">URL</label>
             <div class="input-group mb-3">
-              <input type="url" required autocomplete="off" ref="url" class="form-control" id="url" v-model="myUrl" @input="recommendChannelName">
-              <button class="btn btn-outline-secondary" type="button" id="button-addon1" @click="paste">
+              <input :id="`${id}_url`" type="url" required autocomplete="off" ref="url" class="form-control" :name="`${id}_url`" v-model="myUrl" @input="recommendChannelName">
+              <button class="btn btn-outline-secondary" type="button" name="button-addon1" @click="paste">
                 Paste
               </button>
             </div>
           </div>
 
           <div class="mb-3">
-            <label for="display" class="form-label fw-bold">Display name</label>
-            <input type="text" required autocapitalize="off" autocomplete="off" class="form-control" id="display" v-model="myDisplayName">
+            <label :for="`${id}_display`" class="form-label fw-bold">Display name</label>
+            <input :id="`${id}_display`" type="text" required autocapitalize="off" autocomplete="off" class="form-control" :name="`${id}_display`" v-model="myDisplayName">
             <div class="fs-6 my-2">Displayed as stream name. Can be changed at any time.</div>
           </div>
 
           <div class="mb-3">
-            <label for="channel" class="form-label fw-bold">Channel name</label>
-            <input type="text" required autocapitalize="off" autocomplete="off" class="form-control" id="channel" :disabled="channelDisabled" v-model="myChannelName">
+            <label :for="`${id}_channel`" class="form-label fw-bold">Channel name</label>
+            <input :id="`${id}_channel`" type="text" required autocapitalize="off" autocomplete="off" class="form-control" :name="`${id}_channel`" :disabled="channelDisabled" v-model="myChannelName">
             <div v-if="!channelDisabled" class="fs-6 my-2">
               Only <span class="badge bg-info">a-z</span> and <span class="badge bg-info">_</span> allowed.
               This will also be the parent folder name for all recordings of this service.
@@ -36,8 +36,8 @@
           </div>
 
           <div class="mb-3">
-            <label for="skip" class="form-label fw-bold">Skip start (seconds)</label>
-            <input type="number" required min="0" class="form-control" id="skip" v-model="mySkipStart">
+            <label :for="`${id}_skip`" class="form-label fw-bold">Skip start (seconds)</label>
+            <input :id="`${id}_skip`" type="number" required min="0" class="form-control" :name="`${id}_skip`" v-model="mySkipStart">
             <div class="fs-6 my-2">
               Some broadcasters have certain number of seconds ads at the video start.
               Define how many seconds at start should be skipped when recording, i.e. for Twitch 15s.
@@ -46,8 +46,8 @@
 
           <div class="mb-3">
             <div class="form-check form-switch">
-              <input type="checkbox" required :checked="myIsPaused" class="form-check-input" id="pause" v-model="myIsPaused">
-              <label class="form-check-label">Pause Recording</label>
+              <input :id="`${id}_isPaused`" type="checkbox" required :checked="myIsPaused" class="form-check-input" :name="`${id}_isPaused`" v-model="myIsPaused">
+              <label class="form-check-label" :for="`${id}_isPaused`">Pause Recording</label>
             </div>
             <div class="fs-6 my-2">
               Do not record as long as paused.
@@ -72,6 +72,7 @@
 <script setup lang="ts">
 import { Modal } from 'bootstrap';
 import { defineProps, defineEmits, watch, onMounted, ref } from 'vue';
+import { randomString } from "../../utils/math.ts";
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -94,6 +95,7 @@ const props = defineProps<{
 // Declarations
 // --------------------------------------------------------------------------------------
 
+const id = randomString();
 const channelParser = /^[a-z_0-9]+$/i;
 
 let modal: Modal | null = null;

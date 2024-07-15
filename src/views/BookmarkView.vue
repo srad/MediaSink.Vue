@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
 import { ModelsRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
 import RecordingItem from '../components/RecordingItem.vue';
@@ -54,9 +54,12 @@ const destroyRecording = async (recording: RecordingResponse) => {
   }
 };
 
-const response = await api.recordings.bookmarksList();
-recordings.value = response.data;
-busy.value = false;
+onMounted(() => {
+  api.recordings.bookmarksList()
+      .then(response => {
+        recordings.value = response.data;
+      }).finally(() => busy.value = false);
+})
 </script>
 
 <style scoped></style>

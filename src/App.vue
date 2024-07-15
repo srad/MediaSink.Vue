@@ -54,11 +54,11 @@ const save = (data: ChannelRequest) => {
 
 onMounted(() => {
   // Dispatch
-  socket.on(MessageType.JOB_CREATE, data => store.commit('job:create', data));
-  socket.on(MessageType.JOB_DESTROY, data => store.commit('job:destroy', data));
-  socket.on(MessageType.JOB_PREVIEW_DONE, data => store.commit('job:preview:done', data));
-  socket.on(MessageType.JOB_PROGRESS, data => store.commit('job:progress', data));
-  socket.on(MessageType.JOB_PREVIEW_PROGRESS, data => store.commit('job:preview:progress', data));
+  socket.on(MessageType.JobCreate, data => store.commit('job:create', data));
+  socket.on(MessageType.JobDestroy, data => store.commit('job:destroy', data));
+  socket.on(MessageType.JobPreviewDone, data => store.commit('job:preview:done', data));
+  socket.on(MessageType.JobProgress, data => store.commit('job:progress', data));
+  socket.on(MessageType.JobPreviewProgress, data => store.commit('job:preview:progress', data));
 
   api.jobs.jobsList()
       .then(result => result.data.forEach((job: JobResponse) => store.commit('addJob', job)))

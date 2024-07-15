@@ -98,7 +98,7 @@ export interface ModelsRecording {
   previewVideo?: string;
   recordingId: number;
   size: number;
-  videoType?: string;
+  videoType: string;
   width: number;
 }
 export interface V1ChannelRequest {
@@ -469,23 +469,12 @@ export class StreamSinkClient<SecurityDataType extends unknown> extends HttpClie
      * @summary Add a new channel
      * @request PATCH:/channels/{id}
      */
-    channelsPartialUpdate: (
-      id: number,
-      data: {
-        channelName?: string;
-        displayName?: string;
-        isPaused?: boolean;
-        skipStart?: number;
-        tags?: string[];
-        url?: string;
-      },
-      params: RequestParams = {},
-    ) =>
+    channelsPartialUpdate: (id: number, ChannelRequest: V1ChannelRequest, params: RequestParams = {}) =>
       this.request<ModelsChannel, any>({
         path: `/channels/${id}`,
         method: "PATCH",
-        body: data,
-        type: ContentType.FormData,
+        body: ChannelRequest,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

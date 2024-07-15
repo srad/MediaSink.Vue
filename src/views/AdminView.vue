@@ -52,7 +52,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(cpu, i) in cpuInfo.datasets[0].data" :key="i">
+                <tr v-for="(cpu, i) in cpuInfo" :key="i">
                   <td class="text-end align-middle">{{ cpu.cpu }}</td>
                   <td class="align-middle">
                     <div class="progress m-2">
@@ -150,19 +150,21 @@ const info = reactive({
   netInfo: { dev: '', receiveBytes: 0, transmitBytes: 0 },
 });
 
-const cpuInfo = reactive<{
-  labels: string[],
-  datasets: { backgroundColor: string, label: string, data: HelpersCPULoad[] }[]
-}>({
-  labels: [ 'A', 'B' ],
-  datasets: [
-    {
-      backgroundColor: 'rgb(77, 186, 135)',
-      label: 'Game Overs',
-      data: []
-    }
-  ]
-});
+// const cpuInfo = reactive<{
+//   labels: string[],
+//   datasets: { backgroundColor: string, label: string, data: HelpersCPULoad[] }[]
+// }>({
+//   labels: [ 'A', 'B' ],
+//   datasets: [
+//     {
+//       backgroundColor: 'rgb(77, 186, 135)',
+//       label: 'Game Overs',
+//       data: []
+//     }
+//   ]
+// });
+
+const cpuInfo = ref<HelpersCPULoad[]>([]);
 
 const id = ref(0);
 
@@ -182,17 +184,17 @@ const posters = async () => {
   }
 };
 
-const fillData = () => {
-  cpuInfo.labels = [ 'A', 'B' ];
-  cpuInfo.datasets = []
-};
+// const fillData = () => {
+//   cpuInfo.labels = [ 'A', 'B' ];
+//   cpuInfo.datasets = []
+// };
 
 const updateInfo = () => {
   if (window.confirm('Check all durations and update in database?')) {
 
     api.recordings.updateinfoCreate()
         .then(() => isUpdating.value = true)
-        .catch(res => alert(res.error));
+        .catch(res => console.error(res.error));
   }
 };
 
@@ -205,13 +207,14 @@ const fetch = () => {
     }
 
     if (res.data.cpuInfo) {
-      cpuInfo.datasets[0].data = res.data.cpuInfo.loadCpu!;
+      cpuInfo.value = res.data.cpuInfo.loadCpu || [];
+      //cpuInfo.datasets[0].data = res.data.cpuInfo.loadCpu!;
     }
 
     api.admin.importingList().then(res => importing.value = res.data);
     // TODO: not implemented yet
     //api.recordings.isupdatingList().then(res => this.isUpdating = res.data);
-  }).catch(res => alert(res.error))
+  }).catch(res => console.error(res.error))
       .finally(() => loaded.value = true);
 };
 
@@ -220,7 +223,8 @@ onBeforeRouteLeave(() => {
 });
 
 onMounted(() => {
-  fillData();
+  //fillData();
+  fetch();
   id.value = setInterval(fetch, 2500);
 });
 </script>

@@ -44,14 +44,14 @@ export const socket = {
 };
 
 export const MessageType = {
-  CHANNEL_ONLINE: 'channel:online',
-  CHANNEL_OFFLINE: 'channel:offline',
-  CHANNEL_THUMBNAIL: 'channel:thumbnail',
-  CHANNEL_START: 'channel:start',
+  ChannelOnline: 'channel:online',
+  ChannelOffline: 'channel:offline',
+  ChannelThumbnail: 'channel:thumbnail',
+  ChannelStart: 'channel:start',
 
-  JOB_CREATE: 'job:create',
-  JOB_DESTROY: 'job:destroy',
-  JOB_PREVIEW_DONE: 'job:preview:done',
-  JOB_PROGRESS: 'job:progress',
-  JOB_PREVIEW_PROGRESS: 'job:preview:progress'
+  JobCreate: 'job:create',
+  JobDestroy: 'job:destroy',
+  JobPreviewDone: 'job:preview:done',
+  JobProgress: 'job:progress',
+  JobPreviewProgress: 'job:preview:progress'
 };

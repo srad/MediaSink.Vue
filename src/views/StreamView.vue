@@ -19,7 +19,7 @@
       <div class="col">
         <!--<div class="d-flex rounded-2 border mb-3 p-0 bg-light border-info p-1">-->
         <div class="input-group mb-3 align-middle">
-          <input autocapitalize="off" class="form-control" type="text" placeholder="search ... #tag" v-model="searchVal">
+          <input autocapitalize="off" class="form-control" type="text" name="search" placeholder="search ... #tag" v-model="searchVal">
           <!--
           <select class="form-select mb-3 ms-3 bg-light border-info w-20" v-model="tagFilter">
             <option value=""></option>
@@ -260,10 +260,10 @@ onMounted(async () => {
   const res = await api.channels.channelsList();
   res.data.forEach(channel => store.commit('addChannel', channel));
 
-  socket.on(MessageType.CHANNEL_ONLINE, data => store.commit('channel:online', data));
-  socket.on(MessageType.CHANNEL_OFFLINE, data => store.commit('channel:offline', data));
-  socket.on(MessageType.CHANNEL_THUMBNAIL, data => store.commit('channel:thumbnail', data));
-  socket.on(MessageType.CHANNEL_START, data => store.commit('channel:start', data));
+  socket.on(MessageType.ChannelOnline, data => store.commit('channel:online', data));
+  socket.on(MessageType.ChannelOffline, data => store.commit('channel:offline', data));
+  socket.on(MessageType.ChannelThumbnail, data => store.commit('channel:thumbnail', data));
+  socket.on(MessageType.ChannelStart, data => store.commit('channel:start', data));
 });
 </script>
 
