@@ -1,8 +1,21 @@
-import { StreamSinkClient, ModelsRecording as RecordingResponse, V1RecordingStatus } from './StreamSinkClient';
+import { StreamSinkClient, ModelsRecording as RecordingResponse, V1RecordingStatus, HttpClient } from './StreamSinkClient';
 import axios, { AxiosResponse } from "axios";
 import { CancelTokenSource } from 'axios';
 
-class MyClient extends StreamSinkClient<any> {
+export class MyClient extends StreamSinkClient<any> {
+  constructor() {
+    const client = new HttpClient({
+      baseUrl: window.VUE_APP_APIURL,
+    });
+    super(client);
+  }
+
+  /**
+   * Custom function to upload and cancel large files with progress indicator.
+   * @param channelId Upload to which channel
+   * @param file File object to upload
+   * @param progress Returns the progress as number in range [0.0 ... 1.0]
+   */
   channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [ Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource ] {
     const source = axios.CancelToken.source();
     const formData = new FormData();
@@ -25,6 +38,4 @@ class MyClient extends StreamSinkClient<any> {
   }
 }
 
-export function createClient(): MyClient {
-  return new MyClient({ baseUrl: window.VUE_APP_APIURL });
-}
+export const createClient = (): MyClient => new MyClient();

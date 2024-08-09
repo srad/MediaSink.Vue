@@ -101,7 +101,7 @@ const modal = ref<Modal | null>(null);
 const uploadProgress = ref(0);
 const busy = ref(false);
 const channel = ref<ChannelResponse | null>(null);
-const channelId = route.params.id as unknown as number;
+const channelId = (+route.params.id) as unknown as number;
 
 let cancellationToken: CancelTokenSource | null = null;
 
@@ -206,6 +206,7 @@ onMounted(async () => {
     const response = await api.channels.channelsDetail(channelId);
     channel.value = response.data;
     busy.value = false;
+    console.log(response);
 
     window.scrollTo(0, 0);
   } finally {

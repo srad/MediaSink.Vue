@@ -10,17 +10,19 @@ import LoginView from './views/LoginView.vue';
 import LogoutView from './views/LogoutView.vue';
 import StreamItemView from './views/StreamItemView.vue';
 import RandomView from './views/RandomView.vue';
+import OverviewView from './views/OverviewView.vue';
 
 const routes = [
   { path: '', redirect: '/streams' },
   { path: '/', redirect: '/streams/live/tab' },
+  { path: '/overview', name: 'OverView', component: OverviewView },
   { path: '/admin', name: 'Admin', component: AdminView },
   { path: '/jobs', name: 'Job', component: JobView },
   { path: '/streams/:tab/tab/:tag?', name: 'Stream', component: StreamView },
   { path: '/streams/:id', name: 'StreamItem', component: StreamItemView, props: true },
   { path: '/filter', name: 'Filter', component: SortView },
   { path: '/random', name: 'Random', component: RandomView },
-  { path: '/recordings/:id', name: 'Video', component: VideoView, props: true },
+  { path: '/recordings/:id', name: 'Video', component: VideoView },
   { path: '/logs', name: 'Log', component: LogView },
   { path: '/login', name: 'Login', component: LoginView },
   { path: '/logout', name: 'Logout', component: LogoutView },

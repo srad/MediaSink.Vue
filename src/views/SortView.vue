@@ -12,7 +12,7 @@
                 </label>
               </div>
               <div class="col-auto">
-                <select class="form-select" v-model="filterColumn" @change="routeFilter">
+                <select ref="filterColumnSelect" class="form-select" v-model="filterColumn" @change="routeFilter">
                   <option v-for="col in columns" :key="col[1]" :value="col[1]">{{ col[0] }}</option>
                 </select>
               </div>
@@ -22,7 +22,7 @@
                 </label>
               </div>
               <div class="col-auto">
-                <select class="form-select text-capitalize" v-model="filterOrder" @change="routeFilter">
+                <select ref="sortOrderSelect" class="form-select text-capitalize" v-model="filterOrder" @input="routeFilter">
                   <option v-for="o in order" :key="o" :value="o">{{ o }}</option>
                 </select>
               </div>
@@ -32,14 +32,14 @@
                 </label>
               </div>
               <div class="col-auto">
-                <select id="limit" class="form-select" v-model="filterLimit" @change="routeFilter">
+                <select ref="filterOrderSelect" id="limit" class="form-select" v-model="filterLimit" @change="routeFilter">
                   <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
                 </select>
               </div>
             </div>
             <!-- filter row -->
           </div>
-          <button class="btn btn-primary" @click="routeFilter" v-if="$route.params.type==='random'">
+          <button class="btn btn-primary" @click="routeFilter" v-if="route.params.type==='random'">
             Refresh
           </button>
         </div>
@@ -60,7 +60,7 @@
 import { createClient } from "../services/api/v1/ClientFactory";
 import { ModelsRecording as RecordingResponse } from "../services/api/v1/StreamSinkClient";
 import RecordingItem from '../components/RecordingItem.vue';
-import {  onMounted, ref, watch } from 'vue';
+import { onBeforeMount, ref, watch } from 'vue';
 import LoadIndicator from '../components/LoadIndicator.vue';
 import { useRoute, useRouter } from "vue-router";
 
@@ -69,9 +69,12 @@ const api = createClient();
 const route = useRoute();
 const router = useRouter();
 
-watch(route.query, () => fetch());
+watch(() => route.query, () => fetch());
 
 const busy = ref(true);
+const sortOrderSelect = ref<HTMLSelectElement | null>(null);
+const filterColumnSelect = ref<HTMLSelectElement | null>(null);
+const filterLimitSelect = ref<HTMLSelectElement | null>(null);
 const filterOrder = route.query.order as string || 'desc';
 const filterColumn = route.query.column as string || 'created_at';
 const filterLimit = route.query.limit as string || '25';
@@ -92,9 +95,9 @@ const routeFilter = () => {
   router.push({
     path: route.path,
     query: {
-      order: filterOrder,
-      column: filterColumn,
-      limit: filterLimit,
+      order: sortOrderSelect.value?.value,
+      column: filterColumnSelect.value?.value,
+      limit: filterLimitSelect.value?.value,
     },
     force: true
   });
@@ -116,7 +119,5 @@ const destroyRecording = (recording: RecordingResponse) => {
     }
   }
 };
-onMounted(() => {
-  fetch();
-});
+onBeforeMount(fetch);
 </script>

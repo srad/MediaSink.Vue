@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeMount } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
 import JobTable from '../components/JobTable.vue';
 import { ModelsJob } from '../services/api/v1/StreamSinkClient';
@@ -58,7 +58,7 @@ const destroy = (id: number) => {
       .catch(res => alert(res.error));
 };
 
-onMounted(() => {
+onBeforeMount(() => {
   api.jobs.jobsList().then(res => {
     store.commit('jobs:refresh', res.data);
   })

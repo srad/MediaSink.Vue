@@ -22,7 +22,7 @@
       </RouterLink>
     </div>
     <div v-if="props.showTitle" class="card-body">
-      <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="$router.push('/streams/' + props.recording.channelName)">
+      <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="$router.push('/streams/' + props.recording.channelId)">
         <h6 class="p-2 m-0 text-white">
           <a class="text-white" target="_blank">
             {{ props.recording.channelName }}
@@ -110,7 +110,7 @@ watch(checked, (val) => {
 const bookmark = async (recording: RecordingResponse, yesNo: boolean) => {
   try {
     busy.value = true;
-    const method = yesNo ? api.recordings.favCreate : api.recordings.unfavCreate;
+    const method = yesNo ? api.recordings.favPartialUpdate : api.recordings.unfavPartialUpdate;
     await method(recording.recordingId);
     recording.bookmark = yesNo;
     emit('bookmark', recording);

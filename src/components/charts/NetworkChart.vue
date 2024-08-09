@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onBeforeMount, ref } from 'vue';
 
 import {
   Chart,
@@ -70,7 +70,7 @@ Chart.register(
 const api = createClient();
 const myChart = ref<HTMLCanvasElement | null>(null);
 
-onMounted(async () => {
+onBeforeMount(async () => {
   const response = await api.metric.netList();
 
   const ctx = myChart.value!.getContext("2d");

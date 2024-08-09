@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref, onMounted } from 'vue';
+import { watch, ref, onBeforeMount } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
 import RecordingItem from '../components/RecordingItem.vue';
 import LoadIndicator from '../components/LoadIndicator.vue';
@@ -80,9 +80,7 @@ const destroyRecording = (recording: RecordingResponse) => {
   }
 };
 
-onMounted(() => {
-  fetch();
-});
+onBeforeMount(fetch);
 </script>
 
 <style scoped>

@@ -8,15 +8,14 @@ const c = new WebSocket(window.VUE_APP_SOCKETURL);
 
 const listeners = {};
 
-function addListener(event: string, fn: (data: Object) => void) {
-
+const addListener = (event: string, fn: (data: Object) => void) => {
   if (!listeners[event]) {
     listeners[event] = [];
   }
   listeners[event].push(fn);
-}
+};
 
-function notify(event: string, data: object) {
+const notify = (event: string, data: object) => {
   if (!listeners[event]) {
     return;
   }
@@ -24,14 +23,14 @@ function notify(event: string, data: object) {
   if (listeners[event]) {
     listeners[event].forEach(fn => fn(data));
   }
-}
+};
 
 c.onmessage = (msg: any) => {
   const json = JSON.parse(msg.data) as { name: string, data: Object };
   notify(json.name, json.data);
 };
 
-c.onopen = function () {
+c.onopen = () => {
   console.log('open ws');
 };
 

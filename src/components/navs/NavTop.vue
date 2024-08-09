@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, watch, defineEmits, computed, ref, reactive, onMounted } from 'vue';
+import { defineProps, watch, defineEmits, computed, ref, reactive, onBeforeMount } from 'vue';
 import { createClient } from '../../services/api/v1/ClientFactory';
 import DiskStatus from '../DiskStatus.vue';
 import RecordingControls from '../RecordingControls.vue';
@@ -95,10 +95,10 @@ const query = async () => {
   recording.value = await api.isRecording();
 
   const diskRes = await api.info.diskList();
-  diskInfo.avail = diskRes.data.avail!;
+  diskInfo.avail = diskRes.data.availFormattedGb!;
   diskInfo.pcent = diskRes.data.pcent!;
-  diskInfo.size = diskRes.data.size!;
-  diskInfo.used = diskRes.data.used!;
+  diskInfo.size = diskRes.data.sizeFormattedGb!;
+  diskInfo.used = diskRes.data.usedFormattedGb!;
 };
 
 const record = async (resume: boolean) => {
@@ -124,7 +124,7 @@ const record = async (resume: boolean) => {
 // Hooks
 // --------------------------------------------------------------------------------------
 
-onMounted(async () => {
+onBeforeMount(async () => {
   await query();
   setInterval(async () => await query(), 10 * 1000);
 });

@@ -36,6 +36,14 @@
           </div>
 
           <div class="mb-3">
+            <label :for="`${id}_minDuration`" class="form-label fw-bold">Minimum recording duration (minutes)</label>
+            <input :id="`${id}_minDuration`" type="number" required min="0" class="form-control" :name="`${id}_minDuration`" v-model="myMinDuration">
+            <div class="fs-6 my-2">
+              Under this duration (min) a recording is discarded (considered too short)
+            </div>
+          </div>
+
+          <div class="mb-3">
             <label :for="`${id}_skip`" class="form-label fw-bold">Skip start (seconds)</label>
             <input :id="`${id}_skip`" type="number" required min="0" class="form-control" :name="`${id}_skip`" v-model="mySkipStart">
             <div class="fs-6 my-2">
@@ -88,6 +96,7 @@ const props = defineProps<{
   displayName?: string
   url?: string
   skipStart?: number
+  minDuration?: number
   title: string
 }>();
 
@@ -105,6 +114,7 @@ const myUrl = ref(props.url || '');
 const myDisplayName = ref(props.displayName || '');
 const myChannelName = ref(props.channelName || '');
 const mySkipStart = ref(props.skipStart || 0);
+const myMinDuration = ref(props.minDuration || 0);
 const saving = ref(false);
 
 const url = ref<HTMLInputElement | null>(null);
@@ -121,6 +131,7 @@ export interface ChannelUpdate {
   url: string,
   displayName: string,
   skipStart: number
+  minDuration: number
 }
 
 const emit = defineEmits<{
@@ -144,6 +155,7 @@ watch(() => props.clear, (val) => {
     myUrl.value = '';
     myDisplayName.value = '';
     mySkipStart.value = 0;
+    myMinDuration.value = 10;
   }
 });
 
@@ -165,6 +177,7 @@ watch(() => props.url, _ => myUrl.value = props.url || "");
 watch(() => props.displayName, _ => myDisplayName.value = props.displayName || "");
 watch(() => props.channelName, _ => myChannelName.value = props.channelName || "");
 watch(() => props.skipStart, _ => mySkipStart.value = props.skipStart || 0);
+watch(() => props.minDuration, _ => myMinDuration.value = props.minDuration || 0);
 
 // --------------------------------------------------------------------------------------
 // Methods
@@ -202,7 +215,8 @@ const save = () => {
       channelName: myChannelName.value,
       url: myUrl.value,
       displayName: myDisplayName.value,
-      skipStart: mySkipStart.value
+      skipStart: mySkipStart.value,
+      minDuration: myMinDuration.value
     });
     saving.value = true;
   } else {

@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onBeforeMount, ref } from 'vue';
 import { V1ChannelRequest as ChannelRequest, ModelsJob as JobResponse } from './services/api/v1/StreamSinkClient';
 import { socket, MessageType } from "./utils/socket";
 import ChannelModal from './components/modals/ChannelModal.vue';
@@ -27,6 +27,7 @@ import NavTop from './components/navs/NavTop.vue';
 import { createClient } from './services/api/v1/ClientFactory';
 import { useI18n } from "vue-i18n";
 import { useStore } from "./store";
+import axios from "axios";
 
 const { t } = useI18n();
 const store = useStore();
@@ -38,6 +39,7 @@ const showModal = ref(false);
 
 const routes = [
   { icon: 'bi-water', url: '/streams', title: t('menu.streams') },
+  { icon: 'bi-list', url: '/overview', title: t('menu.overview') },
   { icon: 'bi-stopwatch', url: '/filter', title: t('menu.latest') },
   { icon: 'bi-hypnotize', url: '/random', title: t('menu.random') },
   { icon: 'bi-star-fill', url: '/bookmarks', title: t('menu.favs') },
@@ -52,7 +54,7 @@ const save = (data: ChannelRequest) => {
       .finally(() => showModal.value = false);
 };
 
-onMounted(() => {
+onBeforeMount(() => {
   // Dispatch
   socket.on(MessageType.JobCreate, data => store.commit('job:create', data));
   socket.on(MessageType.JobDestroy, data => store.commit('job:destroy', data));

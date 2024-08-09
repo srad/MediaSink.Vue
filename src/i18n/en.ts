@@ -1,6 +1,7 @@
 export default {
   menu: {
     streams: 'Streams',
+    overview: 'Overview',
     filter: 'Filter',
     latest: 'Latest',
     random: 'Random',

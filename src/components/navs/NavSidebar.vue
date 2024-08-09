@@ -106,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, watch, ref, reactive, onMounted } from 'vue';
+import { defineProps, watch, ref, reactive, onBeforeMount } from 'vue';
 import { createClient } from '../../services/api/v1/ClientFactory';
 import { useRoute } from "vue-router";
 import { useStore } from "../../store";
@@ -132,10 +132,10 @@ watch(route, () => collapseNav.value = true)
 const query = async () => {
   recording.value = await api.isRecording();
   const response2 = await api.info.diskList();
-  diskInfo.avail = response2.data.avail!;
+  diskInfo.avail = response2.data.sizeFormattedGb!;
   diskInfo.pcent = response2.data.pcent!;
-  diskInfo.size = response2.data.size!;
-  diskInfo.used = response2.data.used!;
+  diskInfo.size = response2.data.sizeFormattedGb!;
+  diskInfo.used = response2.data.usedFormattedGb!;
 };
 
 const record = async (resume: boolean) => {
@@ -161,7 +161,7 @@ const record = async (resume: boolean) => {
   }
 };
 
-onMounted(() => {
+onBeforeMount(() => {
   query();
   setInterval(query, 10 * 1000);
 });

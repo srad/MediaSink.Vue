@@ -23,8 +23,16 @@
           </div>
           {{ job.pid }}
         </td>
-        <td class="p-1">{{ job.channelName }}</td>
-        <td class="p-1">{{ job.filename }}</td>
+        <td class="p-1">
+          <RouterLink :to="'/streams/' + job.channelId">
+            {{ job.channelName }}
+          </RouterLink>
+        </td>
+        <td class="p-1">
+          <RouterLink :to="'/recordings/' + job.recordingId">
+            {{ job.filename }}
+          </RouterLink>
+        </td>
         <td class="p-1">{{ job.status }}</td>
         <td class="p-1">
           <div v-if="job.active" class="progress">

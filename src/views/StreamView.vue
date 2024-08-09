@@ -12,6 +12,7 @@
         :channel-name="channelName"
         :display-name="displayName"
         :url="url"
+        :min-duration="minDuration"
         :skip-start="skipStart"/>
 
     <!-- Search bar -->
@@ -138,27 +139,28 @@
 import { socket, MessageType } from '../utils/socket';
 import { createClient } from "../services/api/v1/ClientFactory";
 import { V1ChannelResponse as ChannelResponse } from "../services/api/v1/StreamSinkClient";
-import { watch, computed, ref, onMounted } from 'vue';
+import { watch, computed, ref, onBeforeMount, onMounted } from 'vue';
 import ChannelItem from '../components/ChannelItem.vue';
 import ChannelModal, { ChannelUpdate } from '../components/modals/ChannelModal.vue';
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "../store";
 
-const filter = (row: ChannelResponse, search: string, tag: string) => row.channelName!.indexOf(search) !== -1 && row.tags!.indexOf(tag) !== -1;
+const filter = (channel: ChannelResponse, search: string, tag: string): boolean => channel.channelName!.indexOf(search) !== -1 && (channel.tags || '').indexOf(tag) !== -1;
+
 const sort = (a: ChannelResponse, b: ChannelResponse) => a.channelName!.localeCompare(b.channelName!);
 
 const api = createClient();
 const route = useRoute();
-const props = defineProps<{ channel: string, showModal: boolean }>();
 
 const channelItemClass = 'col-lg-6 col-xl-6 col-xxl-4 col-md-6';
 const channelId = ref(0);
-const showModal = ref(props.showModal);
+const showModal = ref(false);
 const channelName = ref('');
 const displayName = ref('');
 const isPaused = ref(false);
 const url = ref('');
 
+const minDuration = ref(0);
 const skipStart = ref(0);
 const favs = ref(false);
 
@@ -174,7 +176,7 @@ const router = useRouter();
 
 watch(searchVal, (search) => router.replace({ query: { search } }));
 
-watch(route.query, params => {
+watch(() => route.query, params => {
   if (params.tag && params.tag !== '') {
     searchVal.value = `#${params.tag}`;
   } else {
@@ -189,14 +191,6 @@ watch(tagFilter, val => {
 // --------------------------------------------------------------------------------------
 // Computes
 // --------------------------------------------------------------------------------------
-
-const tags = computed(() => {
-  const unionTags: { [key: string]: boolean; } = {};
-  store.state.channels.map<string[]>(channel => channel.tags !== '' ? channel.tags.split(',') : [])
-      .forEach(tags => tags.forEach(tag => unionTags[tag] = true));
-
-  return Object.keys(unionTags);
-});
 
 const search = computed(() => searchVal.value.trim().toLowerCase());
 
@@ -222,8 +216,8 @@ const favStreams = computed(() => store.state.channels.slice()
     .sort(sort));
 
 const searchResults = computed(() => store.state.channels.slice()
-    .filter(row => filter(row, searchTerms.value, tagTerms.value))
-    .filter(row => favs.value ? row.fav : true)
+    .filter(channel => filter(channel, searchTerms.value, tagTerms.value))
+    .filter(channel => favs.value ? channel.fav : true) // Only use, if defined.
     .sort(sort));
 
 // --------------------------------------------------------------------------------------
@@ -247,6 +241,7 @@ const editChannel = (channel: ChannelResponse) => {
   isPaused.value = channel.isPaused;
   url.value = channel.url;
   skipStart.value = channel.skipStart;
+  minDuration.value = channel.minDuration;
   showModal.value = true;
 };
 
@@ -259,7 +254,9 @@ const tab = (tab: string) => router.push({ name: 'Stream', params: { tag: tagFil
 onMounted(async () => {
   const res = await api.channels.channelsList();
   res.data.forEach(channel => store.commit('addChannel', channel));
+});
 
+onBeforeMount(() => {
   socket.on(MessageType.ChannelOnline, data => store.commit('channel:online', data));
   socket.on(MessageType.ChannelOffline, data => store.commit('channel:offline', data));
   socket.on(MessageType.ChannelThumbnail, data => store.commit('channel:thumbnail', data));

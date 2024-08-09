@@ -19,7 +19,7 @@
       </div>
     </li>
     <li class="list-group-item bg-info-light-2">
-      <template v-if="!showTagInput && tagArray.length > 0">
+      <template v-if="!showTagInput && tagArray">
         <span v-for="tag in tagArray" @click="$router.push({query: {tag}})" class="badge bg-secondary text-dark me-1 user-select-none" :key="tag">{{
             tag
           }}
@@ -61,7 +61,7 @@
 import { watch, defineEmits, ref, computed, onMounted, onUnmounted } from 'vue';
 import { V1ChannelResponse as ChannelResponse } from '../services/api/v1/StreamSinkClient';
 import { createClient } from '../services/api/v1/ClientFactory';
-import { parseTags } from '../utils/parser';
+import { validateTags, validTag } from '../utils/parser';
 import FavButton from "./controls/FavButton.vue";
 
 // --------------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ const emit = defineEmits<{
 
 const api = createClient();
 
-const tagArray = ref(parseTags(props.channel.tags));
+const tagArray = ref<string[]>(props.channel.tags || []);
 const tagVal = ref('');
 const showTagInput = ref(false);
 const thread = ref(0);
@@ -119,8 +119,8 @@ const seconds = computed(() => {
 // --------------------------------------------------------------------------------------
 
 const destroyTag = async (tag: string) => {
-  const removeTag = tagArray.value.filter(t => t !== tag);
-  await api.channels.tagsCreate(props.channel.channelId!, { tags: removeTag });
+  const removeTag = tagArray.value?.filter(t => t !== tag);
+  await api.channels.tagsPartialUpdate(props.channel.channelId!, { tags: removeTag });
   tagArray.value = removeTag;
 };
 
@@ -133,17 +133,23 @@ const addTag = () => {
     return;
   }
 
-  const parsed = parseTags(tag);
-  const newTags = [ ...tagArray.value ];
-  newTags.push(parsed[0]);
+  if (!validTag(tag)) {
+    alert("Illegal tag: " + tag);
+  }
 
-  api.channels.tagsCreate(props.channel.channelId!, { tags: newTags })
+  // Optimistic add.
+  tagArray.value.push(tag);
+
+  api.channels.tagsPartialUpdate(props.channel.channelId!, { tags: tagArray.value })
       .then(() => {
-        tagArray.value = newTags;
         showTagInput.value = false;
         tagVal.value = '';
       })
-      .catch(e => alert(e.message))
+      .catch(e => {
+        alert(e.message);
+        // Fail, remove again.
+        tagArray.value.pop();
+      })
       .finally(() => tagVal.value = '');
 };
 

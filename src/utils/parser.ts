@@ -1,6 +1,29 @@
-const tagAlphabet = /[0-9a-z\\-]+/;
+const tagAlphabet = /^[0-9a-z]+([\-]*[0-9a-z]+)*$/;
 
-export function parseTags(str: string): string[] {
+/**
+ * Validates a single tag (string).
+ * @param tag
+ */
+export const validTag = (tag: string) => tagAlphabet.test(tag);
+
+/**
+ * Confirms or rejects the validity of a tag array.
+ * @param tags string array of tags.
+ */
+export const validateTags = (tags: string[]): boolean => {
+  for (let tag of tags) {
+    if (!tagAlphabet.test(tag)) {
+      return false;
+    }
+  }
+  return true
+};
+
+/**
+ * Parses a string which contains comma separated tag.
+ * @param str
+ */
+export const parseTagsString = (str: string): string[] => {
   const tokens: string[] = [];
   let token = "";
 
@@ -10,7 +33,7 @@ export function parseTags(str: string): string[] {
     }
   }
 
-  for (let i=0; i < str.length; i++) {
+  for (let i = 0; i < str.length; i++) {
     const c = str.charAt(i)
     if (c === ",") {
       add(token);
@@ -26,4 +49,4 @@ export function parseTags(str: string): string[] {
   add(token);
 
   return tokens;
-}
+};

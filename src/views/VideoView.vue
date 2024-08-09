@@ -121,25 +121,18 @@ import { useCookies } from '@vueuse/integrations/useCookies';
 import { Marking } from '../components/Stripe.vue';
 import Stripe from '../components/Stripe.vue';
 import { useI18n } from 'vue-i18n'
-import { useRouter, onBeforeRouteLeave } from 'vue-router';
+import { useRouter, onBeforeRouteLeave, useRoute } from 'vue-router';
 import { ModelsRecording } from "../services/api/v1/StreamSinkClient.ts";
 
 // --------------------------------------------------------------------------------------
 // Props
 // --------------------------------------------------------------------------------------
 
-const props = defineProps<{
-  previewStripe: string
-  pathRelative: string
-  id: number
-  channelName: string
-  filename: string
-}>();
-
 // --------------------------------------------------------------------------------------
 // Declarations
 // --------------------------------------------------------------------------------------
 const router = useRouter();
+const route = useRoute();
 const api = createClient();
 const { t } = useI18n();
 
@@ -166,6 +159,7 @@ const stripeWidth = ref<number>(0);
 const timeCode = ref<number>(0);
 const duration = ref<number>(0);
 const recording = ref<ModelsRecording>();
+const id = ref<number>();
 
 let cutInterval: number | undefined;
 
@@ -189,7 +183,8 @@ onUnmounted(() => {
 
 onMounted(async () => {
   try {
-    const rec = await api.recordings.recordingsDetail(props.id);
+    id.value = Number(route.params.id);
+    const rec = await api.recordings.recordingsDetail(id.value);
     recording.value = rec.data;
   } finally {
     window.addEventListener('orientationchange', rotate);
@@ -315,11 +310,11 @@ const endSegment = (end: number) => {
 };
 
 const destroy = () => {
-  if (!window.confirm(t('videoView.destroy', [ props.filename ]))) {
+  if (!window.confirm(t('videoView.destroy', [ recording.value?.filename ]))) {
     return;
   }
 
-  api.recordings.recordingsDelete(props.id)
+  api.recordings.recordingsDelete(id.value!)
       .then(() => router.back())
       .catch((err) => {
         alert(err);
@@ -332,7 +327,7 @@ const exportVideo = () => {
     const ends = markings.value.map(m => String(m.timeend.toFixed(4)));
 
     api.recordings.cutCreate(
-        props.id,
+        id.value!,
         { starts, ends })
         .then(() => {
           markings.value = [];

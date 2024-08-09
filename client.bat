@@ -1,3 +1,3 @@
 @echo off
 del .\src\services\api\v1\StreamSinkClient.ts
-npx swagger-typescript-api -p http://localhost:3000/swagger/doc.json -o .\src\services\api\v1 -n StreamSinkClient.ts --api-class-name StreamSinkClient --sort-types --templates .\src\services\api\v1\templates
+npx swagger-typescript-api -p http://localhost:3000/swagger/doc.json -o .\src\services\api\v1 -n StreamSinkClient.ts --api-class-name StreamSinkClient --templates .\src\services\api\v1\templates --sort-types --axios --single-http-client

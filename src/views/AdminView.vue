@@ -127,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, computed, ref, reactive, onMounted } from 'vue';
+import { inject, computed, ref, reactive, onBeforeMount } from 'vue';
 import { createClient } from "../services/api/v1/ClientFactory";
 import { HelpersCPULoad } from "../services/api/v1/StreamSinkClient";
 import LoadIndicator from '../components/LoadIndicator.vue';
@@ -222,7 +222,7 @@ onBeforeRouteLeave(() => {
   clearInterval(id.value);
 });
 
-onMounted(() => {
+onBeforeMount(() => {
   //fillData();
   fetch();
   id.value = setInterval(fetch, 2500);
