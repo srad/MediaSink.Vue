@@ -29,6 +29,11 @@ ENV VUE_APP_NAME $APP_NAME
 ENV VUE_APP_FILEURL $APP_FILEURL
 ENV VUE_APP_SOCKETURL $APP_SOCKETURL
 
+# The build number is once written to a file after the build.
+RUN cat >./dist/build.js <<EOL
+window.VUE_APP_BUILD = "${APP_BUILD}";
+EOL
+
 # production stage
 FROM nginx:stable as production-stage
 
