@@ -101,6 +101,15 @@ export interface ModelsRecording {
   videoType: string;
   width: number;
 }
+export interface ResponseImportInfo {
+  isImporting?: boolean;
+  progress?: number;
+  size?: number;
+}
+export interface ResponseServerInfo {
+  commit?: string;
+  version?: string;
+}
 export interface V1ChannelRequest {
   channelName: string;
   deleted?: boolean;
@@ -370,6 +379,23 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
 
   admin = {
     /**
+     * @description version information
+     *
+     * @tags admin
+     * @name ImportList
+     * @summary Returns server version information
+     * @request GET:/admin/import
+     */
+    importList: (params: RequestParams = {}) =>
+      this.http.request<ResponseImportInfo, any>({
+        path: `/admin/import`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Return a list of channels
      *
      * @tags admin
@@ -386,16 +412,16 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Return a list of channels
+     * @description version information
      *
      * @tags admin
-     * @name ImportingList
-     * @summary Run once the import of mp4 files in the recordings folder, which are not yet in the system
-     * @request GET:/admin/importing
+     * @name VersionList
+     * @summary Returns server version information
+     * @request GET:/admin/version
      */
-    importingList: (params: RequestParams = {}) =>
-      this.http.request<boolean, any>({
-        path: `/admin/importing`,
+    versionList: (params: RequestParams = {}) =>
+      this.http.request<ResponseServerInfo, any>({
+        path: `/admin/version`,
         method: "GET",
         type: ContentType.Json,
         format: "json",

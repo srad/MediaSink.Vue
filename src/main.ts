@@ -15,6 +15,7 @@ declare global {
     VUE_APP_SOCKETURL: string;
     VUE_APP_FILEURL: string;
     VUE_APP_BUILD: string;
+    VUE_APP_VERSION: string;
   }
 }
 
@@ -27,6 +28,7 @@ app.provide('apiUrl', window.VUE_APP_APIURL);
 app.provide('fileUrl', window.VUE_APP_FILEURL);
 app.provide('socketUrl', window.VUE_APP_SOCKETURL);
 app.provide('build', window.VUE_APP_BUILD);
+app.provide('version', window.VUE_APP_VERSION);
 app.use(router);
 
 app.mount('#app');
