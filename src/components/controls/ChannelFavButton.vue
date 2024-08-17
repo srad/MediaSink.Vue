@@ -21,12 +21,12 @@ const fav = ref(props.bookmarked);
 const bookmark = () => {
   busy.value = true;
   if (fav.value) {
-    api.channels.unfavPartialUpdate(props.recordingId)
+    api.channels.unfavPartialUpdate(props.channelId)
         .then(() => fav.value = false)
         .catch(res => alert(res.error))
         .finally(() => busy.value = false);
   } else {
-    api.channels.unfavPartialUpdate(props.recordingId)
+    api.channels.unfavPartialUpdate(props.channelId)
         .then(() => fav.value = true)
         .catch(res => alert(res.error))
         .finally(() => busy.value = false);

@@ -44,7 +44,7 @@
           <a :href="channel.url" target="_blank">{{ channel.url }}</a>
         </td>
         <td class="px-2">
-          <ChannelBookmarkButton :bookmarked="channel.fav" :channel-id="channel.channelId"/>
+          <ChannelFavButton :bookmarked="channel.fav" :channel-id="channel.channelId"/>
         </td>
         <td class="px-2">
           <button class="btn w-100 btn-danger" v-if="channel.isRecording">
@@ -65,7 +65,7 @@ import { createClient, MyClient } from "../services/api/v1/ClientFactory.ts";
 import { V1ChannelResponse } from "../services/api/v1/StreamSinkClient";
 import FavButton from "../components/controls/FavButton.vue";
 import { downloadObjectAsJson } from "../utils/file.ts";
-import ChannelBookmarkButton from "../components/controls/ChannelFavButton.vue";
+import ChannelFavButton from "../components/controls/ChannelFavButton.vue";
 
 const api = createClient();
 const channels = ref<V1ChannelResponse[]>([]);
