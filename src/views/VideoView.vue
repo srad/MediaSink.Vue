@@ -72,7 +72,7 @@
 
           <div class="modal-footer p-1 d-flex justify-content-between" v-if="stripeUrl">
             <div>
-              <button type="button" class="btn btn-sm btn-primary" @click="router.push('/streams/' + recording.channelId)">Channel: {{recording.channelName}}</button>
+              <button type="button" class="btn btn-sm btn-primary" @click="router.push('/streams/' + recording.channelId)">{{recording.channelName}}</button>
             </div>
             <div class="d-flex justify-content-end">
               <button class="btn btn-outline-danger btn-sm me-2" @click="destroy">
