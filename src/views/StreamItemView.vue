@@ -73,7 +73,7 @@ import { computed, ref, onMounted } from 'vue';
 import RecordingItem from '../components/RecordingItem.vue';
 import { Modal } from 'bootstrap';
 import LoadIndicator from '../components/LoadIndicator.vue';
-import ChannelBookmarkButton from "../components/ChannelBookmarkButton.vue";
+import ChannelBookmarkButton from "../components/controls/ChannelFavButton.vue";
 import { createClient } from "../services/api/v1/ClientFactory";
 import {
   ModelsChannel as ChannelResponse,

@@ -65,7 +65,7 @@ import { createClient, MyClient } from "../services/api/v1/ClientFactory.ts";
 import { V1ChannelResponse } from "../services/api/v1/StreamSinkClient";
 import FavButton from "../components/controls/FavButton.vue";
 import { downloadObjectAsJson } from "../utils/file.ts";
-import ChannelBookmarkButton from "../components/ChannelBookmarkButton.vue";
+import ChannelBookmarkButton from "../components/controls/ChannelFavButton.vue";
 
 const api = createClient();
 const channels = ref<V1ChannelResponse[]>([]);
