@@ -7,34 +7,26 @@
             <!-- filter row -->
             <div class="row g-3 align-items-center">
               <div class="col-auto">
-                <label for="limit" class="col-form-label fw-bold">
-                  {{ $t("filter.orderBy") }}
-                </label>
-              </div>
-              <div class="col-auto">
                 <select ref="filterColumnSelect" class="form-select" v-model="filterColumn" @change="routeFilter">
+                  <option value="" style="font-weight: bold" disabled>{{ $t("filter.orderBy") }}</option>
                   <option v-for="col in columns" :key="col[1]" :value="col[1]">{{ col[0] }}</option>
                 </select>
               </div>
               <div class="col-auto">
-                <label for="limit" class="col-form-label fw-bold">
-                  {{ $t("filter.order") }}
-                </label>
-              </div>
-              <div class="col-auto">
                 <select ref="sortOrderSelect" class="form-select text-capitalize" v-model="filterOrder" @input="routeFilter">
+                  <option value="" style="font-weight: bold" disabled>{{ $t("filter.order") }}</option>
                   <option v-for="o in order" :key="o" :value="o">{{ o }}</option>
                 </select>
               </div>
               <div class="col-auto">
-                <label for="limit" class="col-form-label fw-bold">
-                  {{ $t("filter.limit") }}
-                </label>
-              </div>
-              <div class="col-auto">
-                <select ref="filterOrderSelect" id="limit" class="form-select" v-model="filterLimit" @change="routeFilter">
+                <select ref="filterLimitSelect" id="limit" class="form-select" v-model="filterLimit" @change="routeFilter">
+                  <option value="" style="font-weight: bold" disabled>{{ $t("filter.limit") }}</option>
                   <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
                 </select>
+              </div>
+
+              <div class="col-auto">
+                <button type="button" class="btn btn-primary" @click="resetFilters">{{ $t("filter.reset") }}</button>
               </div>
             </div>
             <!-- filter row -->
@@ -75,9 +67,9 @@ const busy = ref(true);
 const sortOrderSelect = ref<HTMLSelectElement | null>(null);
 const filterColumnSelect = ref<HTMLSelectElement | null>(null);
 const filterLimitSelect = ref<HTMLSelectElement | null>(null);
-const filterOrder = route.query.order as string || 'desc';
-const filterColumn = route.query.column as string || 'created_at';
-const filterLimit = route.query.limit as string || '25';
+let filterOrder = route.query.order as string || 'desc';
+let filterColumn = route.query.column as string || 'created_at';
+let filterLimit = route.query.limit as string || '25';
 const limits = ref([
   25,
   50,
@@ -92,7 +84,7 @@ const order = [ 'asc', 'desc' ];
 const recordings = ref<RecordingResponse[]>([]);
 
 const routeFilter = () => {
-  router.push({
+  router.replace({
     path: route.path,
     query: {
       order: sortOrderSelect.value?.value,
@@ -101,6 +93,13 @@ const routeFilter = () => {
     },
     force: true
   });
+};
+
+const resetFilters = () => {
+  filterOrder = order[1];
+  filterColumn = columns[0][1];
+  filterLimit = "25";
+  routeFilter()
 };
 
 const fetch = () => {

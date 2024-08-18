@@ -60,6 +60,7 @@ export default {
     orderBy: 'Order by',
     order: 'Order',
     limit: 'Limit',
+    reset: 'Reset',
     createdAt: 'Created At',
     fileSize: 'File size',
     duration: 'Duration',
