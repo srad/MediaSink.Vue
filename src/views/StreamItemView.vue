@@ -75,6 +75,7 @@ import { Modal } from 'bootstrap';
 import LoadIndicator from '../components/LoadIndicator.vue';
 import ChannelFavButton from "../components/controls/ChannelFavButton.vue";
 import { createClient } from "../services/api/v1/ClientFactory";
+import { ModelsRecording } from "../services/api/v1/StreamSinkClient";
 import {
   ModelsChannel as ChannelResponse,
   ModelsRecording as RecordingResponse
@@ -82,6 +83,7 @@ import {
 import { CancelTokenSource } from 'axios';
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "../store";
+import { MessageType, socket } from "../utils/socket.ts";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -209,6 +211,11 @@ onMounted(async () => {
     console.log(response);
 
     window.scrollTo(0, 0);
+
+    socket.on(MessageType.RecordingAdd, recording => {
+      const r = recording as ModelsRecording;
+      console.log(r);
+    });
   } finally {
     busy.value = false;
   }

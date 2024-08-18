@@ -58,9 +58,14 @@ onBeforeMount(() => {
   // Dispatch
   socket.on(MessageType.JobCreate, data => store.commit('job:create', data));
   socket.on(MessageType.JobDestroy, data => store.commit('job:destroy', data));
-  socket.on(MessageType.JobPreviewDone, data => store.commit('job:preview:done', data));
+  socket.on(MessageType.JobPreviewDone, data => store.commit('job:done', data));
   socket.on(MessageType.JobProgress, data => store.commit('job:progress', data));
   socket.on(MessageType.JobPreviewProgress, data => store.commit('job:preview:progress', data));
+
+  socket.on(MessageType.ChannelOnline, data => store.commit('channel:online', data));
+  socket.on(MessageType.ChannelOffline, data => store.commit('channel:offline', data));
+  socket.on(MessageType.ChannelThumbnail, data => store.commit('channel:thumbnail', data));
+  socket.on(MessageType.ChannelStart, data => store.commit('channel:start', data));
 
   api.jobs.jobsList()
       .then(result => result.data.forEach((job: JobResponse) => store.commit('addJob', job)))

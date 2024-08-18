@@ -98,7 +98,7 @@ const pause = async (channel: ChannelResponse) => {
     busy.value = true;
     const method = channel.isPaused ? api.channels.resumeCreate : api.channels.pauseCreate;
     await method(channel.channelId!);
-    store.commit('pauseChannel', { id: channel.channelId, pause: !channel.isPaused });
+    store.commit('channel:pause', { id: channel.channelId, pause: !channel.isPaused });
   } catch (err) {
     console.log(err);
   } finally {

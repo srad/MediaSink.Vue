@@ -3,6 +3,11 @@
     <div class="container-fluid">
       <AppBrand class="mr-auto" :title="title"/>
 
+      <span class="text-danger fw-bold">
+                <i v-if="heartBeatNextUpdate>=0" class="bi blink bi-heart-pulse-fill"></i>
+                <i v-else class="bi bi-heart-pulse"></i>
+      </span>
+
       <div class="offcanvas offcanvas-end bg-dark" data-bs-backdrop="static" tabindex="-1" aria-labelledby="collapsibleNavbarLabel" id="collapsibleNavbar">
         <div class="offcanvas-header bg-primary text-white">
           <AppBrand class="mr-auto" :title="title"/>
@@ -46,6 +51,7 @@ import RecordingControls from '../RecordingControls.vue';
 import AppBrand from '../AppBrand.vue';
 import { useRoute } from "vue-router";
 import { useStore } from "../../store";
+import { MessageType, socket } from "../../utils/socket.ts";
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -60,7 +66,7 @@ const props = defineProps<{
 // Emits
 // --------------------------------------------------------------------------------------
 
-const emit = defineEmits<{(e: 'add'): void}>();
+const emit = defineEmits<{ (e: 'add'): void }>();
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -71,7 +77,7 @@ const api = createClient();
 const diskInfo = reactive({ avail: '', pcent: '', size: '', used: '' });
 const collapseNav = ref(true);
 const recording = ref(false);
-
+const heartBeatNextUpdate = ref<number>(0);
 const route = useRoute();
 const store = useStore();
 
@@ -127,5 +133,14 @@ const record = async (resume: boolean) => {
 onBeforeMount(async () => {
   await query();
   setInterval(async () => await query(), 10 * 1000);
+  socket.on(MessageType.HeartBeat, nextUpdate => {
+    heartBeatNextUpdate.value = nextUpdate as number;
+    const id = setInterval(() => {
+      heartBeatNextUpdate.value -= 1;
+      if (heartBeatNextUpdate.value <= 0) {
+        clearInterval(id);
+      }
+    }, 1000);
+  });
 });
 </script>

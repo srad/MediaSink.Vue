@@ -10,6 +10,7 @@ export interface State {
 
 export interface JobMessage {
   jobId: number;
+  channelId: number;
   channelName: string;
   filename: string;
   type: string;
@@ -29,17 +30,18 @@ export const store = createStore<State>({
     loggedIn: false,
   },
   mutations: {
-    'job:preview:done'(state: State, data: JobMessage) {
-      console.log('Job done', data);
-    },
-    'job:preview:progress'(state: State, data) {
-      console.log('Progress: ', data);
+    'job:done'(state: State, job: JobMessage) {
+      const i = state.jobs.findIndex(j => j.jobId === job.jobId);
+      if (i !== -1) {
+        state.jobs[i].active = false;
+        state.jobs[i].progress = String(100);
+      }
     },
     'job:create'(state: State, data: JobResponse) {
       state.jobs.push(data);
     },
     'job:destroy'(state: State, data: JobMessage) {
-      const i = state.jobs.findIndex(j => j.filename === data.channelName);
+      const i = state.jobs.findIndex(j => j.filename === data.filename);
       if (i !== -1) {
         state.jobs.splice(i, 1);
       }
@@ -52,7 +54,6 @@ export const store = createStore<State>({
       state.jobs[i].active = true;
     },
     'job:progress'(state: State, job: JobMessage) {
-      console.log(job);
       const i = state.jobs.findIndex(j => j.jobId === job.jobId);
       if (i !== -1) {
         state.jobs[i].progress = String(job.data.frame / job.data.packets * 100);
@@ -61,27 +62,28 @@ export const store = createStore<State>({
     'jobs:refresh'(state: State, jobs: JobResponse[]) {
       state.jobs = jobs;
     },
-    'channel:online'(state: State, data: { channelName: string }) {
-      const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
+    'channel:online'(state: State, channelId: number) {
+      const i = state.channels.findIndex(ch => ch.channelId === channelId);
       if (i !== -1) {
         state.channels[i].isOnline = true;
       }
     },
-    'channel:offline'(state: State, data: { channelName: string }) {
-      const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
+    'channel:offline'(state: State, channelId: number) {
+      const i = state.channels.findIndex(ch => ch.channelId === channelId);
       if (i !== -1) {
         state.channels[i].isOnline = false;
         state.channels[i].isRecording = false;
       }
     },
-    'channel:thumbnail'(state: State, data: { channelName: string }) {
-      const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
-      if (i !== -1) {
-        // TODO: state.channels[i].previewUpdate = new Date();
+    'channel:thumbnail'(state: State, channelId: number) {
+      const index = state.channels.findIndex(ch => ch.channelId === channelId);
+      if (index !== -1) {
+        // Refresh cache with url timestamp update.
+        state.channels[index].preview = state.channels[index].preview.split("?")[0] + `?time=${new Date().toISOString()}`;
       }
     },
-    'channel:start'(state: State, data: { channelName: string }) {
-      const i = state.channels.findIndex(ch => ch.channelName === data.channelName);
+    'channel:start'(state: State, channelId: number) {
+      const i = state.channels.findIndex(ch => ch.channelId === channelId);
       if (i !== -1) {
         state.channels[i].isRecording = true;
         state.channels[i].isOnline = true;
@@ -98,12 +100,12 @@ export const store = createStore<State>({
       state.jobs.push(job);
     },
     addChannel(state: State, channel: ChannelResponse) {
-      if (!state.channels.some(c => c.channelName === channel.channelName)) {
+      if (!state.channels.some(c => c.channelId === channel.channelId)) {
         state.channels.push(channel);
       }
     },
     updateChannel(state: State, channel: ChannelResponse) {
-      const i = state.channels.findIndex(c => c.channelName === channel.channelName);
+      const i = state.channels.findIndex(c => c.channelId === channel.channelId);
       if (i !== -1) {
         const ch = state.channels[i] as ChannelResponse;
         Object
@@ -120,9 +122,10 @@ export const store = createStore<State>({
         state.channels.splice(i, 1);
       }
     },
-    pauseChannel(state: State, data: { id: number, pause: boolean }) {
+    'channel:pause'(state: State, data: { id: number, pause: boolean }) {
       const i = state.channels.findIndex(c => c.channelId === data.id);
       if (i !== -1) {
+        state.channels[i].isRecording = data.pause;
         state.channels[i].isPaused = data.pause;
       }
     },

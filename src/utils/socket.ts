@@ -43,10 +43,14 @@ export const socket = {
 };
 
 export const MessageType = {
+  HeartBeat: 'heartbeat',
+
   ChannelOnline: 'channel:online',
   ChannelOffline: 'channel:offline',
   ChannelThumbnail: 'channel:thumbnail',
   ChannelStart: 'channel:start',
+
+  RecordingAdd: 'recording:add',
 
   JobCreate: 'job:create',
   JobDestroy: 'job:destroy',

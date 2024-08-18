@@ -72,22 +72,24 @@
 
           <div class="modal-footer p-1 d-flex justify-content-between" v-if="stripeUrl">
             <div>
-              <button type="button" class="btn btn-sm btn-primary" @click="router.push('/streams/' + recording.channelId)">{{recording.channelName}}</button>
+              <button type="button" class="btn btn-sm btn-secondary" @click="router.push('/streams/' + recording.channelId)">{{recording.channelName}}</button>
             </div>
             <div class="d-flex justify-content-end">
-              <button class="btn btn-outline-danger btn-sm me-2" @click="destroy">
+              <button class="btn btn-danger btn-sm me-2" @click="destroy">
                 <i class="bi bi-trash3-fill"/>
               </button>
 
-              <button class="btn btn-sm border-dark-subtle me-2">
+              <button class="btn btn-sm border-warning">
                 <RecordingFavButton :bookmarked="recording.bookmark" :recording-id="recording.recordingId"/>
               </button>
 
-              <button class="btn bg-primary text-white btn-sm me-2" @click="back">
+              <span class="mx-2 text-secondary">|</span>
+
+              <button class="btn btn-info text-white btn-sm me-2" @click="back">
                 <i class="bi bi-chevron-double-left"/>
               </button>
 
-              <button class="btn bg-primary text-white btn-sm me-2" @click="forward">
+              <button class="btn btn-info text-white btn-sm me-2" @click="forward">
                 <i class="bi bi-chevron-double-right"/>
               </button>
 

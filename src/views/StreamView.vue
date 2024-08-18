@@ -255,13 +255,6 @@ onMounted(async () => {
   const res = await api.channels.channelsList();
   res.data.forEach(channel => store.commit('addChannel', channel));
 });
-
-onBeforeMount(() => {
-  socket.on(MessageType.ChannelOnline, data => store.commit('channel:online', data));
-  socket.on(MessageType.ChannelOffline, data => store.commit('channel:offline', data));
-  socket.on(MessageType.ChannelThumbnail, data => store.commit('channel:thumbnail', data));
-  socket.on(MessageType.ChannelStart, data => store.commit('channel:start', data));
-});
 </script>
 
 <style lang="scss" scoped>
