@@ -77,7 +77,7 @@ const api = createClient();
 const diskInfo = reactive({ avail: '', pcent: '', size: '', used: '' });
 const collapseNav = ref(true);
 const recording = ref(false);
-const heartBeatNextUpdate = ref<number>(0);
+const heartBeatNextUpdate = ref<number>(-1);
 const route = useRoute();
 const store = useStore();
 
