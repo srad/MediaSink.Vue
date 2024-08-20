@@ -81,6 +81,13 @@ export interface ModelsNetInfo {
   receiveBytes: number;
   transmitBytes: number;
 }
+export interface ModelsProcessInfo {
+  args?: string[];
+  id?: number;
+  output?: string;
+  path?: string;
+  pid?: number;
+}
 export interface ModelsRecording {
   bitRate: number;
   bookmark: boolean;
@@ -756,6 +763,24 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
     netList: (params: RequestParams = {}) =>
       this.http.request<ModelsNetInfo, any>({
         path: `/metric/net`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  processes = {
+    /**
+     * @description Return a list of streaming processes
+     *
+     * @tags processes
+     * @name ProcessesList
+     * @summary Return a list of streaming processes
+     * @request GET:/processes
+     */
+    processesList: (params: RequestParams = {}) =>
+      this.http.request<ModelsProcessInfo[], any>({
+        path: `/processes`,
         method: "GET",
         type: ContentType.Json,
         format: "json",

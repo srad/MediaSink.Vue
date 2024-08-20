@@ -24,7 +24,8 @@ export default {
   job: {
     tab: {
       workerJobs: 'Worker Jobs',
-      recordings: 'Recordings'
+      recordings: 'Recordings',
+      processes: 'Processes',
     }
   },
   jobTable: {

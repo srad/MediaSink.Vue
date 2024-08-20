@@ -43,7 +43,6 @@ const routes = [
   { icon: 'bi-stopwatch', url: '/filter', title: t('menu.latest') },
   { icon: 'bi-hypnotize', url: '/random', title: t('menu.random') },
   { icon: 'bi-star-fill', url: '/bookmarks', title: t('menu.favs') },
-  { icon: 'bi-list-check', url: '/jobs', title: t('menu.jobs') },
   { icon: 'bi-eye-fill', url: '/admin', title: t('menu.admin') }
 ];
 

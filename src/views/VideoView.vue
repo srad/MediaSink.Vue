@@ -62,17 +62,17 @@
                       :timecode="timeCode"
                       :duration="duration"
                       :markings="markings"
-                      :width="stripeWidth"
-                      :selecting="isPaused"
+                      @selecting="() => pause()"
                       @marking="(m) => markings=m"
-                      @seek="seek"
-                      @offset="offset"/>
+                      @seek="seek"/>
             </div>
           </div>
 
           <div class="modal-footer p-1 d-flex justify-content-between" v-if="stripeUrl">
             <div>
-              <button type="button" class="btn btn-sm btn-secondary" @click="router.push('/streams/' + recording.channelId)">{{recording.channelName}}</button>
+              <button type="button" class="btn btn-sm btn-secondary" @click="router.push('/streams/' + recording.channelId)">
+                {{ recording.channelName }}
+              </button>
             </div>
             <div class="d-flex justify-content-end">
               <button class="btn btn-danger btn-sm me-2" @click="destroy">
@@ -124,7 +124,7 @@
 <script setup lang="ts">
 //import socket from "@/socket";
 //import event from "@/services/event";
-import { ref, inject, defineProps, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, inject, computed, watch, onMounted, onUnmounted } from 'vue';
 import { createClient } from "../services/api/v1/ClientFactory";
 import { useCookies } from '@vueuse/integrations/useCookies';
 import { Marking } from '../components/Stripe.vue';
@@ -166,7 +166,6 @@ const isShown = ref(false);
 const playbackSpeed = ref(1.0);
 const markings = ref<Marking[]>([]);
 const segments = ref([]);
-const stripeWidth = ref<number>(0);
 const timeCode = ref<number>(0);
 const duration = ref<number>(0);
 const recording = ref<ModelsRecording>();
@@ -348,7 +347,6 @@ const exportVideo = () => {
 };
 
 const seek = ({ clientX, width }: { clientX: number, width: number }) => {
-  pause();
   const offset = video.value!.duration * (clientX / width);
 
   if (isNaN(offset)) {
@@ -356,14 +354,6 @@ const seek = ({ clientX, width }: { clientX: number, width: number }) => {
   }
 
   video.value!.currentTime = offset;
-};
-
-const offset = (offset: number, clientX: number) => {
-  requestAnimationFrame(() => {
-    const div = stripeContainer as unknown as HTMLDivElement;
-    //(stripeContainer as unknown as HTMLDivElement).scrollLeft = left - window.innerWidth / 2;
-    //div.scrollLeft = clientX;
-  });
 };
 
 const loadData = () => {
