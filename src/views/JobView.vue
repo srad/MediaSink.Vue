@@ -46,10 +46,10 @@
             <td>{{ p.pid }}</td>
             <td>{{ p.path }}</td>
             <td>
-              <textarea class="form-control" rows="5">{{ p.args }}</textarea>
+              <textarea disabled class="form-control" rows="5">{{ p.args }}</textarea>
             </td>
             <td>
-              <textarea class="form-control" rows="5">{{ p.output }}</textarea>
+              <textarea disabled class="form-control" rows="5">{{ p.output }}</textarea>
             </td>
           </tr>
           </tbody>
@@ -102,7 +102,7 @@ onBeforeMount(() => {
   Promise.all([ api.jobs.jobsList(), api.processes.processesList() ])
       .then(res => {
         store.commit('jobs:refresh', res[0].data);
-        processes.value = res[1].data;
+        processes.value = res[1].data || [];
       });
 });
 </script>
