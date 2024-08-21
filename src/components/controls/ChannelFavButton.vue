@@ -5,32 +5,44 @@
 
 <script setup lang="ts">
 import { createClient } from '../../services/api/v1/ClientFactory.ts';
-import { ref, defineProps } from 'vue';
+import { ref, defineProps, watch } from 'vue';
 import FavButton from './FavButton.vue';
 
-const api = createClient();
+// --------------------------------------------------------------------------------------
+// Props
+// --------------------------------------------------------------------------------------
 
 const props = defineProps<{
   bookmarked: boolean
   channelId: number
 }>();
 
+// --------------------------------------------------------------------------------------
+// Declarations
+// --------------------------------------------------------------------------------------
+
+const api = createClient();
 const busy = ref(false);
 const fav = ref(props.bookmarked);
 
+// --------------------------------------------------------------------------------------
+// Watchers
+// --------------------------------------------------------------------------------------
+
+watch(() => props.bookmarked, val => fav.value = val);
+
+// --------------------------------------------------------------------------------------
+// Methods
+// --------------------------------------------------------------------------------------
+
 const bookmark = () => {
   busy.value = true;
-  if (fav.value) {
-    api.channels.unfavPartialUpdate(props.channelId)
-        .then(() => fav.value = false)
-        .catch(res => alert(res.error))
-        .finally(() => busy.value = false);
-  } else {
-    api.channels.unfavPartialUpdate(props.channelId)
-        .then(() => fav.value = true)
-        .catch(res => alert(res.error))
-        .finally(() => busy.value = false);
-  }
+  const fn = fav.value ? api.channels.unfavPartialUpdate : api.channels.favPartialUpdate;
+
+  fn(props.channelId)
+      .then(() => fav.value = !fav.value)
+      .catch(res => alert(res.error))
+      .finally(() => busy.value = false);
 };
 </script>
 

@@ -1,4 +1,5 @@
 <template>
+  <BusyOverlay :visible="busy"></BusyOverlay>
   <div class="modal show m-0 p-0m position-absolute" tabindex="-1" ref="modalVideo" style="display: block !important;">
     <div class="modal-dialog modal-fullscreen p-0">
       <div class="modal-content">
@@ -48,7 +49,7 @@
                 <button v-else class="btn btn-primary" @click="stopCut">
                   <span>Stop cut</span> <i class="bi bi-stop-fill"></i>
                 </button>
-                <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="exportVideo">
+                <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="cutVideo">
                   {{ $t('videoView.button.cut') }} <i class="bi bi-scissors"></i>
                 </button>
               </div>
@@ -134,6 +135,7 @@ import { useRouter, onBeforeRouteLeave, useRoute } from 'vue-router';
 import { ModelsRecording } from "../services/api/v1/StreamSinkClient.ts";
 import FavButton from "../components/controls/FavButton.vue";
 import RecordingFavButton from "../components/controls/RecordingFavButton.vue";
+import BusyOverlay from "../components/BusyOverlay.vue";
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -170,6 +172,7 @@ const timeCode = ref<number>(0);
 const duration = ref<number>(0);
 const recording = ref<ModelsRecording>();
 const id = ref<number>();
+const busy = ref(false);
 
 let cutInterval: number | undefined;
 
@@ -324,24 +327,22 @@ const destroy = () => {
     return;
   }
 
+  unloadVideo();
+  busy.value = true;
+
   api.recordings.recordingsDelete(id.value!)
       .then(() => router.back())
-      .catch((err) => {
-        alert(err);
-      });
+      .catch((err) => alert(err))
+      .finally(() => busy.value = false);
 };
 
-const exportVideo = () => {
+const cutVideo = () => {
   if (window.confirm('Export selected segments?')) {
     const starts = markings.value.map(m => String(m.timestart.toFixed(4)));
     const ends = markings.value.map(m => String(m.timeend.toFixed(4)));
 
-    api.recordings.cutCreate(
-        id.value!,
-        { starts, ends })
-        .then(() => {
-          markings.value = [];
-        })
+    api.recordings.cutCreate(id.value!, { starts, ends })
+        .then(() => markings.value = [])
         .catch((err) => alert(err));
   }
 };
@@ -362,12 +363,21 @@ const loadData = () => {
     isLoaded.value = true;
     video.value.volume = cookies.get('volume') || 0.0;
     play();
+    y
   }
 };
 
 const timeupdate = () => {
   if (isMounted.value && video.value) {
     timeCode.value = video.value.currentTime;
+  }
+};
+
+const unloadVideo = () => {
+  if (isMounted.value && video.value) {
+    video.value.pause();
+    video.value.firstElementChild!.removeAttribute('src');
+    video.value.load();
   }
 };
 </script>

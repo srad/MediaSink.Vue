@@ -1,4 +1,5 @@
 <template>
+  <BusyOverlay :visible="busyOverlay"></BusyOverlay>
   <div class="my-2">
     <div ref="upload" style="display: none" class="modal modal-dialog modal-dialog-centered" tabindex="-1">
       <div class="modal-dialog">
@@ -42,7 +43,7 @@
         </button>
 
         <button class="btn btn-light" style="color: goldenrod">
-          <ChannelFavButton :channel-id="channelId" :bookmarked="fav"/>
+          <ChannelFavButton :channel-id="channelId" :bookmarked="channel?.fav || false"/>
         </button>
       </div>
     </nav>
@@ -69,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, nextTick } from 'vue';
 import RecordingItem from '../components/RecordingItem.vue';
 import { Modal } from 'bootstrap';
 import LoadIndicator from '../components/LoadIndicator.vue';
@@ -84,6 +85,7 @@ import { CancelTokenSource } from 'axios';
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "../store";
 import { MessageType, socket } from "../utils/socket.ts";
+import BusyOverlay from "../components/BusyOverlay.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -102,18 +104,11 @@ const selectedRecordings = ref<RecordingResponse[]>([]);
 const modal = ref<Modal | null>(null);
 const uploadProgress = ref(0);
 const busy = ref(false);
+const busyOverlay = ref(false);
 const channel = ref<ChannelResponse | null>(null);
 const channelId = (+route.params.id) as unknown as number;
 
 let cancellationToken: CancelTokenSource | null = null;
-
-// --------------------------------------------------------------------------------------
-// Watchers
-// --------------------------------------------------------------------------------------
-
-// watch(route, () => {
-//   chan.value = [];
-// });
 
 // --------------------------------------------------------------------------------------
 // Methods
@@ -151,9 +146,14 @@ const selectRecording = (data: { checked: boolean, recording: RecordingResponse 
 
 const deleteChannel = () => {
   if (window.confirm(`Delete channel "${channelId}"?`)) {
+    busyOverlay.value = true;
     api.channels.channelsDelete(channelId)
         .then(() => store.commit('destroyChannel', channelId))
-        .finally(() => router.back());
+        .catch(err => alert(err))
+        .finally(() => {
+          busyOverlay.value = false;
+          router.back()
+        });
   }
 };
 
@@ -201,24 +201,18 @@ const destroyRecording = (recording: RecordingResponse) => {
 // --------------------------------------------------------------------------------------
 
 onMounted(async () => {
-  try {
-    modal.value = new Modal(upload.value as unknown as HTMLElement);
+  socket.on(MessageType.RecordingAdd, recording => {
+    const r = recording as ModelsRecording;
+    console.log(r);
+  });
+
+  modal.value = new Modal(upload.value as unknown as HTMLElement);
+
+  api.channels.channelsDetail(channelId).then(res => {
     busy.value = true;
-
-    const response = await api.channels.channelsDetail(channelId);
-    channel.value = response.data;
-    busy.value = false;
-    console.log(response);
-
+    channel.value = res.data;
     window.scrollTo(0, 0);
-
-    socket.on(MessageType.RecordingAdd, recording => {
-      const r = recording as ModelsRecording;
-      console.log(r);
-    });
-  } finally {
-    busy.value = false;
-  }
+  }).finally(() => busy.value = false);
 });
 </script>
 

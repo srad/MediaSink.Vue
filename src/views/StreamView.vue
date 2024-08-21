@@ -56,7 +56,7 @@
       <div v-else class="col">
         <ul class="nav nav-tabs border-primary" id="myTab" role="tablist">
           <li class="nav-item" role="presentation">
-            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'live'}" @click="tab('live')" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
+            <button class="nav-link d-flex justify-content-between" :class="{'active': route.params.tab === 'live'}" @click="tab('live')" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
               <span class="d-none d-lg-inline">Recording</span>
               <span class="d-flex justify-content-between">
               <span class="d-lg-none">Rec</span>
@@ -65,7 +65,7 @@
             </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link d-flex justify-content-between" :class="{'active': $route.params.tab === 'offline'}"
+            <button class="nav-link d-flex justify-content-between" :class="{'active': route.params.tab === 'offline'}"
                     @click="tab('offline')" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile"
                     type="button" role="tab" aria-controls="profile" aria-selected="false">
               <span class="d-none d-lg-inline">Offline</span>
@@ -76,7 +76,7 @@
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link d-flex justify-content-between"
-                    :class="{'active': $route.params.tab === 'disabled'}"
+                    :class="{'active': route.params.tab === 'disabled'}"
                     @click="tab('disabled')"
                     id="disabled-tab"
                     data-bs-toggle="tab"
@@ -94,36 +94,33 @@
         </ul>
 
         <div class="tab-content py-2" id="myTabContent">
-          <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'live'}" id="home" role="tabpanel" aria-labelledby="home-tab">
+          <div class="tab-pane fade" :class="{'active show': route.params.tab === 'live'}" id="home" role="tabpanel" aria-labelledby="home-tab">
             <div class="row">
-              <div v-if="recordingStreams.length===0" class="justify-content-center d-flex">
-                <h5 class="m-5">No active streams</h5>
-              </div>
-              <div v-else v-for="channel in recordingStreams" :key="channel.channelId" :class="channelItemClass">
-                <ChannelItem :channel="channel" @edit="editChannel"/>
-              </div>
+              <LoadIndicator empty-text="No active streams" :busy="loaded" :empty="recordingStreams.length===0">
+                <div v-for="channel in recordingStreams" :key="channel.channelId" :class="channelItemClass">
+                  <ChannelItem :channel="channel" @edit="editChannel"/>
+                </div>
+              </LoadIndicator>
             </div>
           </div>
 
           <div class="tab-pane fade" :class="{'active show': route.params.tab === 'offline'}" id="profile" role="tabpanel" aria-labelledby="profile-tab">
             <div class="row">
-              <div v-if="notRecordingStreams.length===0" class="justify-content-center d-flex">
-                <h5 class="m-5">Empty</h5>
-              </div>
-              <div v-else v-for="channel in notRecordingStreams" :key="channel.channelId" :class="channelItemClass">
-                <ChannelItem :channel="channel" @edit="editChannel"/>
-              </div>
+              <LoadIndicator empty-text="Empty" :busy="loaded" :empty="notRecordingStreams.length===0">
+                <div v-for="channel in notRecordingStreams" :key="channel.channelId" :class="channelItemClass">
+                  <ChannelItem :channel="channel" @edit="editChannel"/>
+                </div>
+              </LoadIndicator>
             </div>
           </div>
 
-          <div class="tab-pane fade" :class="{'active show': $route.params.tab === 'disabled'}" id="disabled" role="tabpanel" aria-labelledby="disabled-tab">
+          <div class="tab-pane fade" :class="{'active show': route.params.tab === 'disabled'}" id="disabled" role="tabpanel" aria-labelledby="disabled-tab">
             <div class="row">
-              <div v-if="disabledStreams.length===0" class="justify-content-center d-flex">
-                <h5 class="m-5">Empty</h5>
-              </div>
-              <div v-else v-for="channel in disabledStreams" :key="channel.channelId" :class="channelItemClass">
-                <ChannelItem :channel="channel" @edit="editChannel"/>
-              </div>
+              <LoadIndicator empty-text="Empty" :busy="loaded" :empty="disabledStreams.length===0">
+                <div v-for="channel in disabledStreams" :key="channel.channelId" :class="channelItemClass">
+                  <ChannelItem :channel="channel" @edit="editChannel"/>
+                </div>
+              </LoadIndicator>
             </div>
           </div>
         </div>
@@ -136,14 +133,14 @@
 </template>
 
 <script setup lang="ts">
-import { socket, MessageType } from '../utils/socket';
 import { createClient } from "../services/api/v1/ClientFactory";
 import { V1ChannelResponse as ChannelResponse } from "../services/api/v1/StreamSinkClient";
-import { watch, computed, ref, onBeforeMount, onMounted } from 'vue';
+import { watch, computed, ref, onMounted } from 'vue';
 import ChannelItem from '../components/ChannelItem.vue';
 import ChannelModal, { ChannelUpdate } from '../components/modals/ChannelModal.vue';
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "../store";
+import LoadIndicator from "../components/LoadIndicator.vue";
 
 const filter = (channel: ChannelResponse, search: string, tag: string): boolean => channel.channelName!.indexOf(search) !== -1 && (channel.tags || '').indexOf(tag) !== -1;
 
@@ -159,6 +156,7 @@ const channelName = ref('');
 const displayName = ref('');
 const isPaused = ref(false);
 const url = ref('');
+const loaded = ref(true);
 
 const minDuration = ref(0);
 const skipStart = ref(0);
@@ -207,7 +205,7 @@ const disabledStreams = computed(() => store.state.channels.slice()
     .sort(sort));
 
 const recordingStreams = computed(() => store.state.channels.slice()
-    .filter(row => row.isRecording)
+    .filter(row => row.isRecording && !row.isTerminating)
     .sort(sort));
 
 const favStreams = computed(() => store.state.channels.slice()
@@ -254,6 +252,7 @@ const tab = (tab: string) => router.push({ name: 'Stream', params: { tag: tagFil
 onMounted(async () => {
   const res = await api.channels.channelsList();
   res.data.forEach(channel => store.commit('addChannel', channel));
+  loaded.value = false;
 });
 </script>
 
