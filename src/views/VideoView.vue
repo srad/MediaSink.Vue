@@ -363,7 +363,6 @@ const loadData = () => {
     isLoaded.value = true;
     video.value.volume = cookies.get('volume') || 0.0;
     play();
-    y
   }
 };
 
