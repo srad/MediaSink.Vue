@@ -61,7 +61,7 @@
 import { watch, defineEmits, ref, computed, onMounted, onUnmounted } from 'vue';
 import { V1ChannelResponse as ChannelResponse } from '../services/api/v1/StreamSinkClient';
 import { createClient } from '../services/api/v1/ClientFactory';
-import { validateTags, validTag } from '../utils/parser';
+import { validTag } from '../utils/parser';
 import FavButton from "./controls/FavButton.vue";
 
 // --------------------------------------------------------------------------------------

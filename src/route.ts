@@ -19,7 +19,7 @@ const routes = [
   { path: '/admin', name: 'Admin', component: AdminView },
   { path: '/jobs', name: 'Job', component: JobView },
   { path: '/streams/:tab/tab/:tag?', name: 'Stream', component: StreamView },
-  { path: '/streams/:id', name: 'StreamItem', component: StreamItemView, props: true },
+  { path: '/stream/:id/:name?', name: 'StreamItem', component: StreamItemView, props: true },
   { path: '/filter', name: 'Filter', component: SortView },
   { path: '/random', name: 'Random', component: RandomView },
   { path: '/recordings/:id', name: 'Video', component: VideoView },

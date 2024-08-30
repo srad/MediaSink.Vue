@@ -1,6 +1,6 @@
 <template>
-  <BusyOverlay :visible="busyOverlay"></BusyOverlay>
-  <div class="my-2">
+  <div>
+    <BusyOverlay :visible="busyOverlay"/>
     <div ref="upload" style="display: none" class="modal modal-dialog modal-dialog-centered" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -24,36 +24,50 @@
     </div>
 
     <nav class="navbar fixed-bottom navbar-light bg-light border-info border-top">
-      <div class="container-fluid justify-content-end">
-        <button v-if="selectedRecordings.length > 0" class="btn btn-danger" @click="destroySelection">
-          <i class="bi bi-trash3-fill px-2"/>
-        </button>
+      <div class="container-fluid justify-content-between">
+        <!-- Default dropup button -->
+        <div class="btn-group dropup">
+          <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            Options
+          </button>
+          <ul class="dropdown-menu">
+            <li>
+              <button type="button" class="dropdown-item d-flex justify-content-between" @click="clickFile" v-if="selectedRecordings.length == 0">
+                <input ref="file" name="file" v-show="false" accept="video/mp4" @change="submit" type="file">
+                <span>Upload video</span>
+                <i class="bi bi-upload"/>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="dropdown-item d-flex justify-content-between">
+                <span>Edit channel</span>
+                <i class="bi bi-pencil"/>
+              </button>
+            </li>
+          </ul>
+        </div>
 
-        <button class="btn btn-light text-danger" @click="deleteChannel" v-if="selectedRecordings.length == 0">
-          <i class="bi bi-trash3-fill px-2"/>
-        </button>
-
-        <button class="btn btn-light" @click="clickFile" v-if="selectedRecordings.length == 0">
-          <input ref="file" name="file" v-show="false" accept="video/mp4" @change="submit" type="file">
-          <i class="bi bi-upload px-2"/>
-        </button>
-
-        <button class="btn btn-light">
-          <i class="bi bi-pencil px-2"/>
-        </button>
-
-        <button class="btn btn-light" style="color: goldenrod">
-          <ChannelFavButton :channel-id="channelId" :bookmarked="channel?.fav || false"/>
-        </button>
+        <div class="btn-group">
+          <button type="button" v-if="selectedRecordings.length > 0" class="btn btn-danger justify-content-between me-2" @click="destroySelection">
+            <span class="me-2">Delete selection</span>
+            <i class="bi bi-trash3-fill"/>
+          </button>
+          <button type="button" class="btn btn-danger d-flex justify-content-between me-2" @click="deleteChannel" v-if="selectedRecordings.length == 0">
+            <span class="me-2">Delete channel</span>
+            <i class="bi bi-trash3-fill"/>
+          </button>
+          <button type="button" class="btn d-flex justify-content-between" :class="{'btn-warning' : channel?.fav, 'btn-secondary' : !channel?.fav}" @click="bookmark">
+            <span class="me-2">Bookmark</span>
+            <i style="color: black" class="bi" :class="{'bi-star-fill' : channel?.fav, 'bi-star' : !channel?.fav}"/>
+          </button>
+        </div>
       </div>
     </nav>
 
-    <div class="row pb-5">
+    <div class="row my-1 mb-3">
       <div class="d-flex align-middle fs-5 pb-2 fw-bolder">
-        <span class="text-primary px-2">{{ $route.params.channel }}</span>
+        <span class="text-primary">{{ $route.params.name }}</span>
       </div>
-
-      <hr/>
 
       <LoadIndicator :busy="busy" :empty="channel?.recordings?.length === 0" empty-text="No Videos">
         <div v-for="recording in channel?.recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
@@ -114,8 +128,6 @@ let cancellationToken: CancelTokenSource | null = null;
 // Methods
 // --------------------------------------------------------------------------------------
 
-const fav = computed(() => channel.value && channel.value.fav || false);
-
 const clickFile = () => file.value?.click();
 
 const destroySelection = async () => {
@@ -152,7 +164,7 @@ const deleteChannel = () => {
         .catch(err => alert(err))
         .finally(() => {
           busyOverlay.value = false;
-          router.back()
+          router.replace('/');
         });
   }
 };
@@ -194,6 +206,16 @@ const destroyRecording = (recording: RecordingResponse) => {
       }
     }
   }
+};
+
+const bookmark = () => {
+  busy.value = true;
+  const fn = channel.value!.fav ? api.channels.unfavPartialUpdate : api.channels.favPartialUpdate;
+
+  fn(channel.value!.channelId)
+      .then(() => channel.value!.fav = !channel.value!.fav)
+      .catch(res => alert(res.error))
+      .finally(() => busy.value = false);
 };
 
 // --------------------------------------------------------------------------------------

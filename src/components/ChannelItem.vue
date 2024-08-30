@@ -5,7 +5,7 @@
     </div>
 
     <Preview class="card-img-top"
-             @selected="viewFolder(props.channel.channelId!)"
+             @selected="viewFolder(props.channel.channelId!, props.channel.channelName)"
              :data="props.channel.channelId!"
              :previewImage="previewImage"/>
     <div class="card-body">
@@ -106,5 +106,5 @@ const pause = async (channel: ChannelResponse) => {
   }
 };
 
-const viewFolder = (id: number) => router.push('/streams/' + id);
+const viewFolder = (id: number, name: string) => router.push(`/stream/${id}/${name}`);
 </script>

@@ -82,7 +82,7 @@ export interface ModelsNetInfo {
   transmitBytes: number;
 }
 export interface ModelsProcessInfo {
-  args?: string[];
+  args?: string;
   id?: number;
   output?: string;
   path?: string;
@@ -437,11 +437,11 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
   };
   channels = {
     /**
-     * @description Return a list of channels
+     * @description Return a list of channels that are not marked as deleted, not currently recording, and not paused
      *
      * @tags channels
      * @name ChannelsList
-     * @summary Return a list of channels
+     * @summary Return a list of channels that are not marked as deleted, not currently recording, and not paused
      * @request GET:/channels
      */
     channelsList: (params: RequestParams = {}) =>
