@@ -22,7 +22,7 @@
       </RouterLink>
     </div>
     <div v-if="props.showTitle" class="card-body">
-      <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="$router.push('/streams/' + props.recording.channelId)">
+      <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="$router.push(`/stream/${props.recording.channelId}/${props.recording.channelName}`)">
         <h6 class="p-2 m-0 text-white">
           <a class="text-white" target="_blank">
             {{ props.recording.channelName }}
@@ -70,6 +70,7 @@ const emit = defineEmits<{
 // --------------------------------------------------------------------------------------
 
 const props = defineProps<{
+  select: boolean
   showSelection: boolean
   showTitle: boolean
   recording: RecordingResponse
@@ -81,7 +82,7 @@ const props = defineProps<{
 
 const api = createClient();
 
-const checked = ref(false);
+const checked = ref(props.select || false);
 const busy = ref(false);
 const destroyed = ref(false);
 
@@ -99,7 +100,12 @@ const link = `/recordings/${props.recording.recordingId}`;
 // Watchers
 // --------------------------------------------------------------------------------------
 
-watch(checked, (val) => {
+watch(checked, val => {
+  emit('checked', { checked: val, recording: props.recording });
+});
+
+watch(() => props.select, val => {
+  checked.value = val;
   emit('checked', { checked: val, recording: props.recording });
 });
 

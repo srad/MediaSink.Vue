@@ -1,11 +1,12 @@
 import { InjectionKey } from 'vue';
-import { createStore, Store, useStore as baseUseStore } from 'vuex';
+import { createStore, Payload, Store, useStore as baseUseStore } from 'vuex';
 import { V1ChannelResponse as ChannelResponse, ModelsJob as JobResponse } from '../services/api/v1/StreamSinkClient';
 
 export interface State {
   channels: ChannelResponse[];
   jobs: JobResponse[];
   loggedIn: boolean;
+  toasts: Toast[];
 }
 
 export interface JobMessage {
@@ -17,24 +18,68 @@ export interface JobMessage {
   data: { packets: number, frame: number } | any;
 }
 
+export interface Toast {
+  title: string;
+  message: string;
+  hide: boolean;
+  created: Date;
+  countdown: number;
+}
+
 export const key: InjectionKey<Store<State>> = Symbol();
 
-///////////////////////////////////////////////////
-// Mutations must be synchronous!
-///////////////////////////////////////////////////
+//--------------------------------------------------------------------
+//                 !!! Mutations must be synchronous !!!
+//--------------------------------------------------------------------
 
 export const store = createStore<State>({
   state: {
     channels: [],
     jobs: [],
     loggedIn: false,
+    toasts: []
+  },
+  getters: {
+    getToast(state: State): Toast[] {
+      return state.toasts;
+    },
   },
   mutations: {
+    error(state: State, message: string) {
+      store.commit('toast:add', { title: 'Error', message: message });
+    },
     'job:done'(state: State, job: JobMessage) {
       const i = state.jobs.findIndex(j => j.jobId === job.jobId);
       if (i !== -1) {
         state.jobs[i].active = false;
         state.jobs[i].progress = String(100);
+      }
+    },
+    'toast:add'(state: State, info: { title: string, message: string }) {
+      const toast: Toast = { ...info, hide: false, created: new Date(), countdown: 100 };
+      const i = state.toasts.push(toast) - 1;
+
+      // The animation can also be implemented with pure CSS, but that free us from this state update logic.
+      const toastDisplayDurationMs = 3000;
+      const id = setInterval(() => {
+        const dtMS = ((new Date()).getTime() - toast.created.getTime());
+        state.toasts[i].countdown = 100 - (dtMS / toastDisplayDurationMs * 100);
+        if (state.toasts[i].countdown <= 0) {
+          clearInterval(id);
+          state.toasts[i].hide = true;
+        }
+      }, toastDisplayDurationMs / 10);
+    },
+    'toast:destroy'(state: State, toast: Toast) {
+      const i = store.state.toasts.findIndex(x => x === toast);
+      if (i !== -1) {
+        store.state.toasts.splice(i, 1);
+      }
+    },
+    'toast:hide'(state: State, toast: Toast) {
+      const i = store.state.toasts.findIndex(x => x === toast);
+      if (i !== -1) {
+        store.state.toasts[i].hide = true;
       }
     },
     'job:create'(state: State, data: JobResponse) {
@@ -49,7 +94,7 @@ export const store = createStore<State>({
     'job:start'(state: State, job: JobResponse) {
       let i = state.jobs.findIndex(j => j.jobId === job.jobId);
       if (i === -1) {
-        i = state.jobs.push(job);
+        i = state.jobs.push(job) - 1;
       }
       state.jobs[i].active = true;
     },
@@ -122,11 +167,18 @@ export const store = createStore<State>({
         state.channels.splice(i, 1);
       }
     },
-    'channel:pause'(state: State, data: { id: number, pause: boolean }) {
-      const i = state.channels.findIndex(c => c.channelId === data.id);
+    'channel:pause'(state: State, channelId: number) {
+      const i = state.channels.findIndex(c => c.channelId === channelId);
       if (i !== -1) {
-        state.channels[i].isRecording = data.pause;
-        state.channels[i].isPaused = data.pause;
+        state.channels[i].isRecording = false;
+        state.channels[i].isPaused = true;
+      }
+    },
+    'channel:resume'(state: State, channelId: number) {
+      const i = state.channels.findIndex(c => c.channelId === channelId);
+      console.log(i);
+      if (i !== -1) {
+        state.channels[i].isPaused = false;
       }
     },
     destroyJob(state: State, jobId: number) {

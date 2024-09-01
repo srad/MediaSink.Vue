@@ -98,7 +98,9 @@ const pause = async (channel: ChannelResponse) => {
     busy.value = true;
     const method = channel.isPaused ? api.channels.resumeCreate : api.channels.pauseCreate;
     await method(channel.channelId!);
-    store.commit('channel:pause', { id: channel.channelId, pause: !channel.isPaused });
+
+    // Invert current paused mode.
+    store.commit(channel.isPaused ? 'channel:resume' : 'channel:pause', channel.channelId);
   } catch (err) {
     console.log(err);
   } finally {

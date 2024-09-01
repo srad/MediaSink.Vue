@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import StreamView from './views/StreamView.vue';
 import SortView from './views/SortView.vue';
 import BookmarkView from './views/BookmarkView.vue';
@@ -12,7 +12,7 @@ import StreamItemView from './views/StreamItemView.vue';
 import RandomView from './views/RandomView.vue';
 import OverviewView from './views/OverviewView.vue';
 
-const routes = [
+const routes: Readonly<RouteRecordRaw[]> = [
   { path: '', redirect: '/streams' },
   { path: '/', redirect: '/streams/live/tab' },
   { path: '/overview', name: 'OverView', component: OverviewView },

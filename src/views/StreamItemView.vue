@@ -25,24 +25,35 @@
 
     <nav class="navbar fixed-bottom navbar-light bg-light border-info border-top">
       <div class="container-fluid justify-content-between">
-        <!-- Default dropup button -->
-        <div class="btn-group dropup">
+        <div class="btn-group dropup" v-if="selectedRecordings.length === 0">
           <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
             Options
           </button>
           <ul class="dropdown-menu">
             <li>
-              <button type="button" class="dropdown-item d-flex justify-content-between" @click="clickFile" v-if="selectedRecordings.length == 0">
+              <button type="button" class="dropdown-item d-flex justify-content-between" @click="clickFile">
                 <input ref="file" name="file" v-show="false" accept="video/mp4" @change="submit" type="file">
                 <span>Upload video</span>
-                <i class="bi bi-upload"/>
+                <i class="bi text-primary bi-upload"/>
               </button>
             </li>
             <li>
               <button type="button" class="dropdown-item d-flex justify-content-between">
                 <span>Edit channel</span>
-                <i class="bi bi-pencil"/>
+                <i class="bi bi-pencil text-info"/>
               </button>
+            </li>
+            <li>
+              <button type="button" class="dropdown-item d-flex justify-content-between" @click="deleteChannel">
+                <span class="me-2">Delete channel</span>
+                <i class="bi text-danger bi-trash3-fill"/>
+              </button>
+            </li>
+            <li>
+              <div class="dropdown-item form-check form-switch d-flex justify-content-between" v-if="selectedRecordings.length === 0">
+                <label class="form-check-label m-0 p-0 me-2" for="flexSwitchCheckDefault">Enabled?</label>
+                <input class="form-check-input m-0 my-1 p-0" type="checkbox" role="switch" id="flexSwitchCheckDefault" :checked="!channel?.isPaused" @change="pauseChannel($event.target as HTMLInputElement)">
+              </div>
             </li>
           </ul>
         </div>
@@ -52,11 +63,11 @@
             <span class="me-2">Delete selection</span>
             <i class="bi bi-trash3-fill"/>
           </button>
-          <button type="button" class="btn btn-danger d-flex justify-content-between me-2" @click="deleteChannel" v-if="selectedRecordings.length == 0">
-            <span class="me-2">Delete channel</span>
-            <i class="bi bi-trash3-fill"/>
+          <button type="button" v-if="selectedRecordings.length > 0" class="btn btn-primary justify-content-between me-2" @click="cancelSelection">
+            <span class="me-2">Cancel</span>
+            <i class="bi bi-stop-fill"/>
           </button>
-          <button type="button" class="btn d-flex justify-content-between" :class="{'btn-warning' : channel?.fav, 'btn-secondary' : !channel?.fav}" @click="bookmark">
+          <button v-if="selectedRecordings.length === 0" type="button" class="btn d-flex justify-content-between" :class="{'btn-warning' : channel?.fav, 'btn-secondary' : !channel?.fav}" @click="bookmark">
             <span class="me-2">Bookmark</span>
             <i style="color: black" class="bi" :class="{'bi-star-fill' : channel?.fav, 'bi-star' : !channel?.fav}"/>
           </button>
@@ -74,6 +85,7 @@
           <RecordingItem
               @destroyed="destroyRecording"
               @checked="selectRecording"
+              :select="selectedRecordings.some(x => x.recordingId === recording.recordingId)"
               :show-selection="true"
               :recording="recording"
               :show-title="false"/>
@@ -84,11 +96,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted } from 'vue';
 import RecordingItem from '../components/RecordingItem.vue';
 import { Modal } from 'bootstrap';
 import LoadIndicator from '../components/LoadIndicator.vue';
-import ChannelFavButton from "../components/controls/ChannelFavButton.vue";
 import { createClient } from "../services/api/v1/ClientFactory";
 import { ModelsRecording } from "../services/api/v1/StreamSinkClient";
 import {
@@ -121,14 +132,28 @@ const busy = ref(false);
 const busyOverlay = ref(false);
 const channel = ref<ChannelResponse | null>(null);
 const channelId = (+route.params.id) as unknown as number;
-
+const client = createClient();
 let cancellationToken: CancelTokenSource | null = null;
 
 // --------------------------------------------------------------------------------------
 // Methods
 // --------------------------------------------------------------------------------------
 
+const pauseChannel = (element: HTMLInputElement): void => {
+  const fn = element.checked ? client.channels.resumeCreate : client.channels.pauseCreate;
+  fn(channel.value!.channelId).then(() => {
+    console.log(element.checked, channel.value?.channelId);
+    store.commit(element.checked ? 'channel:resume' : 'channel:pause', channel.value?.channelId);
+    store.commit('toast:add', {
+      title: element.checked ? 'Channel resume' : 'Channel pause',
+      message: `Channel ${channel.value?.displayName}`
+    });
+  }).catch(err => store.commit('error', err))
+};
+
 const clickFile = () => file.value?.click();
+
+const cancelSelection = () => selectedRecordings.value = [];
 
 const destroySelection = async () => {
   if (!window.confirm('Delete selection?')) {
@@ -164,6 +189,7 @@ const deleteChannel = () => {
         .catch(err => alert(err))
         .finally(() => {
           busyOverlay.value = false;
+          store.commit('toast:add', { title: 'Channel deleted', message: `Channel ${channel.value?.displayName}` });
           router.replace('/');
         });
   }
@@ -201,6 +227,7 @@ const destroyRecording = (recording: RecordingResponse) => {
   if (channel.value?.recordings) {
     for (let i = 0; i < channel.value?.recordings?.length; i += 1) {
       if (channel.value?.recordings && channel.value?.recordings[i].recordingId === recording.recordingId) {
+        store.commit('toast:add', { title: 'Video deleted', message: channel.value?.recordings[i].filename });
         channel.value?.recordings?.splice(i, 1);
         break;
       }
@@ -209,13 +236,11 @@ const destroyRecording = (recording: RecordingResponse) => {
 };
 
 const bookmark = () => {
-  busy.value = true;
   const fn = channel.value!.fav ? api.channels.unfavPartialUpdate : api.channels.favPartialUpdate;
 
   fn(channel.value!.channelId)
       .then(() => channel.value!.fav = !channel.value!.fav)
-      .catch(res => alert(res.error))
-      .finally(() => busy.value = false);
+      .catch(err => store.commit('error', err));
 };
 
 // --------------------------------------------------------------------------------------

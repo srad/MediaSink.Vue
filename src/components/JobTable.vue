@@ -24,7 +24,7 @@
           {{ job.pid }}
         </td>
         <td class="p-1">
-          <RouterLink :to="'/streams/' + job.channelId">
+          <RouterLink :to="`/stream/${job.channelId}/${job.channelName}`">
             {{ job.channelName }}
           </RouterLink>
         </td>

@@ -40,7 +40,7 @@
               <img alt="preview" :src="fileUrl + '/' + channel.preview" class="rounded" style="height: 50px; width: auto"/>
             </td>
             <td class="px-2">
-              <RouterLink class="text-decoration-none" :to="'/streams/' + channel.channelId">
+              <RouterLink class="text-decoration-none" :to="`/stream/${channel.channelId}/${channel.channelName}`">
                 <h6 class="m-0">{{ channel.channelName }}</h6>
               </RouterLink>
               <a :href="channel.url" target="_blank">{{ channel.url }}</a>

@@ -15,19 +15,33 @@
         title="Add Stream"
         @save="save"
         @close="showModal=false"/>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div v-for="toast in toasts" class="toast border-dark" :class="{'show': toast.hide !== true}" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-info-light">
+          <strong class="me-auto">{{ toast.title }}</strong>
+          <button type="button" class="btn-close" @click="() => store.commit('toast:hide', toast)" aria-label="Close"></button>
+        </div>
+        <div class="toast-body bg-secondary-subtle text-dark">
+          <div>
+            {{ toast.message }}
+          </div>
+          <div style="height: 3px;" :style="{'width': toast.countdown + '%'}" class="mt-2 bg-warning"></div>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, ref } from 'vue';
+import { computed, onBeforeMount, ref, watch } from 'vue';
 import { V1ChannelRequest as ChannelRequest, ModelsJob as JobResponse } from './services/api/v1/StreamSinkClient';
 import { socket, MessageType } from "./utils/socket";
 import ChannelModal from './components/modals/ChannelModal.vue';
 import NavTop from './components/navs/NavTop.vue';
 import { createClient } from './services/api/v1/ClientFactory';
 import { useI18n } from "vue-i18n";
-import { useStore } from "./store";
-import axios from "axios";
+import { JobMessage, Toast, useStore } from "./store";
 
 const { t } = useI18n();
 const store = useStore();
@@ -36,6 +50,8 @@ const api = createClient();
 
 const title = window.VUE_APP_NAME;
 const showModal = ref(false);
+
+const toasts = computed(() => store.getters.getToast);
 
 const routes = [
   { icon: 'bi-water', url: '/streams', title: t('menu.streams') },
@@ -55,20 +71,39 @@ const save = (data: ChannelRequest) => {
 
 onBeforeMount(() => {
   // Dispatch
-  socket.on(MessageType.JobCreate, data => store.commit('job:create', data));
-  socket.on(MessageType.JobDestroy, data => store.commit('job:destroy', data));
-  socket.on(MessageType.JobPreviewDone, data => store.commit('job:done', data));
+  socket.on(MessageType.JobCreate, data => {
+    const job = data as JobMessage;
+    store.commit('job:create', job);
+    store.commit('toast:add', { title: 'Job created', message: `File ${job.filename} in ${job.channelName}` });
+  });
+
+  socket.on(MessageType.JobDestroy, data => {
+    const job = data as JobMessage;
+    store.commit('job:destroy', job);
+    store.commit('toast:add', { title: 'Job destroyed', message: `File ${job.filename} in ${job.channelName}` });
+  });
+
+  socket.on(MessageType.JobPreviewDone, data => {
+    const job = data as JobMessage;
+    store.commit('job:done', job)
+    store.commit('toast:add', { title: 'Job done', message: `File ${job.filename} in ${job.channelName}` });
+  });
   socket.on(MessageType.JobProgress, data => store.commit('job:progress', data));
   socket.on(MessageType.JobPreviewProgress, data => store.commit('job:preview:progress', data));
 
   socket.on(MessageType.ChannelOnline, data => store.commit('channel:online', data));
   socket.on(MessageType.ChannelOffline, data => store.commit('channel:offline', data));
   socket.on(MessageType.ChannelThumbnail, data => store.commit('channel:thumbnail', data));
-  socket.on(MessageType.ChannelStart, data => store.commit('channel:start', data));
+
+  socket.on(MessageType.ChannelStart, data => {
+    const id = data as number;
+    store.commit('channel:start', id);
+    store.commit('toast:add', { title: 'Channel recording', message: `Channel id ${id}` });
+  });
 
   api.jobs.jobsList()
       .then(result => result.data.forEach((job: JobResponse) => store.commit('addJob', job)))
-      .catch(res => alert(res.error));
+      .catch(err => store.commit('error', err));
 });
 </script>
 

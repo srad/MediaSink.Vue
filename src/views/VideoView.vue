@@ -71,7 +71,7 @@
 
           <div class="modal-footer p-1 d-flex justify-content-between" v-if="stripeUrl">
             <div>
-              <button type="button" class="btn btn-sm btn-secondary" @click="router.push('/streams/' + recording.channelId)">
+              <button type="button" class="btn btn-sm btn-secondary" @click="router.push(`/stream/${recording.channelId}/${recording.channelName}`)">
                 {{ recording.channelName }}
               </button>
             </div>
@@ -133,9 +133,9 @@ import Stripe from '../components/Stripe.vue';
 import { useI18n } from 'vue-i18n'
 import { useRouter, onBeforeRouteLeave, useRoute } from 'vue-router';
 import { ModelsRecording } from "../services/api/v1/StreamSinkClient.ts";
-import FavButton from "../components/controls/FavButton.vue";
 import RecordingFavButton from "../components/controls/RecordingFavButton.vue";
 import BusyOverlay from "../components/BusyOverlay.vue";
+import { useStore } from "../store";
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -175,6 +175,8 @@ const id = ref<number>();
 const busy = ref(false);
 
 let cutInterval: number | undefined;
+
+const store = useStore();
 
 // --------------------------------------------------------------------------------------
 // Hooks
@@ -331,8 +333,11 @@ const destroy = () => {
   busy.value = true;
 
   api.recordings.recordingsDelete(id.value!)
-      .then(() => router.back())
-      .catch((err) => alert(err))
+      .then(() => {
+        store.commit('toast:add', { title: 'Video deleted', message: recording.value?.filename });
+        router.back();
+      })
+      .catch((err) => store.commit('error', err))
       .finally(() => busy.value = false);
 };
 
