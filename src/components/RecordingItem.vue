@@ -70,7 +70,7 @@ const emit = defineEmits<{
 // --------------------------------------------------------------------------------------
 
 const props = defineProps<{
-  select: boolean
+  select?: boolean
   showSelection: boolean
   showTitle: boolean
   recording: RecordingResponse
