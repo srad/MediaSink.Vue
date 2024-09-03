@@ -133,14 +133,14 @@
 </template>
 
 <script setup lang="ts">
-import { createClient } from "../services/api/v1/ClientFactory";
-import { V1ChannelResponse as ChannelResponse } from "../services/api/v1/StreamSinkClient";
-import { watch, computed, ref, onMounted } from 'vue';
+import { createClient } from '../services/api/v1/ClientFactory';
+import { V1ChannelResponse as ChannelResponse } from '../services/api/v1/StreamSinkClient';
+import { watch, computed, ref, onBeforeMount } from 'vue';
 import ChannelItem from '../components/ChannelItem.vue';
 import ChannelModal, { ChannelUpdate } from '../components/modals/ChannelModal.vue';
-import { useRoute, useRouter } from "vue-router";
-import { useStore } from "../store";
-import LoadIndicator from "../components/LoadIndicator.vue";
+import { useRoute, useRouter } from 'vue-router';
+import { useStore } from '../store';
+import LoadIndicator from '../components/LoadIndicator.vue';
 
 const filter = (channel: ChannelResponse, search: string, tag: string): boolean => channel.channelName!.indexOf(search) !== -1 && (channel.tags || '').indexOf(tag) !== -1;
 
@@ -249,7 +249,7 @@ const tab = (tab: string) => router.push({ name: 'Stream', params: { tag: tagFil
 // Hooks
 // --------------------------------------------------------------------------------------
 
-onMounted(async () => {
+onBeforeMount(async () => {
   const res = await api.channels.channelsList();
   res.data.forEach(channel => store.commit('addChannel', channel));
   loaded.value = false;

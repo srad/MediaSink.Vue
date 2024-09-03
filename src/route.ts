@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import { createRouter, createWebHistory, createMemoryHistory, RouteRecordRaw } from 'vue-router';
 import StreamView from './views/StreamView.vue';
 import SortView from './views/SortView.vue';
 import BookmarkView from './views/BookmarkView.vue';
@@ -11,6 +11,8 @@ import LogoutView from './views/LogoutView.vue';
 import StreamItemView from './views/StreamItemView.vue';
 import RandomView from './views/RandomView.vue';
 import OverviewView from './views/OverviewView.vue';
+
+const createHistory = import.meta.env.SSR ? createMemoryHistory : createWebHistory;
 
 const routes: Readonly<RouteRecordRaw[]> = [
   { path: '', redirect: '/streams' },
@@ -30,6 +32,6 @@ const routes: Readonly<RouteRecordRaw[]> = [
   { path: '/:pathMatch(.*)*', redirect: '/streams/live/tab' },
 ];
 
-const router = createRouter({ history: createWebHistory(), routes });
+const router = createRouter({ history: createHistory(), routes });
 
 export default router;

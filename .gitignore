@@ -33,3 +33,7 @@ dist-ssr
 .idea
 .vscode
 coverage
+
+public/env.js
+public/build.js
+.env.local

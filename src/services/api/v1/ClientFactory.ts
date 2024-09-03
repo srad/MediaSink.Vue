@@ -1,11 +1,13 @@
 import { StreamSinkClient, ModelsRecording as RecordingResponse, V1RecordingStatus, HttpClient } from './StreamSinkClient';
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosResponse } from 'axios';
 import { CancelTokenSource } from 'axios';
+
+const apiUrl = import.meta.env.VITE_VUE_APP_APIURL;
 
 export class MyClient extends StreamSinkClient<any> {
   constructor() {
     const client = new HttpClient({
-      baseUrl: window.VUE_APP_APIURL,
+      baseUrl: apiUrl,
     });
     super(client);
   }
@@ -16,16 +18,16 @@ export class MyClient extends StreamSinkClient<any> {
    * @param file File object to upload
    * @param progress Returns the progress as number in range [0.0 ... 1.0]
    */
-  channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [ Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource ] {
+  channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource] {
     const source = axios.CancelToken.source();
     const formData = new FormData();
     formData.append('file', file);
 
-    return [ axios.post(`${window.VUE_APP_APIURL}/channels/${channelId}/upload`, formData, {
+    return [axios.post(`${apiUrl}/channels/${channelId}/upload`, formData, {
       cancelToken: source.token,
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: progressEvent => progressEvent.total ? progress(progressEvent.loaded / progressEvent.total) : 0
-    }), source ];
+    }), source];
   }
 
   /**
@@ -33,7 +35,7 @@ export class MyClient extends StreamSinkClient<any> {
    * although the returned data look fine in the browser.
    */
   async isRecording(): Promise<boolean> {
-    const res = await axios.get<V1RecordingStatus>(`${window.VUE_APP_APIURL}/recorder`);
+    const res = await axios.get<V1RecordingStatus>(`${apiUrl}/recorder`);
     return res.data.isRecording;
   }
 }

@@ -78,7 +78,8 @@
 </template>
 
 <script setup lang="ts">
-import { Modal } from 'bootstrap';
+//import { Modal } from 'bootstrap';
+import Modal from './Modal';
 import { defineProps, defineEmits, watch, onMounted, ref } from 'vue';
 import { randomString } from "../../utils/math.ts";
 

@@ -1,12 +1,5 @@
-//@ts-nocheck
-
-const c = new WebSocket(window.VUE_APP_SOCKETURL);
-
-// const send = function (data: any) {
-//   c.send(JSON.stringify(data));
-// };
-
-const listeners = {};
+const socketUrl = import.meta.env.SSR ? import.meta.env.VITE_VUE_APP_SOCKETURL : window.VUE_APP_SOCKETURL;
+const listeners: { [key: string]: ((data: Object) => void)[] } = {};
 
 const addListener = (event: string, fn: (data: Object) => void) => {
   if (!listeners[event]) {
@@ -25,18 +18,23 @@ const notify = (event: string, data: object) => {
   }
 };
 
-c.onmessage = (msg: any) => {
-  const json = JSON.parse(msg.data) as { name: string, data: Object };
-  notify(json.name, json.data);
-};
+// Run only on client.
+if (!import.meta.env.SSR) {
+  const c = new WebSocket(socketUrl);
 
-c.onopen = () => {
-  console.log('open ws');
-};
+  c.onmessage = (msg: any) => {
+    const json = JSON.parse(msg.data) as { name: string, data: Object };
+    notify(json.name, json.data);
+  };
 
-c.onerror = (ev: Event) => {
-  console.error(ev);
-};
+  c.onopen = () => {
+    console.log('open ws');
+  };
+
+  c.onerror = (ev: Event) => {
+    console.error(ev);
+  };
+}
 
 export const socket = {
   on: addListener

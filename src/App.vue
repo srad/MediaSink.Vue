@@ -34,21 +34,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watch } from 'vue';
+import { computed, inject, onBeforeMount, ref } from 'vue';
 import { V1ChannelRequest as ChannelRequest, ModelsJob as JobResponse } from './services/api/v1/StreamSinkClient';
-import { socket, MessageType } from "./utils/socket";
+import { socket, MessageType } from './utils/socket';
 import ChannelModal from './components/modals/ChannelModal.vue';
 import NavTop from './components/navs/NavTop.vue';
 import { createClient } from './services/api/v1/ClientFactory';
-import { useI18n } from "vue-i18n";
-import { JobMessage, Toast, useStore } from "./store";
+import { useI18n } from 'vue-i18n';
+import { JobMessage, useStore } from './store';
 
 const { t } = useI18n();
 const store = useStore();
 
 const api = createClient();
 
-const title = window.VUE_APP_NAME;
+const title = inject('appName') as string;
 const showModal = ref(false);
 
 const toasts = computed(() => store.getters.getToast);
@@ -85,7 +85,7 @@ onBeforeMount(() => {
 
   socket.on(MessageType.JobPreviewDone, data => {
     const job = data as JobMessage;
-    store.commit('job:done', job)
+    store.commit('job:done', job);
     store.commit('toast:add', { title: 'Job done', message: `File ${job.filename} in ${job.channelName}` });
   });
   socket.on(MessageType.JobProgress, data => store.commit('job:progress', data));

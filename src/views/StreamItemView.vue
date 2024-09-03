@@ -98,7 +98,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import RecordingItem from '../components/RecordingItem.vue';
-import { Modal } from 'bootstrap';
+//import { Modal } from 'bootstrap';
+import Modal from '../components/modals/Modal';
 import LoadIndicator from '../components/LoadIndicator.vue';
 import { createClient } from "../services/api/v1/ClientFactory";
 import { ModelsRecording } from "../services/api/v1/StreamSinkClient";
@@ -142,7 +143,6 @@ let cancellationToken: CancelTokenSource | null = null;
 const pauseChannel = (element: HTMLInputElement): void => {
   const fn = element.checked ? client.channels.resumeCreate : client.channels.pauseCreate;
   fn(channel.value!.channelId).then(() => {
-    console.log(element.checked, channel.value?.channelId);
     store.commit(element.checked ? 'channel:resume' : 'channel:pause', channel.value?.channelId);
     store.commit('toast:add', {
       title: element.checked ? 'Channel resume' : 'Channel pause',
