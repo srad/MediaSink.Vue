@@ -55,7 +55,7 @@ const toasts = computed(() => store.getters.getToast);
 
 const routes = [
   { icon: 'bi-water', url: '/streams', title: t('menu.streams') },
-  { icon: 'bi-list', url: '/overview', title: t('menu.overview') },
+  { icon: 'bi-list', url: '/channels', title: t('menu.channels') },
   { icon: 'bi-stopwatch', url: '/filter', title: t('menu.latest') },
   { icon: 'bi-hypnotize', url: '/random', title: t('menu.random') },
   { icon: 'bi-star-fill', url: '/bookmarks', title: t('menu.favs') },

@@ -10,14 +10,14 @@ import LoginView from './views/LoginView.vue';
 import LogoutView from './views/LogoutView.vue';
 import StreamItemView from './views/StreamItemView.vue';
 import RandomView from './views/RandomView.vue';
-import OverviewView from './views/OverviewView.vue';
+import ChannelView from './views/ChannelView.vue';
 
 const createHistory = import.meta.env.SSR ? createMemoryHistory : createWebHistory;
 
 const routes: Readonly<RouteRecordRaw[]> = [
   { path: '', redirect: '/streams' },
   { path: '/', redirect: '/streams/live/tab' },
-  { path: '/overview', name: 'OverView', component: OverviewView },
+  { path: '/channels', name: 'Channels', component: ChannelView },
   { path: '/admin', name: 'Admin', component: AdminView },
   { path: '/jobs', name: 'Job', component: JobView },
   { path: '/streams/:tab/tab/:tag?', name: 'Stream', component: StreamView },
