@@ -1,5 +1,5 @@
 <template>
-  <div class="my-2">
+  <div>
     <ChannelModal
         @save="save"
         @close="showModal=false"
@@ -96,31 +96,25 @@
         <div class="tab-content py-2" id="myTabContent">
           <div class="tab-pane fade" :class="{'active show': route.params.tab === 'live'}" id="home" role="tabpanel" aria-labelledby="home-tab">
             <div class="row">
-              <LoadIndicator empty-text="No active streams" :busy="loaded" :empty="recordingStreams.length===0">
-                <div v-for="channel in recordingStreams" :key="channel.channelId" :class="channelItemClass">
-                  <ChannelItem :channel="channel" @edit="editChannel"/>
-                </div>
-              </LoadIndicator>
+              <div v-for="channel in recordingStreams" :key="channel.channelId" :class="channelItemClass">
+                <ChannelItem :channel="channel" @edit="editChannel"/>
+              </div>
             </div>
           </div>
 
           <div class="tab-pane fade" :class="{'active show': route.params.tab === 'offline'}" id="profile" role="tabpanel" aria-labelledby="profile-tab">
             <div class="row">
-              <LoadIndicator empty-text="Empty" :busy="loaded" :empty="notRecordingStreams.length===0">
-                <div v-for="channel in notRecordingStreams" :key="channel.channelId" :class="channelItemClass">
-                  <ChannelItem :channel="channel" @edit="editChannel"/>
-                </div>
-              </LoadIndicator>
+              <div v-for="channel in notRecordingStreams" :key="channel.channelId" :class="channelItemClass">
+                <ChannelItem :channel="channel" @edit="editChannel"/>
+              </div>
             </div>
           </div>
 
           <div class="tab-pane fade" :class="{'active show': route.params.tab === 'disabled'}" id="disabled" role="tabpanel" aria-labelledby="disabled-tab">
             <div class="row">
-              <LoadIndicator empty-text="Empty" :busy="loaded" :empty="disabledStreams.length===0">
-                <div v-for="channel in disabledStreams" :key="channel.channelId" :class="channelItemClass">
-                  <ChannelItem :channel="channel" @edit="editChannel"/>
-                </div>
-              </LoadIndicator>
+              <div v-for="channel in disabledStreams" :key="channel.channelId" :class="channelItemClass">
+                <ChannelItem :channel="channel" @edit="editChannel"/>
+              </div>
             </div>
           </div>
         </div>
@@ -128,7 +122,6 @@
 
     </div>
     <!-- Body -->
-
   </div>
 </template>
 
@@ -156,7 +149,6 @@ const channelName = ref('');
 const displayName = ref('');
 const isPaused = ref(false);
 const url = ref('');
-const loaded = ref(true);
 
 const minDuration = ref(0);
 const skipStart = ref(0);
@@ -167,6 +159,9 @@ const searchVal = ref<string>((route.query.search || route.query.tag || route.pa
 const tagFilter = ref<string>((route.params.tag || route.query.tag || '') as string);
 const store = useStore();
 const router = useRouter();
+
+const res = await api.channels.channelsList();
+res.data.forEach(channel => store.commit('addChannel', channel));
 
 // --------------------------------------------------------------------------------------
 // Watchers
@@ -244,16 +239,6 @@ const editChannel = (channel: ChannelResponse) => {
 };
 
 const tab = (tab: string) => router.push({ name: 'Stream', params: { tag: tagFilter.value, tab } });
-
-// --------------------------------------------------------------------------------------
-// Hooks
-// --------------------------------------------------------------------------------------
-
-onBeforeMount(async () => {
-  const res = await api.channels.channelsList();
-  res.data.forEach(channel => store.commit('addChannel', channel));
-  loaded.value = false;
-});
 </script>
 
 <style lang="scss" scoped>

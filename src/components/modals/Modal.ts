@@ -1,4 +1,4 @@
-import { Modal as ModalBootstrap } from 'bootstrap';
+//import { Modal as ModalBootstrap } from 'bootstrap';
 
 /**
  * TODO: In order for SSR to work replacements are needed for certain libraries.
@@ -7,7 +7,7 @@ import { Modal as ModalBootstrap } from 'bootstrap';
 export default class Modal {
   private static element: { [key: string]: HTMLElement } = {};
   private id: string;
-  private modalBootstrap: ModalBootstrap;
+  //private modalBootstrap: ModalBootstrap;
 
   constructor(element: HTMLElement) {
     let id = element.getAttribute('id');
@@ -19,17 +19,17 @@ export default class Modal {
       Modal.element[id] = element;
     }
     this.id = id;
-    this.modalBootstrap = new ModalBootstrap(element);
+    //this.modalBootstrap = new ModalBootstrap(element);
   }
 
   show() {
     //Modal.element[this.id].classList.add('show');
-    this.modalBootstrap.show();
+    //this.modalBootstrap.show();
   }
 
   hide() {
     //Modal.element[this.id].classList.remove('show');
-    this.modalBootstrap.hide();
+    //this.modalBootstrap.hide();
   }
 
   static generateId(): string {
