@@ -133,11 +133,10 @@ import ChannelItem from '../components/ChannelItem.vue';
 import ChannelModal, { ChannelUpdate } from '../components/modals/ChannelModal.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '../store';
-import LoadIndicator from '../components/LoadIndicator.vue';
 
-const filter = (channel: ChannelResponse, search: string, tag: string): boolean => channel.channelName!.indexOf(search) !== -1 && (channel.tags || '').indexOf(tag) !== -1;
-
-const sort = (a: ChannelResponse, b: ChannelResponse) => a.channelName!.localeCompare(b.channelName!);
+// --------------------------------------------------------------------------------------
+// Declarations
+// --------------------------------------------------------------------------------------
 
 const api = createClient();
 const route = useRoute();
@@ -209,13 +208,25 @@ const favStreams = computed(() => store.state.channels.slice()
     .sort(sort));
 
 const searchResults = computed(() => store.state.channels.slice()
-    .filter(channel => filter(channel, searchTerms.value, tagTerms.value))
+    .filter(channel => searchFilter(channel, searchTerms.value, tagTerms.value))
     .filter(channel => favs.value ? channel.fav : true) // Only use, if defined.
     .sort(sort));
 
 // --------------------------------------------------------------------------------------
 // Methods
 // --------------------------------------------------------------------------------------
+
+const searchFilter = (channel: ChannelResponse, search: string, tag: string): boolean => {
+
+  const matches = ((search && search.length > 0) ? channel.channelName!.indexOf(search) !== -1 : true) &&
+      ((tag && tag.length > 0 && channel.tags) ? channel.tags.some(t => t === tag) : true);
+
+  console.log(channel.channelName, search, channel.channelName!.indexOf(search) !== -1, channel.tags, channel.tags?.some(x => x == tag), tag)
+
+  return matches;
+}
+
+const sort = (a: ChannelResponse, b: ChannelResponse) => a.channelName!.localeCompare(b.channelName!);
 
 const save = async (data: ChannelUpdate) => {
   try {

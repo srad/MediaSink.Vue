@@ -43,7 +43,7 @@ async function createServer() {
       // 3. Laden Sie den Server-Einstieg. ssrLoadModule transformiert automatisch
       //    ESM-Quellcode, damit er in Node.js verwendbar ist! Es ist kein Bündeln erforderlich und bietet
       //    effiziente Ungültigmachung ähnlich wie HMR.
-      const {render} = await vite.ssrLoadModule("/src/entry-server.js");
+      const {render} = await vite.ssrLoadModule("/src/entry-server.ts");
 
       // 4. Die HTML-Anwendung rendern. Dies setzt voraus, dass entry-server.js exportiert wird.
       //     Die Funktion `render` ruft entsprechende SSR-Rahmen-APIs auf,

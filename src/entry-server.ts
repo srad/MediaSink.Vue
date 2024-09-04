@@ -1,9 +1,9 @@
-import {renderToString} from "vue/server-renderer";
-import {createSSRApp} from "vue";
-import {i18n} from "./i18n/i18n";
+import { renderToString } from "vue/server-renderer";
+import { createSSRApp } from "vue";
+import { i18n } from "./i18n/i18n";
 import App from "./App.vue";
 import router from "./route";
-import {store, key} from "./store";
+import { store, key } from "./store";
 
 const app = createSSRApp(App).use(i18n)
   .use(store, key)
@@ -30,5 +30,5 @@ export async function render() {
   const ctx = {};
   const html = await renderToString(app, ctx);
 
-  return {html};
+  return { html };
 }

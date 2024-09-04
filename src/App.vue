@@ -4,23 +4,21 @@
   <main class="container-fluid" style="padding-top: 4rem">
     <RouterView v-slot="{ Component }">
       <template v-if="Component">
-        <KeepAlive>
-          <Suspense>
-            <!-- main content -->
-            <component :is="Component"></component>
+        <suspense>
+          <!-- main content -->
+          <component :is="Component"></component>
 
-            <!-- loading state -->
-            <template #fallback>
-              <div class="d-flex justify-content-center my-3">
-                <div class="text-center">
-                  <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
+          <!-- loading state -->
+          <template #fallback>
+            <div class="d-flex justify-content-center my-3">
+              <div class="text-center">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                  <span class="visually-hidden">Loading...</span>
                 </div>
               </div>
-            </template>
-          </Suspense>
-        </KeepAlive>
+            </div>
+          </template>
+        </suspense>
       </template>
     </RouterView>
 
