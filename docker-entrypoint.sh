@@ -9,4 +9,4 @@ window.VUE_APP_FILEURL = "${APP_FILEURL}";
 EOL
 
 cd /app
-node server.js
+node --env-file=.env server.js
