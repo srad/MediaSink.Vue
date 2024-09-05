@@ -67,13 +67,15 @@ app.use("*", async (req, res) => {
 
 // Start http server
 app.listen(port, () => {
-  console.log(`Server started at http://localhost:${port}`);
-  console.log("Production: ", isProduction);
-  console.log("API URL: ", process.env.VITE_VUE_APP_APIURL);
-  console.log("APP Base: ", process.env.VITE_VUE_APP_BASE);
-  console.log("APP Name: ", process.env.VITE_VUE_APP_NAME);
-  console.log("File URL: ", process.env.VITE_VUE_APP_FILEURL);
-  console.log("Socket URL: ", process.env.VITE_VUE_APP_SOCKETURL);
-  console.log("APP Build: ", process.env.VITE_VUE_APP_BUILD);
-  console.log("APP Version: ", process.env.VITE_VUE_APP_VERSION);
+  console.log("+-----------------------------------------------------");
+  console.log(`| Server URL:  http://localhost:${port}`);
+  console.log("| Production:  ", isProduction);
+  console.log(`| API URL:     '${process.env.VITE_VUE_APP_APIURL}'`);
+  console.log(`| APP Base:    '${process.env.VITE_VUE_APP_BASE}'`);
+  console.log(`| APP Name:    '${process.env.VITE_VUE_APP_NAME}'`);
+  console.log(`| File URL:    '${process.env.VITE_VUE_APP_FILEURL}'`);
+  console.log(`| Socket URL:  '${process.env.VITE_VUE_APP_SOCKETURL}'`);
+  console.log(`| APP Build:   '${process.env.VITE_VUE_APP_BUILD}'`);
+  console.log(`| APP Version: '${process.env.VITE_VUE_APP_VERSION}'`);
+  console.log("+-----------------------------------------------------");
 });
