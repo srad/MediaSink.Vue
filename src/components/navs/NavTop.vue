@@ -8,10 +8,10 @@
                 <i v-else class="bi bi-heart-pulse"></i>
       </span>
 
-      <div class="offcanvas offcanvas-end bg-dark" data-bs-backdrop="static" tabindex="-1" aria-labelledby="collapsibleNavbarLabel" id="collapsibleNavbar">
+      <div class="offcanvas offcanvas-end bg-dark" :class="{'show': showNav}" data-bs-backdrop="static" tabindex="-1" aria-labelledby="collapsibleNavbarLabel" id="collapsibleNavbar">
         <div class="offcanvas-header bg-primary text-white">
           <AppBrand class="mr-auto" :title="title"/>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          <button type="button" class="btn-close btn-close-white" @click="showNav = !showNav"></button>
         </div>
         <div class="offcanvas-body">
           <ul class="navbar-nav justify-content-end flex-grow-1">
@@ -36,7 +36,7 @@
         <RecordingControls :jobs="jobs" :recording="recording" @add="emit('add')" @record="record"/>
       </div>
 
-      <button class="navbar-toggler d-l-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#collapsibleNavbar" aria-controls="collapsibleNavbar" aria-label="Toggle navigation">
+      <button class="navbar-toggler d-l-none" type="button" @click="showNav = !showNav">
         <span class="navbar-toggler-icon"></span>
       </button>
     </div>
@@ -49,9 +49,9 @@ import { createClient } from '../../services/api/v1/ClientFactory';
 import DiskStatus from '../DiskStatus.vue';
 import RecordingControls from '../RecordingControls.vue';
 import AppBrand from '../AppBrand.vue';
-import { useRoute } from "vue-router";
-import { useStore } from "../../store";
-import { MessageType, socket } from "../../utils/socket.ts";
+import { useRoute } from 'vue-router';
+import { useStore } from '../../store';
+import { MessageType, socket } from '../../utils/socket.ts';
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -80,12 +80,13 @@ const recording = ref(false);
 const heartBeatNextUpdate = ref<number>(-1);
 const route = useRoute();
 const store = useStore();
+const showNav = ref(false);
 
 // --------------------------------------------------------------------------------------
 // Watchers
 // --------------------------------------------------------------------------------------
 
-watch(route, () => collapseNav.value = true)
+watch(route, () => collapseNav.value = true);
 
 // --------------------------------------------------------------------------------------
 // Computes
