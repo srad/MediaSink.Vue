@@ -174,7 +174,7 @@ const recording = ref<ModelsRecording>();
 const id = ref<number>();
 const busy = ref(false);
 
-let cutInterval: number | undefined;
+let cutInterval: NodeJS.Timeout | number | undefined;
 
 const store = useStore();
 

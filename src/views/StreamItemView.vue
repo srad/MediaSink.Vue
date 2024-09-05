@@ -80,17 +80,15 @@
         <span class="text-primary">{{ $route.params.name }}</span>
       </div>
 
-      <LoadIndicator :busy="busy" :empty="channel?.recordings?.length === 0" empty-text="No Videos">
-        <div v-for="recording in channel?.recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-          <RecordingItem
-              @destroyed="destroyRecording"
-              @checked="selectRecording"
-              :select="selectedRecordings.some(x => x.recordingId === recording.recordingId)"
-              :show-selection="true"
-              :recording="recording"
-              :show-title="false"/>
-        </div>
-      </LoadIndicator>
+      <div v-for="recording in channel?.recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
+        <RecordingItem
+            @destroyed="destroyRecording"
+            @checked="selectRecording"
+            :select="selectedRecordings.some(x => x.recordingId === recording.recordingId)"
+            :show-selection="true"
+            :recording="recording"
+            :show-title="false"/>
+      </div>
     </div>
   </div>
 </template>
@@ -98,20 +96,18 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import RecordingItem from '../components/RecordingItem.vue';
-//import { Modal } from 'bootstrap';
-import Modal from '../components/modals/Modal';
-import LoadIndicator from '../components/LoadIndicator.vue';
-import { createClient } from "../services/api/v1/ClientFactory";
-import { ModelsRecording } from "../services/api/v1/StreamSinkClient";
+import Modal from '../components/modals/Modal.vue';
+import { createClient } from '../services/api/v1/ClientFactory';
+import { ModelsRecording } from '../services/api/v1/StreamSinkClient';
 import {
   ModelsChannel as ChannelResponse,
   ModelsRecording as RecordingResponse
-} from "../services/api/v1/StreamSinkClient";
+} from '../services/api/v1/StreamSinkClient';
 import { CancelTokenSource } from 'axios';
-import { useRoute, useRouter } from "vue-router";
-import { useStore } from "../store";
-import { MessageType, socket } from "../utils/socket.ts";
-import BusyOverlay from "../components/BusyOverlay.vue";
+import { useRoute, useRouter } from 'vue-router';
+import { useStore } from '../store';
+import { MessageType, socket } from '../utils/socket.ts';
+import BusyOverlay from '../components/BusyOverlay.vue';
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -127,14 +123,13 @@ const file = ref<HTMLInputElement | null>(null);
 const upload = ref<HTMLDivElement | null>(null);
 
 const selectedRecordings = ref<RecordingResponse[]>([]);
-const modal = ref<Modal | null>(null);
 const uploadProgress = ref(0);
-const busy = ref(false);
 const busyOverlay = ref(false);
 const channel = ref<ChannelResponse | null>(null);
 const channelId = (+route.params.id) as unknown as number;
 const client = createClient();
 let cancellationToken: CancelTokenSource | null = null;
+const showModal = ref(false);
 
 // --------------------------------------------------------------------------------------
 // Methods
@@ -148,7 +143,7 @@ const pauseChannel = (element: HTMLInputElement): void => {
       title: element.checked ? 'Channel resume' : 'Channel pause',
       message: `Channel ${channel.value?.displayName}`
     });
-  }).catch(err => store.commit('error', err))
+  }).catch(err => store.commit('error', err));
 };
 
 const clickFile = () => file.value?.click();
@@ -199,25 +194,25 @@ const cancelUpload = () => {
   if (cancellationToken) {
     cancellationToken.cancel();
   }
-  modal.value!.hide();
+  showModal.value = false;
 };
 
 const submit = () => {
   const el = file as unknown as HTMLInputElement;
   if (el.files && el.files!.length > 0) {
     uploadProgress.value = 0;
-    modal.value!.show();
-    const [ req, cancelToken ] = api.channelUpload(channelId, el.files![0], pcent => uploadProgress.value = pcent);
+    showModal.value = true;
+    const [req, cancelToken] = api.channelUpload(channelId, el.files![0], pcent => uploadProgress.value = pcent);
     req.then(res => {
       uploadProgress.value = 0;
       channel.value?.recordings?.unshift(res.data);
       cancellationToken = null;
-      modal.value!.hide();
+      showModal.value = false;
       // clear old file
       el.value = '';
     }).catch(res => {
       alert(res.error);
-      modal.value!.hide();
+      showModal.value = false;
     });
     cancellationToken = cancelToken;
   }
@@ -253,14 +248,11 @@ onMounted(async () => {
     console.log(r);
   });
 
-  modal.value = new Modal(upload.value as unknown as HTMLElement);
-
-  api.channels.channelsDetail(channelId).then(res => {
-    busy.value = true;
-    channel.value = res.data;
-    window.scrollTo(0, 0);
-  }).finally(() => busy.value = false);
+  window.scrollTo(0, 0);
 });
+
+const res = await api.channels.channelsDetail(channelId);
+channel.value = res.data;
 </script>
 
 <style scoped>

@@ -1,15 +1,13 @@
 <template>
   <div class="row my-2">
-    <LoadIndicator :busy="busy" :empty="recordings.length === 0" empty-text="No Videos">
-      <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-        <RecordingItem
-            :recording="recording"
-            @destroyed="destroyRecording"
-            @bookmark="bookmark"
-            :show-selection="false"
-            :show-title="false"/>
-      </div>
-    </LoadIndicator>
+    <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
+      <RecordingItem
+          :recording="recording"
+          @destroyed="destroyRecording"
+          @bookmark="bookmark"
+          :show-selection="false"
+          :show-title="false"/>
+    </div>
   </div>
 </template>
 
@@ -21,12 +19,12 @@ import RecordingItem from '../components/RecordingItem.vue';
 
 const { t } = useI18n();
 import LoadIndicator from '../components/LoadIndicator.vue';
-import { useI18n } from "vue-i18n";
-
-const busy = ref(true);
-const recordings = ref<RecordingResponse[]>([]);
+import { useI18n } from 'vue-i18n';
 
 const api = createClient();
+
+const res = await api.recordings.bookmarksList();
+const recordings = ref(res.data);
 
 const removeItem = (recording: RecordingResponse) => {
   const i = recordings.value.findIndex(r => r.filename === recording.filename);
@@ -42,7 +40,7 @@ const bookmark = (recording: RecordingResponse) => {
 };
 
 const destroyRecording = async (recording: RecordingResponse) => {
-  if (!window.confirm(t('crud.destroy', [ recording.filename ]))) {
+  if (!window.confirm(t('crud.destroy', [recording.filename]))) {
     return;
   }
 
@@ -53,13 +51,4 @@ const destroyRecording = async (recording: RecordingResponse) => {
     alert(ex);
   }
 };
-
-onBeforeMount(() => {
-  api.recordings.bookmarksList()
-      .then(response => {
-        recordings.value = response.data;
-      }).finally(() => busy.value = false);
-})
 </script>
-
-<style scoped></style>

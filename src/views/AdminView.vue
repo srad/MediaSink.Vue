@@ -47,25 +47,21 @@
             CPU Load <span v-if="cpuInfo">({{ mainCpuLoad.toFixed(1) }}%)</span>
           </td>
           <td class="align-middle">
-            <LoadIndicator empty-text="Could not load data" :busy="!(cpuInfo && cpuInfo.loadCpu)" size="sm">
-              <div class="progress">
-                <div class="progress-bar" role="progressbar" :style="{width: mainCpuLoad + '%' }" aria-valuenow="0"
-                     aria-valuemin="0"
-                     aria-valuemax="100"></div>
-              </div>
-            </LoadIndicator>
+            <div class="progress">
+              <div class="progress-bar" role="progressbar" :style="{width: mainCpuLoad + '%' }" aria-valuenow="0"
+                   aria-valuemin="0"
+                   aria-valuemax="100"></div>
+            </div>
           </td>
         </tr>
         <tr>
           <td class="bg-light-subtle align-middle">Disk usage ({{ diskInfo?.pcent || 0 }})</td>
           <td class="align-middle">
-            <LoadIndicator empty-text="Could not load data" :busy="!diskInfo" size="sm">
-              <div class="progress">
-                <div class="progress-bar" role="progressbar" :style="{width: diskInfo?.pcent}" aria-valuenow="0"
-                     aria-valuemin="0"
-                     aria-valuemax="100"></div>
-              </div>
-            </LoadIndicator>
+            <div class="progress">
+              <div class="progress-bar" role="progressbar" :style="{width: diskInfo?.pcent}" aria-valuenow="0"
+                   aria-valuemin="0"
+                   aria-valuemax="100"></div>
+            </div>
           </td>
         </tr>
         <tr v-if="importing">
@@ -88,17 +84,13 @@
         <tr>
           <td class="bg-light-subtle align-middle">Network-Transmitted</td>
           <td>
-            <LoadIndicator empty-text="Could not load data" :busy="!netInfo" size="sm">
-              {{ transmittedMb }} MB
-            </LoadIndicator>
+            {{ transmittedMb }} MB
           </td>
         </tr>
         <tr>
           <td class="bg-light-subtle align-middle">Network-Received</td>
           <td>
-            <LoadIndicator empty-text="Could not load data" :busy="!netInfo" size="sm">
-              {{ receivedMb }} MB
-            </LoadIndicator>
+            {{ receivedMb }} MB
           </td>
         </tr>
         <tr>
@@ -118,15 +110,14 @@
 </template>
 
 <script setup lang="ts">
-import { inject, computed, ref, reactive, onBeforeMount, onMounted } from 'vue';
-import { createClient } from "../services/api/v1/ClientFactory";
+import { inject, computed, ref, onMounted } from 'vue';
+import { createClient } from '../services/api/v1/ClientFactory';
 import {
   HelpersCPUInfo,
   HelpersDiskInfo, HelpersNetInfo,
   ResponseServerInfo
-} from "../services/api/v1/StreamSinkClient";
-import LoadIndicator from '../components/LoadIndicator.vue';
-import { onBeforeRouteLeave } from "vue-router";
+} from '../services/api/v1/StreamSinkClient';
+import { onBeforeRouteLeave } from 'vue-router';
 
 //import CPUChart from '../charts/CPUChart.vue';
 //import NetworkChart from '../charts/NetworkChart.vue';
@@ -137,13 +128,11 @@ const build = inject('build');
 const version = inject('version');
 
 const versions = computed(() => [
-  [ "Client-Version", version ],
-  [ "Client-Revision", build ],
-  [ "Server-Version", serverInfo.value?.version ],
-  [ "Server-Revision", serverInfo.value?.commit ],
+  ['Client-Version', version],
+  ['Client-Revision', build],
+  ['Server-Version', serverInfo.value?.version],
+  ['Server-Revision', serverInfo.value?.commit],
 ]);
-
-const loaded = ref(false);
 
 const importing = ref(false);
 const importProgress = ref(0);
@@ -171,7 +160,7 @@ const cpuInfo = ref<HelpersCPUInfo | undefined>(undefined);
 const diskInfo = ref<HelpersDiskInfo | undefined>(undefined);
 const netInfo = ref<HelpersNetInfo | undefined>(undefined);
 
-const id = ref(0);
+const id = ref<number | NodeJS.Timeout>(0);
 
 const receivedMb = computed(() => ((netInfo.value?.receiveBytes || 0) / 1024 / 1024).toFixed(2));
 const transmittedMb = computed(() => ((netInfo.value?.transmitBytes || 0) / 1024 / 1024).toFixed(2));
@@ -206,8 +195,10 @@ const updateInfo = () => {
   }
 };
 
-const fetch = () => {
-  Promise.all([ api.info.infoDetail(1), api.admin.importList() ]).then(result => {
+const fetch = async () => {
+  try {
+    const result = await Promise.all([api.info.infoDetail(1), api.admin.importList()]);
+
     netInfo.value = result[0].data.netInfo;
     cpuInfo.value = result[0].data.cpuInfo;
     diskInfo.value = result[0].data.diskInfo;
@@ -215,19 +206,21 @@ const fetch = () => {
     importing.value = result[1].data.isImporting || false;
     importProgress.value = result[1].data.progress || 0;
     importSize.value = result[1].data.size || 0;
-  }).catch(res => console.error(res.error))
-      .finally(() => loaded.value = true);
+  } catch (err) {
+    alert(err);
+  }
 };
 
 onBeforeRouteLeave(() => {
   clearInterval(id.value);
 });
 
-onMounted(() => {
+onMounted(async () => {
   //fillData();
-  fetch();
+  await fetch();
+  const res = await api.admin.versionList();
+  serverInfo.value = res.data;
   id.value = setInterval(fetch, 2500);
-  api.admin.versionList().then(result => serverInfo.value = result.data);
 });
 </script>
 

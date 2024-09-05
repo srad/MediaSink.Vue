@@ -25,11 +25,9 @@
     </div>
   </div>
   <div class="row">
-    <LoadIndicator :busy="busy" :empty="recordings.length === 0" empty-text="No Videos">
-      <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-        <RecordingItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false"/>
-      </div>
-    </LoadIndicator>
+    <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
+      <RecordingItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false"/>
+    </div>
   </div>
 </template>
 
@@ -37,9 +35,8 @@
 import { watch, ref, onBeforeMount } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
 import RecordingItem from '../components/RecordingItem.vue';
-import LoadIndicator from '../components/LoadIndicator.vue';
-import { useRoute } from "vue-router";
-import { ModelsRecording as RecordingResponse } from "../services/api/v1/StreamSinkClient.ts";
+import { useRoute } from 'vue-router';
+import { ModelsRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient.ts';
 
 const route = useRoute();
 
@@ -49,26 +46,21 @@ watch(route, () => {
   fetch();
 });
 
-const busy = ref(true);
 const filterLimit = route.params.limit as string || '25';
 const limits = ref([
   25,
   50,
   100,
   200,
+  500,
+  1000
 ]);
 
 const recordings = ref<RecordingResponse[]>([]);
 
 const fetch = async () => {
-  try {
-    const res = await api.recordings.randomDetail(filterLimit);
-    recordings.value = res.data;
-  } catch (ex) {
-    alert(ex);
-  } finally {
-    busy.value = false;
-  }
+  const res = await api.recordings.randomDetail(filterLimit);
+  recordings.value = res.data;
 };
 
 const destroyRecording = (recording: RecordingResponse) => {
@@ -80,7 +72,7 @@ const destroyRecording = (recording: RecordingResponse) => {
   }
 };
 
-onBeforeMount(fetch);
+await fetch();
 </script>
 
 <style scoped>

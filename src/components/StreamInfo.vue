@@ -94,7 +94,7 @@ const api = createClient();
 const tagArray = ref<string[]>(props.channel.tags || []);
 const tagVal = ref('');
 const showTagInput = ref(false);
-const thread = ref(0);
+const thread = ref<NodeJS.Timeout | number | null>(null);
 const secRecording = ref(props.channel.minRecording * 60);
 const tagInput = ref<HTMLInputElement | null>(null);
 
@@ -167,7 +167,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  if (props.channel.isRecording) {
+  if (props.channel.isRecording && thread.value) {
     clearInterval(thread.value);
   }
 });

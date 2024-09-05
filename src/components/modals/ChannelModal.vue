@@ -1,87 +1,82 @@
 <template>
-  <div class="modal fade border-primary" ref="addChannelModal" aria-hidden="true" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-primary shadow-sm border-2 border">
-        <div class="modal-header bg-primary text-white rounded-0">
-          <h5 class="modal-title">{{ myTitle }}</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @click="emit('close')"></button>
+  <modal :show="showModal" @close="() => {showModal = false; emit('close'); }">
+    <template #header>
+      <div class="d-flex justify-content-between">
+        <h5 class="modal-title">{{ myTitle }}</h5>
+      </div>
+    </template>
+    <template #body>
+      <div class="mb-3">
+        <label :for="`${id}_url`" class="form-label fw-bold">URL</label>
+        <div class="input-group mb-3">
+          <input :id="`${id}_url`" type="url" required autocomplete="off" ref="url" class="form-control" :name="`${id}_url`" v-model="myUrl" @input="recommendChannelName">
+          <button class="btn btn-outline-secondary" type="button" name="button-addon1" @click="paste">
+            Paste
+          </button>
         </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label :for="`${id}_url`" class="form-label fw-bold">URL</label>
-            <div class="input-group mb-3">
-              <input :id="`${id}_url`" type="url" required autocomplete="off" ref="url" class="form-control" :name="`${id}_url`" v-model="myUrl" @input="recommendChannelName">
-              <button class="btn btn-outline-secondary" type="button" name="button-addon1" @click="paste">
-                Paste
-              </button>
-            </div>
-          </div>
+      </div>
 
-          <div class="mb-3">
-            <label :for="`${id}_display`" class="form-label fw-bold">Display name</label>
-            <input :id="`${id}_display`" type="text" required autocapitalize="off" autocomplete="off" class="form-control" :name="`${id}_display`" v-model="myDisplayName">
-            <div class="fs-6 my-2">Displayed as stream name. Can be changed at any time.</div>
-          </div>
+      <div class="mb-3">
+        <label :for="`${id}_display`" class="form-label fw-bold">Display name</label>
+        <input :id="`${id}_display`" type="text" required autocapitalize="off" autocomplete="off" class="form-control" :name="`${id}_display`" v-model="myDisplayName">
+        <div class="fs-6 my-2">Displayed as stream name. Can be changed at any time.</div>
+      </div>
 
-          <div class="mb-3">
-            <label :for="`${id}_channel`" class="form-label fw-bold">Channel name</label>
-            <input :id="`${id}_channel`" type="text" required autocapitalize="off" autocomplete="off" class="form-control" :name="`${id}_channel`" :disabled="channelDisabled" v-model="myChannelName">
-            <div v-if="!channelDisabled" class="fs-6 my-2">
-              Only <span class="badge bg-info">a-z</span> and <span class="badge bg-info">_</span> allowed.
-              This will also be the parent folder name for all recordings of this service.
-            </div>
-            <div v-else class="fs-6 my-2">
-              This field is the file system folder name and cannot be changed.
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label :for="`${id}_minDuration`" class="form-label fw-bold">Minimum recording duration (minutes)</label>
-            <input :id="`${id}_minDuration`" type="number" required min="0" class="form-control" :name="`${id}_minDuration`" v-model="myMinDuration">
-            <div class="fs-6 my-2">
-              Under this duration (min) a recording is discarded (considered too short)
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label :for="`${id}_skip`" class="form-label fw-bold">Skip start (seconds)</label>
-            <input :id="`${id}_skip`" type="number" required min="0" class="form-control" :name="`${id}_skip`" v-model="mySkipStart">
-            <div class="fs-6 my-2">
-              Some broadcasters have certain number of seconds ads at the video start.
-              Define how many seconds at start should be skipped when recording, i.e. for Twitch 15s.
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <div class="form-check form-switch">
-              <input :id="`${id}_isPaused`" type="checkbox" required :checked="myIsPaused" class="form-check-input" :name="`${id}_isPaused`" v-model="myIsPaused">
-              <label class="form-check-label" :for="`${id}_isPaused`">Pause Recording</label>
-            </div>
-            <div class="fs-6 my-2">
-              Do not record as long as paused.
-            </div>
-          </div>
+      <div class="mb-3">
+        <label :for="`${id}_channel`" class="form-label fw-bold">Channel name</label>
+        <input :id="`${id}_channel`" type="text" required autocapitalize="off" autocomplete="off" class="form-control" :name="`${id}_channel`" :disabled="channelDisabled" v-model="myChannelName">
+        <div v-if="!channelDisabled" class="fs-6 my-2">
+          Only <span class="badge bg-info">a-z</span> and <span class="badge bg-info">_</span> allowed.
+          This will also be the parent folder name for all recordings of this service.
         </div>
+        <div v-else class="fs-6 my-2">
+          This field is the file system folder name and cannot be changed.
+        </div>
+      </div>
 
-        <div class="modal-footer bg-light">
-          <button class="btn btn-primary" @click="save" :disabled="saving">
+      <div class="mb-3">
+        <label :for="`${id}_minDuration`" class="form-label fw-bold">Minimum recording duration (minutes)</label>
+        <input :id="`${id}_minDuration`" type="number" required min="0" class="form-control" :name="`${id}_minDuration`" v-model="myMinDuration">
+        <div class="fs-6 my-2">
+          Under this duration (min) a recording is discarded (considered too short)
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label :for="`${id}_skip`" class="form-label fw-bold">Skip start (seconds)</label>
+        <input :id="`${id}_skip`" type="number" required min="0" class="form-control" :name="`${id}_skip`" v-model="mySkipStart">
+        <div class="fs-6 my-2">
+          Some broadcasters have certain number of seconds ads at the video start.
+          Define how many seconds at start should be skipped when recording, i.e. for Twitch 15s.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="form-check form-switch">
+          <input :id="`${id}_isPaused`" type="checkbox" required :checked="myIsPaused" class="form-check-input" :name="`${id}_isPaused`" v-model="myIsPaused">
+          <label class="form-check-label" :for="`${id}_isPaused`">Pause Recording</label>
+        </div>
+        <div class="fs-6 my-2">
+          Do not record as long as paused.
+        </div>
+      </div>
+    </template>
+
+    <template #footer>
+      <button class="btn btn-primary" @click="save" :disabled="saving">
             <span class="spinner-border spinner-border-sm text-light" role="status" v-show="saving">
               <span class="visually-hidden">Loading...</span>
             </span>
-            Save
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </div>
+        Save
+      </button>
+    </template>
+  </modal>
 </template>
 
 <script setup lang="ts">
-//import { Modal } from 'bootstrap';
-import Modal from './Modal';
-import { defineProps, defineEmits, watch, onMounted, ref } from 'vue';
-import { randomString } from "../../utils/math.ts";
+import Modal from './Modal.vue';
+import { defineProps, defineEmits, watch, ref } from 'vue';
+import { randomString } from '../../utils/math.ts';
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -108,7 +103,6 @@ const props = defineProps<{
 const id = randomString();
 const channelParser = /^[a-z_0-9]+$/i;
 
-let modal: Modal | null = null;
 const myIsPaused = ref(props.isPaused);
 const myTitle = ref(props.title);
 const myUrl = ref(props.url || '');
@@ -119,7 +113,7 @@ const myMinDuration = ref(props.minDuration || 0);
 const saving = ref(false);
 
 const url = ref<HTMLInputElement | null>(null);
-const addChannelModal = ref<HTMLDivElement | null>(null);
+const showModal = ref(false);
 
 // --------------------------------------------------------------------------------------
 // Emits
@@ -141,12 +135,6 @@ const emit = defineEmits<{
 }>();
 
 // --------------------------------------------------------------------------------------
-// Hooks
-// --------------------------------------------------------------------------------------
-
-onMounted(() => modal = new Modal(addChannelModal.value!));
-
-// --------------------------------------------------------------------------------------
 // Watchers
 // --------------------------------------------------------------------------------------
 
@@ -162,21 +150,19 @@ watch(() => props.clear, (val) => {
 
 watch(() => props.show, (val) => {
   if (val) {
-    modal?.show();
     saving.value = false;
     url.value?.focus();
-  } else {
-    modal?.hide();
   }
+  showModal.value = val;
 });
 
 // Listen for form changes.
 // Reason for all this: This is an optimisation to only have one modal instance.
 watch(() => props.title, _ => myTitle.value = props.title);
 watch(() => props.isPaused, _ => myIsPaused.value = props.isPaused);
-watch(() => props.url, _ => myUrl.value = props.url || "");
-watch(() => props.displayName, _ => myDisplayName.value = props.displayName || "");
-watch(() => props.channelName, _ => myChannelName.value = props.channelName || "");
+watch(() => props.url, _ => myUrl.value = props.url || '');
+watch(() => props.displayName, _ => myDisplayName.value = props.displayName || '');
+watch(() => props.channelName, _ => myChannelName.value = props.channelName || '');
 watch(() => props.skipStart, _ => mySkipStart.value = props.skipStart || 0);
 watch(() => props.minDuration, _ => myMinDuration.value = props.minDuration || 0);
 

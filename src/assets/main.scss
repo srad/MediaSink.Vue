@@ -1,6 +1,5 @@
 @import "./custom-bootstrap";
 @import "bootstrap-icons/font/bootstrap-icons.css";
-@import "animate.css/animate.css";
 
 .navbar {
   background: #4b4e6d;
@@ -10,6 +9,10 @@ html {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+body {
+  overflow-y: scroll;
 }
 
 body, #app {
@@ -64,13 +67,18 @@ html {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .zoom {
   transition: transform .2s;
 }
+
 .zoom:hover {
   transform: scale(1.01);
 }
