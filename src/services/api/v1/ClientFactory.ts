@@ -4,6 +4,8 @@ import { CancelTokenSource } from 'axios';
 
 const apiUrl = import.meta.env.VITE_VUE_APP_APIURL;
 
+console.log('API URL: ', apiUrl);
+
 export class MyClient extends StreamSinkClient<any> {
   constructor() {
     const client = new HttpClient({
