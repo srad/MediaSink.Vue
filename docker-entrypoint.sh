@@ -8,4 +8,5 @@ window.VUE_APP_SOCKETURL = "${APP_SOCKETURL}";
 window.VUE_APP_FILEURL = "${APP_FILEURL}";
 EOL
 
-node /app/server.js
+cd /app
+node server.js

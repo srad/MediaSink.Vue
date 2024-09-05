@@ -10,3 +10,4 @@ LICENSE
 .vscode
 .idea
 .env.local.defaul
+.env.local
