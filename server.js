@@ -3,7 +3,7 @@ import express from "express";
 
 // Constants
 const isProduction = process.env.NODE_ENV === "production";
-const port = process.env.PORT || 80;
+const port = process.env.PORT || (isProduction ? 80 : 8080);
 const base = process.env.BASE || "/";
 
 // Cached production assets
