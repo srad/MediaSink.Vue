@@ -23,8 +23,8 @@
                 <table class="table table-sm bg-white table-bordered text-center">
                   <thead>
                   <tr>
-                    <th class="bg-light">{{ $t('videoView.segment.start') }}</th>
-                    <th class="bg-light">{{ $t('videoView.segment.end') }}</th>
+                    <th class="bg-light">{{ t('videoView.segment.start') }}</th>
+                    <th class="bg-light">{{ t('videoView.segment.end') }}</th>
                     <th class="bg-light">
                       <i class="bi bi-trash text-danger"></i>
                     </th>
@@ -50,7 +50,7 @@
                   <span>Stop cut</span> <i class="bi bi-stop-fill"></i>
                 </button>
                 <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="cutVideo">
-                  {{ $t('videoView.button.cut') }} <i class="bi bi-scissors"></i>
+                  {{ t('videoView.button.cut') }} <i class="bi bi-scissors"></i>
                 </button>
               </div>
 
@@ -130,18 +130,19 @@ import { createClient } from "../services/api/v1/ClientFactory";
 import { useCookies } from '@vueuse/integrations/useCookies';
 import { Marking } from '../components/Stripe.vue';
 import Stripe from '../components/Stripe.vue';
-import { useI18n } from 'vue-i18n'
 import { useRouter, onBeforeRouteLeave, useRoute } from 'vue-router';
-import { ModelsRecording } from "../services/api/v1/StreamSinkClient.ts";
+import { DatabaseRecording } from "../services/api/v1/StreamSinkClient.ts";
 import RecordingFavButton from "../components/controls/RecordingFavButton.vue";
 import BusyOverlay from "../components/BusyOverlay.vue";
 import { useStore } from "../store";
+import { useI18n } from 'vue-i18n'
 
 // --------------------------------------------------------------------------------------
+
 // Props
 // --------------------------------------------------------------------------------------
-
 // --------------------------------------------------------------------------------------
+
 // Declarations
 // --------------------------------------------------------------------------------------
 const router = useRouter();
@@ -167,10 +168,9 @@ const isLoaded = ref(false);
 const isShown = ref(false);
 const playbackSpeed = ref(1.0);
 const markings = ref<Marking[]>([]);
-const segments = ref([]);
 const timeCode = ref<number>(0);
 const duration = ref<number>(0);
-const recording = ref<ModelsRecording>();
+const recording = ref<DatabaseRecording>();
 const id = ref<number>();
 const busy = ref(false);
 
@@ -207,9 +207,6 @@ onMounted(async () => {
     isShown.value = true;
   }
 });
-
-const durationMin = computed(() => (duration.value / 60).toFixed(2));
-const sortedSegments = computed(() => segments.value.slice().sort((a: Marking, b: Marking) => a.start - b.start));
 
 // --------------------------------------------------------------------------------------
 // Watchers
@@ -318,10 +315,6 @@ const rotate = () => {
   } else {
     document.exitFullscreen();
   }
-};
-
-const endSegment = (end: number) => {
-  video.value!.currentTime = end;
 };
 
 const destroy = () => {

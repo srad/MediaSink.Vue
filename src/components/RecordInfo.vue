@@ -66,8 +66,8 @@
 import { computed, ref } from 'vue';
 import FavButton from './controls/FavButton.vue';
 import { useI18n } from "vue-i18n";
-import { ModelsRecording as RecordingResponse } from "../services/api/v1/StreamSinkClient.ts";
-import moment from "moment";
+import { DatabaseRecording as RecordingResponse } from "../services/api/v1/StreamSinkClient.ts";
+import { fromNow } from "../utils/datetime.ts";
 
 const { t } = useI18n();
 
@@ -98,7 +98,7 @@ const createdAtFormatted = computed(() => new Date(props.createdAt).toLocaleDate
   minute: 'numeric'
 }));
 
-const ago = ref(moment(Date.parse(props.createdAt)).fromNow());
+const ago = ref(fromNow(new Date(props.createdAt)));
 
 const expand = ref(false);
 </script>

@@ -76,7 +76,7 @@
         </button>
         <ul class="dropdown-menu">
           <template :key="job.filename" v-for="job in jobs">
-            <li v-if="job.status!=='recording'">
+            <li>
               <a class="dropdown-item" href="#">{{ job.filename }} ({{ job.status }})</a>
             </li>
           </template>

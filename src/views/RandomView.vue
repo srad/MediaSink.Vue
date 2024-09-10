@@ -17,7 +17,7 @@
             </div>
           </div>
         </div>
-        <button class="btn btn-primary" @click="fetch" v-if="$route.params.type==='random'">
+        <button class="btn btn-primary" @click="fetch" v-if="route.params.type==='random'">
           Refresh
         </button>
       </div>
@@ -36,7 +36,7 @@ import { watch, ref, onBeforeMount } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
 import RecordingItem from '../components/RecordingItem.vue';
 import { useRoute } from 'vue-router';
-import { ModelsRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient.ts';
+import { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient.ts';
 
 const route = useRoute();
 

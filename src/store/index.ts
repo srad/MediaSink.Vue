@@ -1,21 +1,27 @@
 import { InjectionKey } from 'vue';
-import { createStore, Payload, Store, useStore as baseUseStore } from 'vuex';
-import { V1ChannelResponse as ChannelResponse, ModelsJob as JobResponse } from '../services/api/v1/StreamSinkClient';
+import { createStore, Store, useStore as baseUseStore } from 'vuex';
+import { ServicesChannelInfo as ChannelInfo, DatabaseJob as JobData, DatabaseJob } from '../services/api/v1/StreamSinkClient';
 
 export interface State {
-  channels: ChannelResponse[];
-  jobs: JobResponse[];
-  loggedIn: boolean;
+  channels: ChannelInfo[];
+  jobs: JobData[];
   toasts: Toast[];
+  loggedIn: boolean;
 }
 
-export interface JobMessage {
-  jobId: number;
-  channelId: number;
-  channelName: string;
-  filename: string;
-  type: string;
-  data: { packets: number, frame: number } | any;
+export interface JobInfo {
+  job: DatabaseJob
+  data: {
+    steps: number
+    step: number
+    pid: number
+    command: string
+  }
+}
+
+export interface JobProgress {
+  job: DatabaseJob
+  data: { current: number, total: number, steps: number, step: number };
 }
 
 export interface Toast {
@@ -43,17 +49,28 @@ export const store = createStore<State>({
     getToast(state: State): Toast[] {
       return state.toasts;
     },
+    getRecordingsCount(state: State): number {
+      return state.jobs.length;
+    },
+    getRecordings(state: State): JobData[] {
+      return state.jobs
+    }
   },
   mutations: {
     error(state: State, message: string) {
       store.commit('toast:add', { title: 'Error', message: message });
     },
-    'job:done'(state: State, job: JobMessage) {
+    'job:done'(state: State, job: DatabaseJob) {
       const i = state.jobs.findIndex(j => j.jobId === job.jobId);
+      console.log("job:done", i, job.jobId);
       if (i !== -1) {
         state.jobs[i].active = false;
         state.jobs[i].progress = String(100);
+        state.jobs.splice(i, 1);
       }
+    },
+    'jobs:update'(state: State, jobs: JobData[]) {
+      state.jobs = jobs;
     },
     'toast:add'(state: State, info: { title: string, message: string }) {
       const toast: Toast = { ...info, hide: false, created: new Date(), countdown: 100 };
@@ -71,40 +88,44 @@ export const store = createStore<State>({
       }, toastDisplayDurationMs / 10);
     },
     'toast:destroy'(state: State, toast: Toast) {
-      const i = store.state.toasts.findIndex(x => x === toast);
+      const i = state.toasts.findIndex(x => x === toast);
       if (i !== -1) {
-        store.state.toasts.splice(i, 1);
+        state.toasts.splice(i, 1);
       }
     },
     'toast:hide'(state: State, toast: Toast) {
-      const i = store.state.toasts.findIndex(x => x === toast);
+      const i = state.toasts.findIndex(x => x === toast);
       if (i !== -1) {
-        store.state.toasts[i].hide = true;
+        state.toasts[i].hide = true;
       }
     },
-    'job:create'(state: State, data: JobResponse) {
-      state.jobs.push(data);
+    'job:create'(state: State, job: JobData) {
+      state.jobs.push(job);
     },
-    'job:destroy'(state: State, data: JobMessage) {
-      const i = state.jobs.findIndex(j => j.filename === data.filename);
+    'job:destroy'(state: State, progress: JobProgress) {
+      const i = state.jobs.findIndex(j => j.recordingId === progress.job.recordingId);
       if (i !== -1) {
         state.jobs.splice(i, 1);
       }
     },
-    'job:start'(state: State, job: JobResponse) {
-      let i = state.jobs.findIndex(j => j.jobId === job.jobId);
-      if (i === -1) {
-        i = state.jobs.push(job) - 1;
-      }
-      state.jobs[i].active = true;
-    },
-    'job:progress'(state: State, job: JobMessage) {
-      const i = state.jobs.findIndex(j => j.jobId === job.jobId);
+    'job:start'(state: State, info: JobInfo) {
+      let i = state.jobs.findIndex(j => j.jobId === info.job.jobId);
       if (i !== -1) {
-        state.jobs[i].progress = String(job.data.frame / job.data.packets * 100);
+        state.jobs[i].active = true;
+        state.jobs[i].pid = info.data.pid;
+        state.jobs[i].command = info.data.command;
       }
     },
-    'jobs:refresh'(state: State, jobs: JobResponse[]) {
+    'job:progress'(state: State, info: JobProgress) {
+      const i = state.jobs.findIndex(j => j.jobId === info.job.jobId);
+      const progress = String((info.data.step / info.data.steps) * info.data.current / info.data.total * 100);
+      if (i !== -1) {
+        state.jobs[i].progress = progress;
+      } else {
+        state.jobs.unshift(info.job);
+      }
+    },
+    'jobs:refresh'(state: State, jobs: JobData[]) {
       state.jobs = jobs;
     },
     'channel:online'(state: State, channelId: number) {
@@ -140,19 +161,15 @@ export const store = createStore<State>({
     logout(state: State) {
       state.loggedIn = true;
     },
-    addJob(state: State, job: JobResponse) {
-      job.progress = '0';
-      state.jobs.push(job);
-    },
-    addChannel(state: State, channel: ChannelResponse) {
+    addChannel(state: State, channel: ChannelInfo) {
       if (!state.channels.some(c => c.channelId === channel.channelId)) {
         state.channels.push(channel);
       }
     },
-    updateChannel(state: State, channel: ChannelResponse) {
+    updateChannel(state: State, channel: ChannelInfo) {
       const i = state.channels.findIndex(c => c.channelId === channel.channelId);
       if (i !== -1) {
-        const ch = state.channels[i] as ChannelResponse;
+        const ch = state.channels[i] as ChannelInfo;
         Object
           .keys(channel)
           .forEach(key => {
@@ -176,16 +193,12 @@ export const store = createStore<State>({
     },
     'channel:resume'(state: State, channelId: number) {
       const i = state.channels.findIndex(c => c.channelId === channelId);
-      console.log(i);
       if (i !== -1) {
         state.channels[i].isPaused = false;
       }
     },
     destroyJob(state: State, jobId: number) {
-      const i = state.jobs.findIndex(j => j.jobId === jobId);
-      if (i !== -1) {
-        state.jobs.splice(i, 1);
-      }
+      state.jobs = state.jobs.filter(x => x.jobId !== jobId);
     },
     fav(state: State, id: number) {
       const i = state.channels.findIndex(ch => ch.channelId === id);

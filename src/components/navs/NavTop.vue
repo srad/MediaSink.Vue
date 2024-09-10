@@ -92,7 +92,7 @@ watch(route, () => collapseNav.value = true);
 // Computes
 // --------------------------------------------------------------------------------------
 
-const jobs = computed(() => store.state.jobs.slice().filter(job => job.status !== 'recording'));
+const jobs = computed(() => store.getters.getRecordings);
 
 // --------------------------------------------------------------------------------------
 // Methods

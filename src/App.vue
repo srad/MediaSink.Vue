@@ -4,7 +4,7 @@
   <main class="container-fluid" style="padding-top: 4rem">
     <RouterView v-slot="{ Component }">
       <template v-if="Component">
-        <KeepAlive include="SteamView,ChannelsView">
+        <KeepAlive include="SteamView,ChannelsView,JobView">
           <suspense>
             <!-- main content -->
             <component :is="Component"></component>
@@ -50,14 +50,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeMount, ref } from 'vue';
-import { V1ChannelRequest as ChannelRequest, ModelsJob as JobResponse } from './services/api/v1/StreamSinkClient';
+import { computed, inject, onMounted, ref } from 'vue';
+import { V1ChannelRequest as ChannelRequest } from './services/api/v1/StreamSinkClient';
 import { socket, MessageType } from './utils/socket';
 import ChannelModal from './components/modals/ChannelModal.vue';
 import NavTop from './components/navs/NavTop.vue';
 import { createClient } from './services/api/v1/ClientFactory';
 import { useI18n } from 'vue-i18n';
-import { JobMessage, useStore } from './store';
+import { JobInfo, useStore } from './store';
 
 const { t } = useI18n();
 const store = useStore();
@@ -85,22 +85,29 @@ const save = (data: ChannelRequest) => {
       .finally(() => showModal.value = false);
 };
 
-onBeforeMount(() => {
-  // Dispatch
+onMounted(async () => {
+  socket.on(MessageType.JobStart, data => {
+    const job = data as JobInfo;
+    store.commit('job:start', job);
+  });
+// Dispatch
   socket.on(MessageType.JobCreate, data => {
-    const job = data as JobMessage;
+    const d = data as JobInfo;
+    const job = d.job;
     store.commit('job:create', job);
     store.commit('toast:add', { title: 'Job created', message: `File ${job.filename} in ${job.channelName}` });
   });
 
   socket.on(MessageType.JobDestroy, data => {
-    const job = data as JobMessage;
+    const d = data as JobInfo;
+    const job = d.job;
     store.commit('job:destroy', job);
     store.commit('toast:add', { title: 'Job destroyed', message: `File ${job.filename} in ${job.channelName}` });
   });
 
   socket.on(MessageType.JobPreviewDone, data => {
-    const job = data as JobMessage;
+    const d = data as JobInfo;
+    const job = d.job;
     store.commit('job:done', job);
     store.commit('toast:add', { title: 'Job done', message: `File ${job.filename} in ${job.channelName}` });
   });
@@ -117,10 +124,10 @@ onBeforeMount(() => {
     store.commit('toast:add', { title: 'Channel recording', message: `Channel id ${id}` });
   });
 
-  api.jobs.jobsList()
-      .then(result => result.data.forEach((job: JobResponse) => store.commit('addJob', job)))
-      .catch(err => store.commit('error', err));
+  const jobs = await api.jobs.jobsList();
+  store.commit('jobs:update', jobs.data);
 });
+
 </script>
 
 <style lang="scss">

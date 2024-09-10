@@ -22,7 +22,7 @@
       </RouterLink>
     </div>
     <div v-if="props.showTitle" class="card-body">
-      <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="$router.push(`/stream/${props.recording.channelId}/${props.recording.channelName}`)">
+      <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="router.push(`/stream/${props.recording.channelId}/${props.recording.channelName}`)">
         <h6 class="p-2 m-0 text-white">
           <a class="text-white" target="_blank">
             {{ props.recording.channelName }}
@@ -51,9 +51,10 @@
 import RecordInfo from './RecordInfo.vue';
 import Preview from './Preview.vue';
 import { inject, ref, defineEmits, watch } from 'vue';
-import { ModelsRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
+import { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
 import { createClient } from '../services/api/v1/ClientFactory';
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 
 // --------------------------------------------------------------------------------------
 // Emits
@@ -95,6 +96,8 @@ const recordingUrl = `${apiUrl + props.recording.channelName}/${props.recording.
 const { t } = useI18n();
 
 const link = `/recordings/${props.recording.recordingId}`;
+
+const router = useRouter();
 
 // --------------------------------------------------------------------------------------
 // Watchers

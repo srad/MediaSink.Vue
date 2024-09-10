@@ -20,7 +20,7 @@
     </li>
     <li class="list-group-item bg-info-light-2">
       <template v-if="!showTagInput && tagArray">
-        <span v-for="tag in tagArray" @click="$router.push({query: {tag}})" class="badge bg-secondary text-dark me-1 user-select-none" :key="tag">{{
+        <span v-for="tag in tagArray" @click="router.push({query: {tag}})" class="badge bg-secondary text-dark me-1 user-select-none" :key="tag">{{
             tag
           }}
           <span @click="destroyTag(tag)" class="bi bi-x" style="z-index: 1"></span>
@@ -59,10 +59,11 @@
 
 <script setup lang="ts">
 import { watch, defineEmits, ref, computed, onMounted, onUnmounted } from 'vue';
-import { V1ChannelResponse as ChannelResponse } from '../services/api/v1/StreamSinkClient';
+import { ServicesChannelInfo as ChannelResponse } from '../services/api/v1/StreamSinkClient';
 import { createClient } from '../services/api/v1/ClientFactory';
 import { validTag } from '../utils/parser';
 import FavButton from "./controls/FavButton.vue";
+import { useRouter } from "vue-router";
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -97,6 +98,8 @@ const showTagInput = ref(false);
 const thread = ref<NodeJS.Timeout | number | null>(null);
 const secRecording = ref(props.channel.minRecording * 60);
 const tagInput = ref<HTMLInputElement | null>(null);
+
+const router = useRouter();
 
 // --------------------------------------------------------------------------------------
 // Watchers

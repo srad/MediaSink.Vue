@@ -77,7 +77,7 @@
 
     <div class="row my-1 mb-3">
       <div class="d-flex align-middle fs-5 pb-2 fw-bolder">
-        <span class="text-primary">{{ $route.params.name }}</span>
+        <span class="text-primary">{{ route.params.name }}</span>
       </div>
 
       <div v-for="recording in channel?.recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
@@ -96,12 +96,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import RecordingItem from '../components/RecordingItem.vue';
-import Modal from '../components/modals/Modal.vue';
 import { createClient } from '../services/api/v1/ClientFactory';
-import { ModelsRecording } from '../services/api/v1/StreamSinkClient';
+import { DatabaseRecording } from '../services/api/v1/StreamSinkClient';
 import {
-  ModelsChannel as ChannelResponse,
-  ModelsRecording as RecordingResponse
+  DatabaseChannel as ChannelResponse,
+  DatabaseRecording as RecordingResponse
 } from '../services/api/v1/StreamSinkClient';
 import { CancelTokenSource } from 'axios';
 import { useRoute, useRouter } from 'vue-router';
@@ -244,7 +243,7 @@ const bookmark = () => {
 
 onMounted(async () => {
   socket.on(MessageType.RecordingAdd, recording => {
-    const r = recording as ModelsRecording;
+    const r = recording as DatabaseRecording;
     console.log(r);
   });
 

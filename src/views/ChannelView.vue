@@ -62,7 +62,7 @@
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue';
 import { createClient, MyClient } from '../services/api/v1/ClientFactory.ts';
-import { V1ChannelResponse } from '../services/api/v1/StreamSinkClient';
+import { DatabaseChannel } from '../services/api/v1/StreamSinkClient';
 import { downloadObjectAsJson } from '../utils/file.ts';
 import ChannelFavButton from '../components/controls/ChannelFavButton.vue';
 
@@ -116,7 +116,7 @@ const inputFileChanged = (event: Event) => {
  * @param client
  * @param channelsResponse
  */
-const importChannels = (client: MyClient, channelsResponse: V1ChannelResponse[]) => {
+const importChannels = (client: MyClient, channelsResponse: DatabaseChannel[]) => {
   isImporting.value = true;
 
   channelsResponse.forEach(async channel => {
@@ -131,16 +131,7 @@ const importChannels = (client: MyClient, channelsResponse: V1ChannelResponse[])
         url: channel.url
       });
 
-      const newChannel: V1ChannelResponse = {
-        isOnline: false,
-        isRecording: false,
-        isTerminating: false,
-        minRecording: 0,
-        preview: '',
-        ...response.data
-      };
-
-      channels.push(newChannel);
+      channels.push(response.data);
     } catch (err) {
       alert(err);
     }

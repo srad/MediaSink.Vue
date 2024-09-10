@@ -127,8 +127,8 @@
 
 <script setup lang="ts">
 import { createClient } from '../services/api/v1/ClientFactory';
-import { V1ChannelResponse as ChannelResponse } from '../services/api/v1/StreamSinkClient';
-import { watch, computed, ref, onBeforeMount } from 'vue';
+import { DatabaseChannel as ChannelResponse } from '../services/api/v1/StreamSinkClient';
+import { watch, computed, ref } from 'vue';
 import ChannelItem from '../components/ChannelItem.vue';
 import ChannelModal, { ChannelUpdate } from '../components/modals/ChannelModal.vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -220,8 +220,6 @@ const searchFilter = (channel: ChannelResponse, search: string, tag: string): bo
 
   const matches = ((search && search.length > 0) ? channel.channelName!.indexOf(search) !== -1 : true) &&
       ((tag && tag.length > 0 && channel.tags) ? channel.tags.some(t => t === tag) : true);
-
-  console.log(channel.channelName, search, channel.channelName!.indexOf(search) !== -1, channel.tags, channel.tags?.some(x => x == tag), tag)
 
   return matches;
 }
