@@ -12,9 +12,9 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, ref } from 'vue';
+import { ref } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
-import { ModelsRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
+import { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
 import RecordingItem from '../components/RecordingItem.vue';
 
 const { t } = useI18n();

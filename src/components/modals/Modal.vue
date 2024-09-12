@@ -4,7 +4,7 @@
       <div class="modal-container border border-dark my-sm-3 my-0">
         <div class="modal-header d-flex justify-content-between px-4 py-2 bg-primary-subtle">
           <slot name="header">default header</slot>
-          <button type="button" class="px-2 py-1 btn" @click="emit('close')">
+          <button type="button" class="m-0 p-0 btn" @click="emit('close')">
             <i class="bi bi-x-lg text-dark"/>
           </button>
         </div>

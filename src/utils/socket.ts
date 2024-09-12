@@ -50,9 +50,11 @@ export const MessageType = {
 
   RecordingAdd: 'recording:add',
 
+  JobStart: 'job:start',
   JobCreate: 'job:create',
   JobDestroy: 'job:destroy',
   JobPreviewDone: 'job:preview:done',
   JobProgress: 'job:progress',
+  JobDeleted: 'job:deleted',
   JobPreviewProgress: 'job:preview:progress'
 };

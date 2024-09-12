@@ -1,4 +1,9 @@
 export default {
+  general: {
+    jobs: 'Jobs',
+    processes: 'Processes',
+    streams: 'Streams'
+  },
   menu: {
     streams: 'Streams',
     channels: 'Channels',
@@ -21,19 +26,13 @@ export default {
     startRecording: 'Start',
     jobsLoading: 'Loading...'
   },
-  job: {
-    tab: {
-      workerJobs: 'Worker Jobs',
-      recordings: 'Recordings',
-      processes: 'Processes',
-    }
-  },
   jobTable: {
     col: {
       pid: 'PID',
       channel: 'Channel',
       file: 'File',
       task: 'Task',
+      status: 'State',
       progress: 'Progress',
       created: 'Created',
       destroy: 'Destroy',
@@ -111,6 +110,7 @@ export default {
     segment: {
       start: 'Start',
       end: 'End',
+      duration: 'Duration',
       destroy: 'Del',
     }
   },

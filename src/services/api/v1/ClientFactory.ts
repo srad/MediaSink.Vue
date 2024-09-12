@@ -1,4 +1,4 @@
-import { StreamSinkClient, ModelsRecording as RecordingResponse, V1RecordingStatus, HttpClient } from './StreamSinkClient';
+import { StreamSinkClient, DatabaseRecording as RecordingResponse, V1RecordingStatus, HttpClient } from './StreamSinkClient';
 import axios, { AxiosResponse } from 'axios';
 import { CancelTokenSource } from 'axios';
 

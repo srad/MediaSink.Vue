@@ -20,7 +20,7 @@
       <div class="col">
         <!--<div class="d-flex rounded-2 border mb-3 p-0 bg-light border-info p-1">-->
         <div class="input-group mb-3 align-middle">
-          <input autocapitalize="off" class="form-control" type="text" name="search" placeholder="search ... #tag" v-model="searchVal">
+          <input autocapitalize="off" autocomplete="off" class="form-control" type="text" name="search" placeholder="search ... #tag" v-model="searchVal">
           <!--
           <select class="form-select mb-3 ms-3 bg-light border-info w-20" v-model="tagFilter">
             <option value=""></option>
@@ -127,8 +127,8 @@
 
 <script setup lang="ts">
 import { createClient } from '../services/api/v1/ClientFactory';
-import { V1ChannelResponse as ChannelResponse } from '../services/api/v1/StreamSinkClient';
-import { watch, computed, ref, onBeforeMount } from 'vue';
+import { DatabaseChannel as ChannelResponse } from '../services/api/v1/StreamSinkClient';
+import { watch, computed, ref } from 'vue';
 import ChannelItem from '../components/ChannelItem.vue';
 import ChannelModal, { ChannelUpdate } from '../components/modals/ChannelModal.vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -220,8 +220,6 @@ const searchFilter = (channel: ChannelResponse, search: string, tag: string): bo
 
   const matches = ((search && search.length > 0) ? channel.channelName!.indexOf(search) !== -1 : true) &&
       ((tag && tag.length > 0 && channel.tags) ? channel.tags.some(t => t === tag) : true);
-
-  console.log(channel.channelName, search, channel.channelName!.indexOf(search) !== -1, channel.tags, channel.tags?.some(x => x == tag), tag)
 
   return matches;
 }

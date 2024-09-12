@@ -1,122 +1,128 @@
 <template>
-  <BusyOverlay :visible="busy"></BusyOverlay>
-  <div class="modal show m-0 p-0m position-absolute" tabindex="-1" ref="modalVideo" style="display: block !important;">
-    <div class="modal-dialog modal-fullscreen p-0">
-      <div class="modal-content">
-        <template v-if="recording">
-          <div class="modal-body bg-light p-0" style="overflow: hidden">
+  <div>
+    <ModalConfirmDialog :show="showConfirmDialog" @cancel="showConfirmDialog=false" @confirm="cutVideo">
+      <template #header>
+        <span class="fs-5">Confirm your video cut</span>
+      </template>
+      <template #body>
+        <MarkingsTable
+            v-if="showConfirmDialog"
+            :show-destroy="false"
+            :markings="markings"
+            @destroy="(marking: Marking) => destroyMarking(marking)"
+            @selected="(marking: Marking) => selectMarking(marking)"/>
 
-            <div class="d-flex flex-row" style="height: 90%;">
+        <hr/>
 
-              <div class="d-flex flex-column m-0" :class="{'w-80': markings.length > 0, 'w-100': markings.length===0}">
-                <video class="view h-100" controls
-                       ref="video"
-                       @volumechange="event => {cookies.set('muted', (event.target as HTMLVideoElement).muted); cookies.set('volume', (event.target as HTMLVideoElement).volume); }"
-                       @loadeddata="loadData"
-                       @timeupdate="timeupdate" :muted="cookies.get<boolean>('muted')" autoplay>
-                  <source :src="videoUrl" type="video/mp4">
-                  Your browser does not support the video tag.
-                </video>
-              </div>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="deleteFileAfterCut">
+          <label class="form-check-label" for="flexSwitchCheckDefault">Delete file after cut?</label>
+        </div>
+      </template>
+    </ModalConfirmDialog>
 
-              <div v-if="markings.length > 0" class="d-flex flex-column m-0 p-2" :class="{'w-20': markings.length > 0}">
-                <table class="table table-sm bg-white table-bordered text-center">
-                  <thead>
-                  <tr>
-                    <th class="bg-light">{{ $t('videoView.segment.start') }}</th>
-                    <th class="bg-light">{{ $t('videoView.segment.end') }}</th>
-                    <th class="bg-light">
-                      <i class="bi bi-trash text-danger"></i>
-                    </th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr class="align-middle" :class="{'bg-secondary': marking.selected}" @click="selectMarking(marking)" :key="String(marking.timestart)+String(marking.timeend)" v-for="marking in markings">
-                    <td>{{ (marking.timestart / 60).toFixed(1) }}min</td>
-                    <td class="p-1">{{ (marking.timeend / 60).toFixed(1) }}min</td>
-                    <td>
-                      <button @click="destroyMarking(marking)" class="btn btn-sm bg-transparent">
-                        <i class="bi bi-trash text-danger"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
+    <BusyOverlay :visible="busy"></BusyOverlay>
+    <div class="modal show m-0 p-0m position-absolute" tabindex="-1" ref="modalVideo" style="display: block !important;">
+      <div class="modal-dialog modal-fullscreen p-0">
+        <div class="modal-content">
+          <template v-if="recording">
+            <div class="modal-body bg-light p-0" style="overflow: hidden">
 
-                <button class="btn btn-primary" @click="playCut" v-if="!cutInterval">
-                  Play Cut <i class="bi bi-play-fill"></i>
-                </button>
-                <button v-else class="btn btn-primary" @click="stopCut">
-                  <span>Stop cut</span> <i class="bi bi-stop-fill"></i>
-                </button>
-                <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="cutVideo">
-                  {{ $t('videoView.button.cut') }} <i class="bi bi-scissors"></i>
-                </button>
-              </div>
+              <div class="d-flex flex-row" style="height: 90%;">
 
-            </div>
+                <div class="d-flex flex-column m-0" :class="{'w-80': markings.length > 0, 'w-100': markings.length===0}">
+                  <video class="view h-100" controls
+                         ref="video"
+                         @volumechange="event => {cookies.set('muted', (event.target as HTMLVideoElement).muted); cookies.set('volume', (event.target as HTMLVideoElement).volume); }"
+                         @loadeddata="loadData"
+                         @timeupdate="timeupdate" :muted="cookies.get<boolean>('muted')" autoplay>
+                    <source :src="videoUrl" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
 
-            <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative overflow-y-scroll" style="height: 10%;">
-              <Stripe :src="stripeUrl"
-                      :disabled="cutInterval != undefined"
-                      :paused="isPaused"
-                      :timecode="timeCode"
-                      :duration="duration"
+                <div v-if="markings.length > 0" class="d-flex flex-column m-0 p-2" :class="{'w-20': markings.length > 0}">
+                  <MarkingsTable
+                      :show-destroy="true"
                       :markings="markings"
-                      @selecting="() => pause()"
-                      @marking="(m) => markings=m"
-                      @seek="seek"/>
-            </div>
-          </div>
+                      @destroy="(marking: Marking) => destroyMarking(marking)"
+                      @selected="(marking: Marking) => selectMarking(marking)"/>
 
-          <div class="modal-footer p-1 d-flex justify-content-between" v-if="stripeUrl">
-            <div>
-              <button type="button" class="btn btn-sm btn-secondary" @click="router.push(`/stream/${recording.channelId}/${recording.channelName}`)">
-                {{ recording.channelName }}
-              </button>
-            </div>
-            <div class="d-flex justify-content-end">
-              <button class="btn btn-danger btn-sm me-2" @click="destroy">
-                <i class="bi bi-trash3-fill"/>
-              </button>
+                  <button class="btn btn-primary" @click="playCut" v-if="!cutInterval">
+                    Play Cut <i class="bi bi-play-fill"></i>
+                  </button>
+                  <button v-else class="btn btn-primary" @click="stopCut">
+                    <span>Stop cut</span> <i class="bi bi-stop-fill"></i>
+                  </button>
+                  <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="showConfirmDialog=true">
+                    {{ t('videoView.button.cut') }} <i class="bi bi-scissors"></i>
+                  </button>
+                </div>
 
-              <button class="btn btn-sm border-warning">
-                <RecordingFavButton :bookmarked="recording.bookmark" :recording-id="recording.recordingId"/>
-              </button>
-
-              <span class="mx-2 text-secondary">|</span>
-
-              <button class="btn btn-info text-white btn-sm me-2" @click="back">
-                <i class="bi bi-chevron-double-left"/>
-              </button>
-
-              <button class="btn btn-info text-white btn-sm me-2" @click="forward">
-                <i class="bi bi-chevron-double-right"/>
-              </button>
-
-              <!--
-                            <div class="fw-6 me-2">
-                {{ durationMin }}/{{ (timecode / 60).toFixed(2) }}min
               </div>
 
-              <button v-if="!muted" class="btn btn-primary btn-sm me-2" type="button" @click="muted=true">
-                <i class="bi bi-volume-up"/>
-              </button>
-
-              <button v-else class="btn btn-outline-primary btn-sm me-2" type="button" @click="muted=false">
-                <i class="bi bi-volume-mute"/>
-              </button>
-
-              <button v-if="paused" class="btn btn-warning btn-sm" type="button" @click="play()">
-                <i class="bi bi-play"></i>
-              </button>
-              <button v-else class="btn btn-success btn-sm" type="button" @click="pause()">
-                <i class="bi bi-pause"></i>
-              </button>
-              -->
+              <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative overflow-y-scroll" style="height: 10%;">
+                <Stripe :src="stripeUrl"
+                        :disabled="cutInterval != undefined"
+                        :paused="isPaused"
+                        :timecode="timeCode"
+                        :duration="duration"
+                        :markings="markings"
+                        @selecting="() => pause()"
+                        @marking="(m) => markings=m"
+                        @seek="seek"/>
+              </div>
             </div>
-          </div>
-        </template>
+
+            <div class="modal-footer p-1 d-flex justify-content-between" v-if="stripeUrl">
+              <div>
+                <button type="button" class="btn btn-sm btn-secondary" @click="router.push(`/channel/${recording.channelId}/${recording.channelName}`)">
+                  {{ recording.channelName }}
+                </button>
+              </div>
+              <div class="d-flex justify-content-end">
+                <button class="btn btn-danger btn-sm me-2" @click="destroy">
+                  <i class="bi bi-trash3-fill"/>
+                </button>
+
+                <button class="btn btn-sm border-warning">
+                  <RecordingFavButton :bookmarked="recording.bookmark" :recording-id="recording.recordingId"/>
+                </button>
+
+                <span class="mx-2 text-secondary">|</span>
+
+                <button class="btn btn-info text-white btn-sm me-2" @click="back">
+                  <i class="bi bi-chevron-double-left"/>
+                </button>
+
+                <button class="btn btn-info text-white btn-sm me-2" @click="forward">
+                  <i class="bi bi-chevron-double-right"/>
+                </button>
+
+                <!--
+                              <div class="fw-6 me-2">
+                  {{ durationMin }}/{{ (timecode / 60).toFixed(2) }}min
+                </div>
+
+                <button v-if="!muted" class="btn btn-primary btn-sm me-2" type="button" @click="muted=true">
+                  <i class="bi bi-volume-up"/>
+                </button>
+
+                <button v-else class="btn btn-outline-primary btn-sm me-2" type="button" @click="muted=false">
+                  <i class="bi bi-volume-mute"/>
+                </button>
+
+                <button v-if="paused" class="btn btn-warning btn-sm" type="button" @click="play()">
+                  <i class="bi bi-play"></i>
+                </button>
+                <button v-else class="btn btn-success btn-sm" type="button" @click="pause()">
+                  <i class="bi bi-pause"></i>
+                </button>
+                -->
+              </div>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
   </div>
@@ -130,16 +136,14 @@ import { createClient } from "../services/api/v1/ClientFactory";
 import { useCookies } from '@vueuse/integrations/useCookies';
 import { Marking } from '../components/Stripe.vue';
 import Stripe from '../components/Stripe.vue';
-import { useI18n } from 'vue-i18n'
 import { useRouter, onBeforeRouteLeave, useRoute } from 'vue-router';
-import { ModelsRecording } from "../services/api/v1/StreamSinkClient.ts";
+import { DatabaseRecording } from "../services/api/v1/StreamSinkClient.ts";
 import RecordingFavButton from "../components/controls/RecordingFavButton.vue";
 import BusyOverlay from "../components/BusyOverlay.vue";
 import { useStore } from "../store";
-
-// --------------------------------------------------------------------------------------
-// Props
-// --------------------------------------------------------------------------------------
+import { useI18n } from 'vue-i18n'
+import ModalConfirmDialog from "../components/modals/ModalConfirmDialog.vue";
+import MarkingsTable from "../components/MarkingsTable.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -167,12 +171,13 @@ const isLoaded = ref(false);
 const isShown = ref(false);
 const playbackSpeed = ref(1.0);
 const markings = ref<Marking[]>([]);
-const segments = ref([]);
 const timeCode = ref<number>(0);
 const duration = ref<number>(0);
-const recording = ref<ModelsRecording>();
+const recording = ref<DatabaseRecording>();
 const id = ref<number>();
 const busy = ref(false);
+const showConfirmDialog = ref(false);
+const deleteFileAfterCut = ref(false);
 
 let cutInterval: NodeJS.Timeout | number | undefined;
 
@@ -207,9 +212,6 @@ onMounted(async () => {
     isShown.value = true;
   }
 });
-
-const durationMin = computed(() => (duration.value / 60).toFixed(2));
-const sortedSegments = computed(() => segments.value.slice().sort((a: Marking, b: Marking) => a.start - b.start));
 
 // --------------------------------------------------------------------------------------
 // Watchers
@@ -320,10 +322,6 @@ const rotate = () => {
   }
 };
 
-const endSegment = (end: number) => {
-  video.value!.currentTime = end;
-};
-
 const destroy = () => {
   if (!window.confirm(t('videoView.destroy', [ recording.value?.filename ]))) {
     return;
@@ -342,14 +340,13 @@ const destroy = () => {
 };
 
 const cutVideo = () => {
-  if (window.confirm('Export selected segments?')) {
-    const starts = markings.value.map(m => String(m.timestart.toFixed(4)));
-    const ends = markings.value.map(m => String(m.timeend.toFixed(4)));
+  const starts = markings.value.map(m => String(m.timestart.toFixed(4)));
+  const ends = markings.value.map(m => String(m.timeend.toFixed(4)));
 
-    api.recordings.cutCreate(id.value!, { starts, ends })
-        .then(() => markings.value = [])
-        .catch((err) => alert(err));
-  }
+  api.recordings.cutCreate(id.value!, { starts, ends, deleteAfterCut: deleteFileAfterCut.value })
+      .then(() => markings.value = [])
+      .catch((err) => alert(err))
+      .finally(() => showConfirmDialog.value = false);
 };
 
 const seek = ({ clientX, width }: { clientX: number, width: number }) => {

@@ -26,7 +26,7 @@
 import { defineEmits, ref, defineProps, inject, computed } from 'vue';
 import StreamInfo from './StreamInfo.vue';
 import Preview from './Preview.vue';
-import { V1ChannelResponse as ChannelResponse } from '../services/api/v1/StreamSinkClient';
+import { ServicesChannelInfo as ChannelInfo } from '../services/api/v1/StreamSinkClient';
 import { createClient } from '../services/api/v1/ClientFactory';
 import { useI18n } from "vue-i18n";
 import { useRouter } from 'vue-router'
@@ -36,13 +36,13 @@ import { useStore } from "../store";
 // Emits
 // --------------------------------------------------------------------------------------
 
-const emit = defineEmits<{ (e: 'edit', value: ChannelResponse): void }>();
+const emit = defineEmits<{ (e: 'edit', value: ChannelInfo): void }>();
 
 // --------------------------------------------------------------------------------------
 // Props
 // --------------------------------------------------------------------------------------
 
-const props = defineProps<{ channel: ChannelResponse }>();
+const props = defineProps<{ channel: ChannelInfo }>();
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -66,17 +66,17 @@ const previewVideo = computed(() => fileUrl + '/' + props.channel.preview + '?' 
 // Methods
 // --------------------------------------------------------------------------------------
 
-const fav = async (channel: ChannelResponse) => {
+const fav = async (channel: ChannelInfo) => {
   await api.channels.favPartialUpdate(channel.channelId!);
   store.commit('fav', channel.channelId);
 };
 
-const unfav = async (channel: ChannelResponse) => {
+const unfav = async (channel: ChannelInfo) => {
   await api.channels.unfavPartialUpdate(channel.channelId!);
   store.commit('unfav', channel.channelId);
 };
 
-const destroyChannel = async (channel: ChannelResponse) => {
+const destroyChannel = async (channel: ChannelInfo) => {
   if (window.confirm(t('crud.destroy', [ channel.channelName ]))) {
     try {
       busy.value = true;
@@ -93,7 +93,7 @@ const destroyChannel = async (channel: ChannelResponse) => {
   }
 };
 
-const pause = async (channel: ChannelResponse) => {
+const pause = async (channel: ChannelInfo) => {
   try {
     busy.value = true;
     const method = channel.isPaused ? api.channels.resumeCreate : api.channels.pauseCreate;
@@ -108,5 +108,5 @@ const pause = async (channel: ChannelResponse) => {
   }
 };
 
-const viewFolder = (id: number, name: string) => router.push(`/stream/${id}/${name}`);
+const viewFolder = (id: number, name: string) => router.push(`/channel/${id}/${name}`);
 </script>

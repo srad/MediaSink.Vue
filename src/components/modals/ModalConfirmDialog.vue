@@ -1,12 +1,13 @@
 <template>
-  <modal :show="showModal" @close="showModal = false">
+  <modal :show="showModal" @close="cancel">
     <template #header>
+      <slot name="header"/>
     </template>
     <template #body>
       <slot name="body"/>
     </template>
     <template #footer>
-      <div class="modal-footer bg-light d-flex justify-content-between">
+      <div class="modal-footer w-100 bg-light d-flex justify-content-between">
         <button class="btn btn-danger" @click="cancel">Cancel</button>
         <button class="btn btn-primary" @click="ok" :disabled="working">
             <span class="spinner-border spinner-border-sm text-light" role="status" v-show="working">
@@ -28,7 +29,6 @@ import Modal from './Modal.vue';
 
 const props = defineProps<{
   show: boolean
-  title: string
 }>();
 
 // --------------------------------------------------------------------------------------

@@ -9,6 +9,86 @@
  * ---------------------------------------------------------------
  */
 
+export interface DatabaseCPULoad {
+  cpu: string;
+  createdAt: string;
+  load: number;
+}
+export interface DatabaseChannel {
+  channelId: number;
+  channelName: string;
+  createdAt: string;
+  deleted: boolean;
+  displayName: string;
+  fav: boolean;
+  isPaused: boolean;
+  minDuration: number;
+  /** 1:n */
+  recordings?: DatabaseRecording[];
+  /** Only for query result. */
+  recordingsCount: number;
+  recordingsSize: number;
+  skipStart: number;
+  tags?: string[];
+  url: string;
+}
+export interface DatabaseJob {
+  active: boolean;
+  args?: string;
+  channelId: number;
+  /** Unique entry, this is the actual primary key */
+  channelName: string;
+  command?: string;
+  createdAt: string;
+  filename: string;
+  info?: string;
+  jobId: number;
+  pathRelative: string;
+  /** Additional information */
+  pid?: number;
+  progress?: string;
+  recordingId: number;
+  status: DatabaseJobStatus;
+  /** Default values only not to break migrations. */
+  task: DatabaseJobTask;
+}
+export enum DatabaseJobStatus {
+  StatusJobCompleted = "completed",
+  StatusOpen = "open",
+  StatusError = "error",
+  StatusJobCanceled = "canceled",
+}
+export enum DatabaseJobTask {
+  TaskConvert = "convert",
+  TaskPreview = "preview",
+  TaskCut = "cut",
+}
+export interface DatabaseNetInfo {
+  createdAt: string;
+  dev: string;
+  receiveBytes: number;
+  transmitBytes: number;
+}
+export interface DatabaseRecording {
+  bitRate: number;
+  bookmark: boolean;
+  channelId: number;
+  channelName: string;
+  createdAt: string;
+  duration: number;
+  filename: string;
+  height: number;
+  /** Total number of video packets/frames. */
+  packets: number;
+  pathRelative?: string;
+  previewCover?: string;
+  previewStripe?: string;
+  previewVideo?: string;
+  recordingId: number;
+  size: number;
+  videoType: string;
+  width: number;
+}
 export interface HelpersCPUInfo {
   loadCpu?: HelpersCPULoad[];
 }
@@ -34,80 +114,6 @@ export interface HelpersSysInfo {
   diskInfo?: HelpersDiskInfo;
   netInfo?: HelpersNetInfo;
 }
-export interface ModelsCPULoad {
-  cpu: string;
-  createdAt: string;
-  load: number;
-}
-export interface ModelsChannel {
-  channelId: number;
-  channelName: string;
-  createdAt: string;
-  deleted: boolean;
-  displayName: string;
-  fav: boolean;
-  isPaused: boolean;
-  minDuration: number;
-  /** 1:n */
-  recordings?: ModelsRecording[];
-  /** Only for query result. */
-  recordingsCount: number;
-  recordingsSize: number;
-  skipStart: number;
-  tags?: string[];
-  url: string;
-}
-export interface ModelsJob {
-  active: boolean;
-  args?: string;
-  channelId: number;
-  /** Unique entry, this is the actual primary key */
-  channelName: string;
-  command?: string;
-  createdAt: string;
-  filename: string;
-  info?: string;
-  jobId: number;
-  pathRelative: string;
-  /** Additional information */
-  pid?: number;
-  progress?: string;
-  recordingId: number;
-  status: string;
-}
-export interface ModelsNetInfo {
-  createdAt: string;
-  dev: string;
-  receiveBytes: number;
-  transmitBytes: number;
-}
-export interface ModelsProcessInfo {
-  args?: string;
-  id?: number;
-  output?: string;
-  path?: string;
-  pid?: number;
-}
-export interface ModelsRecording {
-  bitRate: number;
-  bookmark: boolean;
-  channelId: number;
-  channelName: string;
-  createdAt: string;
-  duration: number;
-  filename: string;
-  height: number;
-  /** Total number of video packets/frames. */
-  packets: number;
-  pathRelative?: string;
-  previewCover?: string;
-  previewStripe?: string;
-  previewVideo?: string;
-  recordingId: number;
-  size: number;
-  videoType: string;
-  width: number;
-}
 export interface ResponseImportInfo {
   isImporting?: boolean;
   progress?: number;
@@ -117,18 +123,7 @@ export interface ResponseServerInfo {
   commit?: string;
   version?: string;
 }
-export interface V1ChannelRequest {
-  channelName: string;
-  deleted?: boolean;
-  displayName: string;
-  fav?: boolean;
-  isPaused: boolean;
-  minDuration: number;
-  skipStart: number;
-  tags?: string[];
-  url: string;
-}
-export interface V1ChannelResponse {
+export interface ServicesChannelInfo {
   channelId: number;
   channelName: string;
   createdAt: string;
@@ -143,10 +138,28 @@ export interface V1ChannelResponse {
   minRecording: number;
   preview: string;
   /** 1:n */
-  recordings?: ModelsRecording[];
+  recordings?: DatabaseRecording[];
   /** Only for query result. */
   recordingsCount: number;
   recordingsSize: number;
+  skipStart: number;
+  tags?: string[];
+  url: string;
+}
+export interface ServicesProcessInfo {
+  args?: string;
+  id?: number;
+  output?: string;
+  path?: string;
+  pid?: number;
+}
+export interface V1ChannelRequest {
+  channelName: string;
+  deleted?: boolean;
+  displayName: string;
+  fav?: boolean;
+  isPaused: boolean;
+  minDuration: number;
   skipStart: number;
   tags?: string[];
   url: string;
@@ -155,8 +168,15 @@ export interface V1ChannelTagsUpdateRequest {
   tags?: string[];
 }
 export interface V1CutRequest {
+  deleteAfterCut?: boolean;
   ends?: string[];
   starts?: string[];
+}
+export interface V1JobResponse {
+  jobs?: DatabaseJob[];
+  skip?: number;
+  take?: number;
+  totalCount?: number;
 }
 export interface V1RecordingStatus {
   isRecording: boolean;
@@ -437,15 +457,15 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
   };
   channels = {
     /**
-     * @description Return a list of channels that are not marked as deleted, not currently recording, and not paused
+     * @description Return a list of channels
      *
      * @tags channels
      * @name ChannelsList
-     * @summary Return a list of channels that are not marked as deleted, not currently recording, and not paused
+     * @summary Return a list of channels
      * @request GET:/channels
      */
     channelsList: (params: RequestParams = {}) =>
-      this.http.request<V1ChannelResponse[], any>({
+      this.http.request<ServicesChannelInfo[], any>({
         path: `/channels`,
         method: "GET",
         type: ContentType.Json,
@@ -462,7 +482,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request POST:/channels
      */
     channelsCreate: (ChannelRequest: V1ChannelRequest, params: RequestParams = {}) =>
-      this.http.request<ModelsChannel, any>({
+      this.http.request<ServicesChannelInfo, any>({
         path: `/channels`,
         method: "POST",
         body: ChannelRequest,
@@ -480,7 +500,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/channels/{id}
      */
     channelsDetail: (id: number, params: RequestParams = {}) =>
-      this.http.request<V1ChannelResponse, any>({
+      this.http.request<ServicesChannelInfo, any>({
         path: `/channels/${id}`,
         method: "GET",
         format: "json",
@@ -513,7 +533,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request PATCH:/channels/{id}
      */
     channelsPartialUpdate: (id: number, ChannelRequestRequest: V1ChannelRequest, params: RequestParams = {}) =>
-      this.http.request<ModelsChannel, any>({
+      this.http.request<DatabaseChannel, any>({
         path: `/channels/${id}`,
         method: "PATCH",
         body: ChannelRequestRequest,
@@ -623,7 +643,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
       },
       params: RequestParams = {},
     ) =>
-      this.http.request<ModelsRecording, any>({
+      this.http.request<DatabaseRecording, any>({
         path: `/channels/${id}/upload`,
         method: "POST",
         body: data,
@@ -669,23 +689,6 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
   };
   jobs = {
     /**
-     * @description Return a list of jobs
-     *
-     * @tags jobs
-     * @name JobsList
-     * @summary Return a list of jobs
-     * @request GET:/jobs
-     */
-    jobsList: (params: RequestParams = {}) =>
-      this.http.request<ModelsJob[], any>({
-        path: `/jobs`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
      * @description Interrupt job gracefully
      *
      * @tags jobs
@@ -710,7 +713,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request POST:/jobs/{id}
      */
     jobsCreate: (id: string, params: RequestParams = {}) =>
-      this.http.request<ModelsJob, any>({
+      this.http.request<DatabaseJob, any>({
         path: `/jobs/${id}`,
         method: "POST",
         type: ContentType.Json,
@@ -733,6 +736,23 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
         type: ContentType.Json,
         ...params,
       }),
+
+    /**
+     * @description Return a list of jobs
+     *
+     * @tags jobs
+     * @name JobsDetail
+     * @summary Return a list of jobs
+     * @request GET:/jobs/{skip}/{take}
+     */
+    jobsDetail: (skip: number, take: number, params: RequestParams = {}) =>
+      this.http.request<V1JobResponse, any>({
+        path: `/jobs/${skip}/${take}`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
   };
   metric = {
     /**
@@ -744,7 +764,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/metric/cpu
      */
     cpuList: (params: RequestParams = {}) =>
-      this.http.request<ModelsCPULoad, any>({
+      this.http.request<DatabaseCPULoad, any>({
         path: `/metric/cpu`,
         method: "GET",
         type: ContentType.Json,
@@ -761,7 +781,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/metric/net
      */
     netList: (params: RequestParams = {}) =>
-      this.http.request<ModelsNetInfo, any>({
+      this.http.request<DatabaseNetInfo, any>({
         path: `/metric/net`,
         method: "GET",
         type: ContentType.Json,
@@ -779,7 +799,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/processes
      */
     processesList: (params: RequestParams = {}) =>
-      this.http.request<ModelsProcessInfo[], any>({
+      this.http.request<ServicesProcessInfo[], any>({
         path: `/processes`,
         method: "GET",
         type: ContentType.Json,
@@ -843,7 +863,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/recordings
      */
     recordingsList: (params: RequestParams = {}) =>
-      this.http.request<ModelsRecording[], any>({
+      this.http.request<DatabaseRecording[], any>({
         path: `/recordings`,
         method: "GET",
         type: ContentType.Json,
@@ -860,7 +880,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/recordings/bookmarks
      */
     bookmarksList: (params: RequestParams = {}) =>
-      this.http.request<ModelsRecording[], any>({
+      this.http.request<DatabaseRecording[], any>({
         path: `/recordings/bookmarks`,
         method: "GET",
         type: ContentType.Json,
@@ -877,7 +897,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/recordings/filter/{column}/{order}/{limit}
      */
     filterDetail: (column: string, order: string, limit?: string, params: RequestParams = {}) =>
-      this.http.request<ModelsRecording[], any>({
+      this.http.request<DatabaseRecording[], any>({
         path: `/recordings/filter/${column}/${order}/${limit}`,
         method: "GET",
         type: ContentType.Json,
@@ -926,7 +946,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/recordings/random/{limit}
      */
     randomDetail: (limit?: string, params: RequestParams = {}) =>
-      this.http.request<ModelsRecording[], any>({
+      this.http.request<DatabaseRecording[], any>({
         path: `/recordings/random/${limit}`,
         method: "GET",
         type: ContentType.Json,
@@ -975,7 +995,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/recordings/{id}
      */
     recordingsDetail: (id: number, params: RequestParams = {}) =>
-      this.http.request<ModelsRecording, any>({
+      this.http.request<DatabaseRecording, any>({
         path: `/recordings/${id}`,
         method: "GET",
         type: ContentType.Json,
@@ -1008,7 +1028,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request POST:/recordings/{id}/cut
      */
     cutCreate: (id: number, CutRequest: V1CutRequest, params: RequestParams = {}) =>
-      this.http.request<ModelsJob, any>({
+      this.http.request<DatabaseJob, any>({
         path: `/recordings/${id}/cut`,
         method: "POST",
         body: CutRequest,
@@ -1042,7 +1062,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request POST:/recordings/{id}/preview
      */
     previewCreate: (id: number, params: RequestParams = {}) =>
-      this.http.request<ModelsJob, any>({
+      this.http.request<DatabaseJob, any>({
         path: `/recordings/${id}/preview`,
         method: "POST",
         type: ContentType.Json,
@@ -1075,7 +1095,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request POST:/recordings/{id}/{mediaType}/convert
      */
     convertCreate: (id: number, mediaType: string, params: RequestParams = {}) =>
-      this.http.request<ModelsJob, any>({
+      this.http.request<DatabaseJob, any>({
         path: `/recordings/${id}/${mediaType}/convert`,
         method: "POST",
         type: ContentType.Json,

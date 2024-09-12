@@ -8,25 +8,25 @@
             <div class="row align-items-center">
               <div class="col-auto">
                 <select ref="filterColumnSelect" class="form-select form-select-sm" v-model="filterColumn" @change="routeFilter">
-                  <option value="" style="font-weight: bold" disabled>{{ $t('filter.orderBy') }}</option>
+                  <option value="" style="font-weight: bold" disabled>{{ t('filter.orderBy') }}</option>
                   <option v-for="col in columns" :key="col[1]" :value="col[1]">{{ col[0] }}</option>
                 </select>
               </div>
               <div class="col-auto">
                 <select ref="sortOrderSelect" class="form-select form-select-sm text-capitalize" v-model="filterOrder" @input="routeFilter">
-                  <option value="" style="font-weight: bold" disabled>{{ $t('filter.order') }}</option>
+                  <option value="" style="font-weight: bold" disabled>{{ t('filter.order') }}</option>
                   <option v-for="o in order" :key="o" :value="o">{{ o }}</option>
                 </select>
               </div>
               <div class="col-auto">
                 <select ref="filterLimitSelect" id="limit" class="form-select form-select-sm" v-model="filterLimit" @change="routeFilter">
-                  <option value="" style="font-weight: bold" disabled>{{ $t('filter.limit') }}</option>
+                  <option value="" style="font-weight: bold" disabled>{{ t('filter.limit') }}</option>
                   <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
                 </select>
               </div>
 
               <div class="col-auto">
-                <button type="button" class="btn btn-primary" @click="resetFilters">{{ $t('filter.reset') }}</button>
+                <button type="button" class="btn btn-primary" @click="resetFilters">{{ t('filter.reset') }}</button>
               </div>
             </div>
             <!-- filter row -->
@@ -47,11 +47,13 @@
 
 <script setup lang="ts">
 import { createClient } from '../services/api/v1/ClientFactory';
-import { ModelsRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
+import { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
 import RecordingItem from '../components/RecordingItem.vue';
-import { onBeforeMount, ref, watch } from 'vue';
-import LoadIndicator from '../components/LoadIndicator.vue';
+import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import {useI18n} from 'vue-i18n'
+
+const {t} = useI18n();
 
 const api = createClient();
 
