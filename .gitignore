@@ -24,7 +24,6 @@ dist-ssr
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
@@ -36,4 +35,3 @@ coverage
 
 public/env.js
 public/build.js
-.env.local

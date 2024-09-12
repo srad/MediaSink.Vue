@@ -2,7 +2,7 @@ import { StreamSinkClient, DatabaseRecording as RecordingResponse, V1RecordingSt
 import axios, { AxiosResponse } from 'axios';
 import { CancelTokenSource } from 'axios';
 
-const apiUrl = import.meta.env.VITE_VUE_APP_APIURL || process.env.VITE_VUE_APP_APIURL;
+const apiUrl = window.VUE_APP_APIURL;
 
 export class MyClient extends StreamSinkClient<any> {
   constructor() {
