@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cat >/app/dist/client/env.js <<EOL
+cat >/usr/share/nginx/html/env.js <<EOL
 window.VUE_APP_APIURL = "${APP_API_URL}";
 window.VUE_APP_BASE = "${APP_BASE}";
 window.VUE_APP_NAME = "${APP_NAME}";
@@ -8,15 +8,4 @@ window.VUE_APP_SOCKETURL = "${APP_SOCKETURL}";
 window.VUE_APP_FILEURL = "${APP_FILEURL}";
 EOL
 
-cat >/app/.env <<EOL
-VITE_VUE_APP_APIURL=${APP_API_URL}
-VITE_VUE_APP_BASE=${APP_BASE}
-VITE_VUE_APP_NAME=${APP_NAME}
-VITE_VUE_APP_SOCKETURL=${APP_SOCKETURL}
-VITE_VUE_APP_FILEURL=${APP_FILEURL}
-VITE_VUE_APP_BUILD=${APP_BUILD}
-VITE_VUE_APP_VERSION=${APP_VERSION}
-EOL
-
-cd /app
-node --env-file=.env server.js
+nginx -g "daemon off;"
