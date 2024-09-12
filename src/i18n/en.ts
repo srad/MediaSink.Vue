@@ -32,6 +32,7 @@ export default {
       channel: 'Channel',
       file: 'File',
       task: 'Task',
+      status: 'State',
       progress: 'Progress',
       created: 'Created',
       destroy: 'Destroy',
@@ -109,6 +110,7 @@ export default {
     segment: {
       start: 'Start',
       end: 'End',
+      duration: 'Duration',
       destroy: 'Del',
     }
   },

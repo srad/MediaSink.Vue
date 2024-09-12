@@ -98,7 +98,7 @@ const createdAtFormatted = computed(() => new Date(props.createdAt).toLocaleDate
   minute: 'numeric'
 }));
 
-const ago = ref(fromNow(new Date(props.createdAt)));
+const ago = ref(fromNow(Date.parse(props.createdAt)));
 
 const expand = ref(false);
 </script>

@@ -20,7 +20,7 @@
       <div class="col">
         <!--<div class="d-flex rounded-2 border mb-3 p-0 bg-light border-info p-1">-->
         <div class="input-group mb-3 align-middle">
-          <input autocapitalize="off" class="form-control" type="text" name="search" placeholder="search ... #tag" v-model="searchVal">
+          <input autocapitalize="off" autocomplete="off" class="form-control" type="text" name="search" placeholder="search ... #tag" v-model="searchVal">
           <!--
           <select class="form-select mb-3 ms-3 bg-light border-info w-20" v-model="tagFilter">
             <option value=""></option>

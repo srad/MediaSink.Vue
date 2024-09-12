@@ -92,7 +92,7 @@ watch(route, () => collapseNav.value = true);
 // Computes
 // --------------------------------------------------------------------------------------
 
-const jobs = computed(() => store.getters.getRecordings);
+const jobs = computed(() => store.getters.openJobs);
 
 // --------------------------------------------------------------------------------------
 // Methods

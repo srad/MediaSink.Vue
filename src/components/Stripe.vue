@@ -208,11 +208,11 @@ const down = (event: MouseEvent) => {
     timeend: endX / width * props.duration
   });
 
-  window.addEventListener('mousemove', move);
-  window.addEventListener('mouseup', up);
+  window.addEventListener('mousemove', mouseMove);
+  window.addEventListener('mouseup', mouseUp);
 };
 
-const move = (event: MouseEvent) => {
+const mouseMove = (event: MouseEvent) => {
   event.stopPropagation();
   event.preventDefault();
 
@@ -225,7 +225,7 @@ const move = (event: MouseEvent) => {
   }
 };
 
-const up = (event: MouseEvent) => {
+const mouseUp = (event: MouseEvent) => {
   event.stopPropagation();
   event.preventDefault();
 
@@ -240,8 +240,8 @@ const up = (event: MouseEvent) => {
     mouseMoved = false;
     showBar.value = true;
     currentMarkerIndex = -1;
-    window.removeEventListener('mousemove', move);
-    window.removeEventListener('mouseup', up);
+    window.removeEventListener('mousemove', mouseMove);
+    window.removeEventListener('mouseup', mouseUp);
     return;
   }
   mouseMoved = false;
@@ -250,9 +250,16 @@ const up = (event: MouseEvent) => {
     return;
   }
 
+  const marking = markings.value[currentMarkerIndex - 1];
+  const durationInSeconds = marking.timeend - marking.timestart;
+
+  if (durationInSeconds < 1) {
+    destroyMarking(currentMarkerIndex - 1);
+  }
+
   currentMarkerIndex = -1;
-  window.removeEventListener('mousemove', move);
-  window.removeEventListener('mouseup', up);
+  window.removeEventListener('mousemove', mouseMove);
+  window.removeEventListener('mouseup', mouseUp);
 
   // Reset
   showBar.value = true;

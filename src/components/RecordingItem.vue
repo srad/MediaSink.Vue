@@ -22,7 +22,7 @@
       </RouterLink>
     </div>
     <div v-if="props.showTitle" class="card-body">
-      <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="router.push(`/stream/${props.recording.channelId}/${props.recording.channelName}`)">
+      <div class="card-title p-1 m-0 bg-primary" style="cursor:pointer;" @click="router.push(`/channel/${props.recording.channelId}/${props.recording.channelName}`)">
         <h6 class="p-2 m-0 text-white">
           <a class="text-white" target="_blank">
             {{ props.recording.channelName }}

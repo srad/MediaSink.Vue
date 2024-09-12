@@ -108,5 +108,5 @@ const pause = async (channel: ChannelInfo) => {
   }
 };
 
-const viewFolder = (id: number, name: string) => router.push(`/stream/${id}/${name}`);
+const viewFolder = (id: number, name: string) => router.push(`/channel/${id}/${name}`);
 </script>

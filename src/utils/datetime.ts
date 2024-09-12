@@ -22,8 +22,8 @@
  * @param  {Date} Native JavaScript Date object
  * @return {string}
  */
-export function fromNow(date: Date): string {
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+export function fromNow(date: number): string {
+  const seconds = Math.floor((Date.now() - date) / 1000);
   const years = Math.floor(seconds / 31536000);
   const months = Math.floor(seconds / 2592000);
   const days = Math.floor(seconds / 86400);

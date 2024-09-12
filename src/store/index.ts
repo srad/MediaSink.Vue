@@ -1,6 +1,6 @@
 import { InjectionKey } from 'vue';
 import { createStore, Store, useStore as baseUseStore } from 'vuex';
-import { ServicesChannelInfo as ChannelInfo, DatabaseJob as JobData, DatabaseJob } from '../services/api/v1/StreamSinkClient';
+import { DatabaseJob as JobData, DatabaseJob, DatabaseJobStatus, ServicesChannelInfo as ChannelInfo } from '../services/api/v1/StreamSinkClient';
 
 export interface State {
   channels: ChannelInfo[];
@@ -9,19 +9,20 @@ export interface State {
   loggedIn: boolean;
 }
 
-export interface JobInfo {
+export interface TaskInfo {
   job: DatabaseJob
   data: {
     steps: number
     step: number
     pid: number
     command: string
+    message: string
   }
 }
 
-export interface JobProgress {
+export interface TaskProgress {
   job: DatabaseJob
-  data: { current: number, total: number, steps: number, step: number };
+  data: { current: number, total: number, steps: number, step: number, message: string };
 }
 
 export interface Toast {
@@ -49,11 +50,14 @@ export const store = createStore<State>({
     getToast(state: State): Toast[] {
       return state.toasts;
     },
-    getRecordingsCount(state: State): number {
+    openJobsCount(state: State): number {
       return state.jobs.length;
     },
-    getRecordings(state: State): JobData[] {
-      return state.jobs
+    openJobs(state: State): JobData[] {
+      return state.jobs.filter(x => x.status === DatabaseJobStatus.StatusOpen).sort((a, b) => a.jobId - b.jobId);
+    },
+    nonOpenJobs(state: State): JobData[] {
+      return state.jobs.filter(x => x.status !== DatabaseJobStatus.StatusOpen)
     }
   },
   mutations: {
@@ -62,11 +66,10 @@ export const store = createStore<State>({
     },
     'job:done'(state: State, job: DatabaseJob) {
       const i = state.jobs.findIndex(j => j.jobId === job.jobId);
-      console.log("job:done", i, job.jobId);
       if (i !== -1) {
         state.jobs[i].active = false;
+        state.jobs[i].status = DatabaseJobStatus.StatusJobCompleted;
         state.jobs[i].progress = String(100);
-        state.jobs.splice(i, 1);
       }
     },
     'jobs:update'(state: State, jobs: JobData[]) {
@@ -99,30 +102,42 @@ export const store = createStore<State>({
         state.toasts[i].hide = true;
       }
     },
-    'job:create'(state: State, job: JobData) {
+    'job:create'(state: State, job: DatabaseJob) {
       state.jobs.push(job);
     },
-    'job:destroy'(state: State, progress: JobProgress) {
+    'job:destroy'(state: State, progress: TaskProgress) {
       const i = state.jobs.findIndex(j => j.recordingId === progress.job.recordingId);
+      if (i !== -1) {
+        state.jobs[i].status = progress.job.status;
+        state.jobs[i].active = false;
+      }
+    },
+    'job:start'(state: State, info: TaskInfo) {
+      let i = state.jobs.findIndex(j => j.jobId === info.job.jobId);
+      if (i === -1) {
+        state.jobs.unshift(info.job);
+        i = 0;
+      }
+      state.jobs[i].active = true;
+      state.jobs[i].pid = info.data.pid;
+      state.jobs[i].command = info.data.command;
+    },
+    'job:deleted'(state: State, id: number) {
+      const i = state.jobs.findIndex(c => c.jobId === id);
       if (i !== -1) {
         state.jobs.splice(i, 1);
       }
     },
-    'job:start'(state: State, info: JobInfo) {
-      let i = state.jobs.findIndex(j => j.jobId === info.job.jobId);
-      if (i !== -1) {
-        state.jobs[i].active = true;
-        state.jobs[i].pid = info.data.pid;
-        state.jobs[i].command = info.data.command;
-      }
-    },
-    'job:progress'(state: State, info: JobProgress) {
+    'job:progress'(state: State, info: TaskProgress) {
       const i = state.jobs.findIndex(j => j.jobId === info.job.jobId);
       const progress = String((info.data.step / info.data.steps) * info.data.current / info.data.total * 100);
       if (i !== -1) {
         state.jobs[i].progress = progress;
+        state.jobs[i].info = info.data.message;
       } else {
         state.jobs.unshift(info.job);
+        state.jobs[0].progress = progress;
+        state.jobs[0].info = info.data.message;
       }
     },
     'jobs:refresh'(state: State, jobs: JobData[]) {

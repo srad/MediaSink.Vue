@@ -55,5 +55,6 @@ export const MessageType = {
   JobDestroy: 'job:destroy',
   JobPreviewDone: 'job:preview:done',
   JobProgress: 'job:progress',
+  JobDeleted: 'job:deleted',
   JobPreviewProgress: 'job:preview:progress'
 };

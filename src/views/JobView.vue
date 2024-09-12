@@ -1,70 +1,104 @@
 <template>
-  <ul class="nav nav-tabs my-2" id="pills-tab" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">
-        {{ t('general.jobs') }}
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="pills-processes-tab" data-bs-toggle="pill" data-bs-target="#pills-processes" type="button" role="tab" aria-controls="pills-processes" aria-selected="false">
-        {{ t('general.streams') }}
-      </button>
-    </li>
-  </ul>
-  <div class="tab-content" id="pills-tabContent">
-    <div class="tab-pane fade show active" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
-      <JobTable :jobs="jobs" @destroy="destroy"/>
-    </div>
-    <div class="tab-pane fade" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+  <div>
+    <div class="row mb-2">
+      <div class="col">
+        <div class="d-flex justify-content-end">
+          <div class="d-flex justify-content-center me-2">
+            <!-- filter row -->
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <select ref="filterLimitSelect" id="limit" class="form-select" v-model="take" @change="getData">
+                  <option value="" style="font-weight: bold" disabled>{{ t('filter.limit') }}</option>
+                  <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
+                </select>
+              </div>
 
+              <div class="col-auto">
+                <button type="button" class="btn btn-primary" @click="resetFilters">{{ t('filter.reset') }}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="tab-pane fade" id="pills-processes" role="tabpanel" aria-labelledby="pills-processes-tab">
-      <div class="table-responsive">
-        <table class="table table-bordered">
-          <thead>
-          <tr>
-            <th class="bg-light" style="width: 10%">Channel-Id</th>
-            <th class="bg-light" style="width: 10%">Pid</th>
-            <th class="bg-light" style="width: 10%">Path</th>
-            <th class="bg-light">Args</th>
-            <th class="bg-light">Output</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-if="processes.length===0">
-            <td colspan="5">
-              None
-            </td>
-          </tr>
-          <tr v-else v-for="p in processes">
-            <td>{{ p.id }}</td>
-            <td>{{ p.pid }}</td>
-            <td>{{ p.path }}</td>
-            <td>
-              <textarea disabled class="form-control" rows="5">{{ p.args }}</textarea>
-            </td>
-            <td>
-              <textarea disabled class="form-control" rows="5">{{ p.output }}</textarea>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+
+    <ul class="nav nav-tabs my-2" id="pills-tab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="pills-open-tab" data-bs-toggle="pill" data-bs-target="#pills-open" type="button" role="tab" aria-controls="pills-open" aria-selected="false">
+          {{ t('general.jobs') }} (open)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="pills-other-tab" data-bs-toggle="pill" data-bs-target="#pills-other" type="button" role="tab" aria-controls="pills-other" aria-selected="false">
+          {{ t('general.jobs') }} (other)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="pills-processes-tab" data-bs-toggle="pill" data-bs-target="#pills-processes" type="button" role="tab" aria-controls="pills-processes" aria-selected="false">
+          {{ t('general.streams') }}
+        </button>
+      </li>
+    </ul>
+    <div class="tab-content" id="pills-tabContent">
+      <div class="tab-pane fade show active" id="pills-open" role="tabpanel" aria-labelledby="pills-open-tab">
+        <JobTable :jobs="openJobs" @destroy="destroy"/>
+      </div>
+
+      <div class="tab-pane fade" id="pills-other" role="tabpanel" aria-labelledby="pills-other-tab">
+        <JobTable :jobs="otherJobs" @destroy="destroy"/>
+      </div>
+      <div class="tab-pane fade" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+
+      </div>
+      <div class="tab-pane fade" id="pills-processes" role="tabpanel" aria-labelledby="pills-processes-tab">
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+            <tr>
+              <th class="bg-light" style="width: 10%">Channel-Id</th>
+              <th class="bg-light" style="width: 10%">Pid</th>
+              <th class="bg-light" style="width: 10%">Path</th>
+              <th class="bg-light">Args</th>
+              <th class="bg-light">Output</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-if="processes.length===0">
+              <td colspan="5">
+                None
+              </td>
+            </tr>
+            <tr v-else v-for="p in processes">
+              <td>{{ p.id }}</td>
+              <td>{{ p.pid }}</td>
+              <td>{{ p.path }}</td>
+              <td>
+                <textarea disabled class="form-control" rows="5">{{ p.args }}</textarea>
+              </td>
+              <td>
+                <textarea disabled class="form-control" rows="5">{{ p.output }}</textarea>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onActivated, onMounted, ref } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
 import JobTable from '../components/JobTable.vue';
 import { DatabaseJob, ServicesProcessInfo as ProcessInfo } from '../services/api/v1/StreamSinkClient';
 import { fromNow } from "../utils/datetime.ts";
 import { useStore } from "../store";
 import { Tab } from 'bootstrap';
-import {useI18n} from 'vue-i18n'
+import { useI18n } from 'vue-i18n'
+import { onBeforeRouteUpdate } from "vue-router";
 
-const {t} = useI18n();
+const { t } = useI18n();
 
 const api = createClient();
 const store = useStore();
@@ -75,25 +109,54 @@ export interface JobTableItem extends DatabaseJob {
   fromNow?: string;
 }
 
-const res = await Promise.all([ api.jobs.jobsList(), api.processes.processesList() ]);
-store.commit('jobs:refresh', res[0].data);
-processes.value = res[1].data || [];
+const skip = ref(0);
+const take = ref(50);
+const limits = ref([
+  25,
+  50,
+  100,
+  200,
+]);
 
-const jobs = computed(() => {
-  return store.getters.getRecordings.map((job: DatabaseJob) => {
+const resetFilters = () => {
+  skip.value = 0;
+  take.value = 50;
+};
+
+const getData = async () => {
+  const res = await Promise.all([ api.jobs.jobsDetail(skip.value, take.value), api.processes.processesList() ]);
+  if (res[0].data.jobs) {
+    store.commit('jobs:refresh', res[0].data.jobs.sort((a: DatabaseJob, b: DatabaseJob) => a.jobId - b.jobId));
+  }
+  processes.value = res[1].data || [];
+};
+
+const openJobs = computed(() => {
+  return store.getters.openJobs.map((job: DatabaseJob) => {
     const newJob: JobTableItem = { ...job };
-    newJob.fromNow = fromNow(new Date(newJob.createdAt));
+    newJob.fromNow = fromNow(Date.parse(newJob.createdAt));
+    return newJob;
+  });
+});
+
+const otherJobs = computed(() => {
+  return store.getters.nonOpenJobs.map((job: DatabaseJob) => {
+    const newJob: JobTableItem = { ...job };
+    newJob.fromNow = fromNow(Date.parse(newJob.createdAt));
     return newJob;
   });
 });
 
 const destroy = (id: number) => {
-  api.jobs.jobsDelete(id)
-      .then(() => store.commit('destroyJob', id))
-      .catch(res => alert(res.error));
+  if (window.confirm("Delete?")) {
+    api.jobs.jobsDelete(id)
+        .then(() => store.commit('destroyJob', id))
+        .catch(res => alert(res));
+  }
 };
 
 onMounted(() => {
+  // Bootstrap tab events
   const triggerTabList = document.querySelectorAll('#pills-tab button')
   triggerTabList.forEach(triggerEl => {
     const tabTrigger = new Tab(triggerEl);
@@ -103,7 +166,7 @@ onMounted(() => {
       tabTrigger.show();
     })
   });
-})
+});
 </script>
 
 <style scoped>

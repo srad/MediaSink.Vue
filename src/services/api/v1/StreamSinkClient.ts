@@ -48,7 +48,20 @@ export interface DatabaseJob {
   pid?: number;
   progress?: string;
   recordingId: number;
-  status: string;
+  status: DatabaseJobStatus;
+  /** Default values only not to break migrations. */
+  task: DatabaseJobTask;
+}
+export enum DatabaseJobStatus {
+  StatusJobCompleted = "completed",
+  StatusOpen = "open",
+  StatusError = "error",
+  StatusJobCanceled = "canceled",
+}
+export enum DatabaseJobTask {
+  TaskConvert = "convert",
+  TaskPreview = "preview",
+  TaskCut = "cut",
 }
 export interface DatabaseNetInfo {
   createdAt: string;
@@ -158,6 +171,12 @@ export interface V1CutRequest {
   deleteAfterCut?: boolean;
   ends?: string[];
   starts?: string[];
+}
+export interface V1JobResponse {
+  jobs?: DatabaseJob[];
+  skip?: number;
+  take?: number;
+  totalCount?: number;
 }
 export interface V1RecordingStatus {
   isRecording: boolean;
@@ -670,23 +689,6 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
   };
   jobs = {
     /**
-     * @description Return a list of jobs
-     *
-     * @tags jobs
-     * @name JobsList
-     * @summary Return a list of jobs
-     * @request GET:/jobs
-     */
-    jobsList: (params: RequestParams = {}) =>
-      this.http.request<DatabaseJob[], any>({
-        path: `/jobs`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
      * @description Interrupt job gracefully
      *
      * @tags jobs
@@ -732,6 +734,23 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
         path: `/jobs/${id}`,
         method: "DELETE",
         type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Return a list of jobs
+     *
+     * @tags jobs
+     * @name JobsDetail
+     * @summary Return a list of jobs
+     * @request GET:/jobs/{skip}/{take}
+     */
+    jobsDetail: (skip: number, take: number, params: RequestParams = {}) =>
+      this.http.request<V1JobResponse, any>({
+        path: `/jobs/${skip}/${take}`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };

@@ -6,8 +6,9 @@
         <th class="bg-light p-2" style="width: 5%">{{ t('jobTable.col.pid') }}</th>
         <th class="bg-light p-2" style="width: 10%">{{ t('jobTable.col.channel') }}</th>
         <th class="bg-light p-2 align-bottom" style="width: 10%">{{ t('jobTable.col.file') }}</th>
+        <th class="bg-light p-2 align-bottom d-none d-lg-table-cell" style="width: 5%">{{ t('jobTable.col.task') }}</th>
         <th class="bg-light p-2 align-bottom d-none d-lg-table-cell" style="width: 5%">{{
-            t('jobTable.col.task')
+            t('jobTable.col.status')
           }}
         </th>
         <th class="bg-light p-2 align-bottom" style="width:20%">Command</th>
@@ -25,7 +26,7 @@
           {{ job.pid }}
         </td>
         <td class="p-2">
-          <RouterLink :to="`/stream/${job.channelId}/${job.channelName}`">
+          <RouterLink :to="`/channel/${job.channelId}/${job.channelName}`">
             {{ job.channelName }}
           </RouterLink>
         </td>
@@ -34,17 +35,27 @@
             {{ job.filename }}
           </RouterLink>
         </td>
+
         <td class="p-1">
-          <span class="text-capitalize">{{ job.status }}</span>
+          <span class="text-capitalize">{{ job.task }}</span>
         </td>
-        <td class="p-2">
-          <div class="bg-light border border-primary rounded-2 px-2">
+        <td class="p-1">
+          <span class="text-capitalize badge p-2" :class="{'bg-primary': job.status===DatabaseJobStatus.StatusOpen, 'bg-primary blink': job.active, 'bg-success': job.status===DatabaseJobStatus.StatusJobCompleted, 'bg-warning': job.status===DatabaseJobStatus.StatusJobCanceled, 'bg-danger' : job.status===DatabaseJobStatus.StatusError}">
+            <span v-if="job.status===DatabaseJobStatus.StatusOpen && job.active">Working</span>
+            <span v-else>{{ job.status }}</span>
+          </span>
+        </td>
+        <td class="p-1">
+          <div class="bg-light border rounded-2 px-2" style="height: 4rem; overflow-y: scroll">
             <code class="p-0" style="font-size: 0.7rem">{{ job.command }}</code>
           </div>
         </td>
         <td class="p-1">
           <div v-if="job.active" class="progress">
             <div class="progress-bar progress-bar-striped bg-info progress-bar-animated" role="progressbar" :style="'width:'+ job.progress + '%'" :aria-valuenow="job.progress" aria-valuemin="0" :aria-valuemax="100"></div>
+          </div>
+          <div>
+            {{ job.info }}
           </div>
         </td>
         <td class="p-2">{{ job.fromNow }}</td>
@@ -56,7 +67,7 @@
       </tr>
 
       <tr v-if="jobs.length === 0">
-        <td colspan="7" class="text-center">
+        <td colspan="9" class="text-center">
           <p class="m-0">{{ t('jobTable.noJobs') }}</p>
         </td>
       </tr>
@@ -66,18 +77,21 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue';
+import { defineEmits, defineProps } from 'vue';
 import { JobTableItem } from "../views/JobView.vue";
-import {useI18n} from 'vue-i18n'
+import { useI18n } from 'vue-i18n'
+import { DatabaseJobStatus } from "../services/api/v1/StreamSinkClient.ts";
 
-const {t} = useI18n();
+const { t } = useI18n();
 
 const emit = defineEmits<{
   (e: 'destroy', value: number): void
   (e: 'info', value: number): void
 }>();
 
-const props = defineProps<{ jobs: JobTableItem[] }>();
+const props = defineProps<{
+  jobs: JobTableItem[];
+}>();
 </script>
 
 <style scoped>

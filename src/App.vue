@@ -51,13 +51,13 @@
 
 <script setup lang="ts">
 import { computed, inject, onMounted, ref } from 'vue';
-import { V1ChannelRequest as ChannelRequest } from './services/api/v1/StreamSinkClient';
+import { DatabaseJob, V1ChannelRequest as ChannelRequest } from './services/api/v1/StreamSinkClient';
 import { socket, MessageType } from './utils/socket';
 import ChannelModal from './components/modals/ChannelModal.vue';
 import NavTop from './components/navs/NavTop.vue';
 import { createClient } from './services/api/v1/ClientFactory';
 import { useI18n } from 'vue-i18n';
-import { JobInfo, useStore } from './store';
+import { TaskInfo, useStore } from './store';
 
 const { t } = useI18n();
 const store = useStore();
@@ -87,30 +87,30 @@ const save = (data: ChannelRequest) => {
 
 onMounted(async () => {
   socket.on(MessageType.JobStart, data => {
-    const job = data as JobInfo;
+    const job = data as TaskInfo;
     store.commit('job:start', job);
   });
 // Dispatch
   socket.on(MessageType.JobCreate, data => {
-    const d = data as JobInfo;
-    const job = d.job;
+    const job = data as DatabaseJob;
     store.commit('job:create', job);
     store.commit('toast:add', { title: 'Job created', message: `File ${job.filename} in ${job.channelName}` });
   });
 
   socket.on(MessageType.JobDestroy, data => {
-    const d = data as JobInfo;
+    const d = data as TaskInfo;
     const job = d.job;
     store.commit('job:destroy', job);
     store.commit('toast:add', { title: 'Job destroyed', message: `File ${job.filename} in ${job.channelName}` });
   });
 
   socket.on(MessageType.JobPreviewDone, data => {
-    const d = data as JobInfo;
+    const d = data as TaskInfo;
     const job = d.job;
     store.commit('job:done', job);
     store.commit('toast:add', { title: 'Job done', message: `File ${job.filename} in ${job.channelName}` });
   });
+  socket.on(MessageType.JobDeleted, data => store.commit('job:deleted', data));
   socket.on(MessageType.JobProgress, data => store.commit('job:progress', data));
   socket.on(MessageType.JobPreviewProgress, data => store.commit('job:preview:progress', data));
 
@@ -124,8 +124,8 @@ onMounted(async () => {
     store.commit('toast:add', { title: 'Channel recording', message: `Channel id ${id}` });
   });
 
-  const jobs = await api.jobs.jobsList();
-  store.commit('jobs:update', jobs.data);
+  const jobs = await api.jobs.jobsDetail(0, 100);
+  store.commit('jobs:update', jobs.data.jobs);
 });
 
 </script>
