@@ -114,8 +114,7 @@ import { inject, computed, ref, onMounted } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
 import {
   HelpersCPUInfo,
-  HelpersDiskInfo, HelpersNetInfo,
-  ResponseServerInfo
+  HelpersDiskInfo, HelpersNetInfo, ResponsesServerInfoResponse,
 } from '../services/api/v1/StreamSinkClient';
 import { onBeforeRouteLeave } from 'vue-router';
 
@@ -154,7 +153,7 @@ const isUpdating = ref(false);
 //   ]
 // });
 
-const serverInfo = ref<ResponseServerInfo | null>(null);
+const serverInfo = ref<ResponsesServerInfoResponse | null>(null);
 
 const cpuInfo = ref<HelpersCPUInfo | undefined>(undefined);
 const diskInfo = ref<HelpersDiskInfo | undefined>(undefined);

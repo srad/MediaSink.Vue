@@ -1,43 +1,66 @@
-const socketUrl = import.meta.env.SSR ? import.meta.env.VITE_VUE_APP_SOCKETURL : window.VUE_APP_SOCKETURL;
-const listeners: { [key: string]: ((data: Object) => void)[] } = {};
+import AuthService from "../services/auth.service.ts";
 
-const addListener = (event: string, fn: (data: Object) => void) => {
-  if (!listeners[event]) {
-    listeners[event] = [];
+class SocketManager {
+  static connection?: WebSocket = null;
+  listeners: { [key: string]: ((data: Object) => void)[] } = {};
+
+  connect() {
+    if (SocketManager.connection) {
+      return;
+    }
+
+    const socketUrl = import.meta.env.SSR ? import.meta.env.VITE_VUE_APP_SOCKETURL : window.VUE_APP_SOCKETURL;
+    SocketManager.connection = new WebSocket(socketUrl + '?Authorization=' + AuthService.getAuthHeader()?.Authorization);
+
+    SocketManager.connection.addEventListener('message', (msg: any) => {
+      const json = JSON.parse(msg.data) as { name: string, data: Object };
+      this.notify(json.name, json.data);
+    });
+
+    SocketManager.connection.addEventListener('open', () => {
+      console.log('open ws');
+    });
+
+    SocketManager.connection.addEventListener('close', () => {
+      console.log('close ws');
+    });
+
+    SocketManager.connection.addEventListener('error', (ev: Event) => {
+      console.error(ev);
+    });
   }
-  listeners[event].push(fn);
-};
 
-const notify = (event: string, data: object) => {
-  if (!listeners[event]) {
-    return;
+  close() {
+    SocketManager.connection?.close();
+    this.listeners = [];
+
+    SocketManager.connection = null;
   }
 
-  if (listeners[event]) {
-    listeners[event].forEach(fn => fn(data));
+  on(event: string, fn: (data: Object) => void) {
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
+    }
+    this.listeners[event].push(fn);
   }
-};
 
-// Run only on client.
-if (!import.meta.env.SSR) {
-  const c = new WebSocket(socketUrl);
+  notify(event: string, data: object) {
+    if (!SocketManager.connection) {
+      return;
+    }
 
-  c.onmessage = (msg: any) => {
-    const json = JSON.parse(msg.data) as { name: string, data: Object };
-    notify(json.name, json.data);
-  };
+    if (!this.listeners[event]) {
+      return;
+    }
 
-  c.onopen = () => {
-    console.log('open ws');
-  };
-
-  c.onerror = (ev: Event) => {
-    console.error(ev);
-  };
+    if (this.listeners[event]) {
+      this.listeners[event].forEach(fn => fn(data));
+    }
+  }
 }
 
-export const socket = {
-  on: addListener
+export const createSocket = () => {
+  return new SocketManager();
 };
 
 export const MessageType = {

@@ -9,11 +9,6 @@
  * ---------------------------------------------------------------
  */
 
-export interface DatabaseCPULoad {
-  cpu: string;
-  createdAt: string;
-  load: number;
-}
 export interface DatabaseChannel {
   channelId: number;
   channelName: string;
@@ -63,12 +58,6 @@ export enum DatabaseJobTask {
   TaskPreview = "preview",
   TaskCut = "cut",
 }
-export interface DatabaseNetInfo {
-  createdAt: string;
-  dev: string;
-  receiveBytes: number;
-  transmitBytes: number;
-}
 export interface DatabaseRecording {
   bitRate: number;
   bookmark: boolean;
@@ -114,12 +103,44 @@ export interface HelpersSysInfo {
   diskInfo?: HelpersDiskInfo;
   netInfo?: HelpersNetInfo;
 }
-export interface ResponseImportInfo {
+export interface RequestsAuthenticationRequest {
+  password: string;
+  username: string;
+}
+export interface RequestsChannelRequest {
+  channelName: string;
+  deleted?: boolean;
+  displayName: string;
+  fav?: boolean;
+  isPaused: boolean;
+  minDuration: number;
+  skipStart: number;
+  tags?: string[];
+  url: string;
+}
+export interface RequestsChannelTagsUpdateRequest {
+  tags: string[];
+}
+export interface RequestsCutRequest {
+  deleteAfterCut: boolean;
+  ends: string[];
+  starts: string[];
+}
+export interface ResponsesImportInfoResponse {
   isImporting?: boolean;
   progress?: number;
   size?: number;
 }
-export interface ResponseServerInfo {
+export interface ResponsesJobResponse {
+  jobs?: DatabaseJob[];
+  skip?: number;
+  take?: number;
+  totalCount?: number;
+}
+export interface ResponsesRecordingStatusResponse {
+  isRecording: boolean;
+}
+export interface ResponsesServerInfoResponse {
   commit?: string;
   version?: string;
 }
@@ -152,34 +173,6 @@ export interface ServicesProcessInfo {
   output?: string;
   path?: string;
   pid?: number;
-}
-export interface V1ChannelRequest {
-  channelName: string;
-  deleted?: boolean;
-  displayName: string;
-  fav?: boolean;
-  isPaused: boolean;
-  minDuration: number;
-  skipStart: number;
-  tags?: string[];
-  url: string;
-}
-export interface V1ChannelTagsUpdateRequest {
-  tags?: string[];
-}
-export interface V1CutRequest {
-  deleteAfterCut?: boolean;
-  ends?: string[];
-  starts?: string[];
-}
-export interface V1JobResponse {
-  jobs?: DatabaseJob[];
-  skip?: number;
-  take?: number;
-  totalCount?: number;
-}
-export interface V1RecordingStatus {
-  isRecording: boolean;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -414,7 +407,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/admin/import
      */
     importList: (params: RequestParams = {}) =>
-      this.http.request<ResponseImportInfo, any>({
+      this.http.request<ResponsesImportInfoResponse, any>({
         path: `/admin/import`,
         method: "GET",
         type: ContentType.Json,
@@ -447,11 +440,47 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/admin/version
      */
     versionList: (params: RequestParams = {}) =>
-      this.http.request<ResponseServerInfo, any>({
+      this.http.request<ResponsesServerInfoResponse, any>({
         path: `/admin/version`,
         method: "GET",
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+  };
+  auth = {
+    /**
+     * @description Create new user
+     *
+     * @tags auth
+     * @name LoginCreate
+     * @summary Create new user
+     * @request POST:/auth/login
+     */
+    loginCreate: (AuthenticationRequest: RequestsAuthenticationRequest, params: RequestParams = {}) =>
+      this.http.request<string, any>({
+        path: `/auth/login`,
+        method: "POST",
+        body: AuthenticationRequest,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Create new user
+     *
+     * @tags auth
+     * @name SignupCreate
+     * @summary Create new user
+     * @request POST:/auth/signup
+     */
+    signupCreate: (AuthenticationRequest: RequestsAuthenticationRequest, params: RequestParams = {}) =>
+      this.http.request<void, any>({
+        path: `/auth/signup`,
+        method: "POST",
+        body: AuthenticationRequest,
+        type: ContentType.Json,
         ...params,
       }),
   };
@@ -481,7 +510,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @summary Add a new channel
      * @request POST:/channels
      */
-    channelsCreate: (ChannelRequest: V1ChannelRequest, params: RequestParams = {}) =>
+    channelsCreate: (ChannelRequest: RequestsChannelRequest, params: RequestParams = {}) =>
       this.http.request<ServicesChannelInfo, any>({
         path: `/channels`,
         method: "POST",
@@ -532,11 +561,11 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @summary Update channel data
      * @request PATCH:/channels/{id}
      */
-    channelsPartialUpdate: (id: number, ChannelRequestRequest: V1ChannelRequest, params: RequestParams = {}) =>
+    channelsPartialUpdate: (id: number, ChannelRequest: RequestsChannelRequest, params: RequestParams = {}) =>
       this.http.request<DatabaseChannel, any>({
         path: `/channels/${id}`,
         method: "PATCH",
-        body: ChannelRequestRequest,
+        body: ChannelRequest,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -601,7 +630,11 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @summary Tag a channel
      * @request PATCH:/channels/{id}/tags
      */
-    tagsPartialUpdate: (id: number, ChannelTagsUpdateRequest: V1ChannelTagsUpdateRequest, params: RequestParams = {}) =>
+    tagsPartialUpdate: (
+      id: number,
+      ChannelTagsUpdateRequest: RequestsChannelTagsUpdateRequest,
+      params: RequestParams = {},
+    ) =>
       this.http.request<any, any>({
         path: `/channels/${id}/tags`,
         method: "PATCH",
@@ -730,10 +763,11 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request DELETE:/jobs/{id}
      */
     jobsDelete: (id: number, params: RequestParams = {}) =>
-      this.http.request<void, string>({
+      this.http.request<any, string>({
         path: `/jobs/${id}`,
         method: "DELETE",
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
@@ -746,43 +780,8 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/jobs/{skip}/{take}
      */
     jobsDetail: (skip: number, take: number, params: RequestParams = {}) =>
-      this.http.request<V1JobResponse, any>({
+      this.http.request<ResponsesJobResponse, any>({
         path: `/jobs/${skip}/${take}`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  metric = {
-    /**
-     * @description Get CPU metrics
-     *
-     * @tags metric
-     * @name CpuList
-     * @summary Get CPU metrics
-     * @request GET:/metric/cpu
-     */
-    cpuList: (params: RequestParams = {}) =>
-      this.http.request<DatabaseCPULoad, any>({
-        path: `/metric/cpu`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get network metrics
-     *
-     * @tags metric
-     * @name NetList
-     * @summary Get network metrics
-     * @request GET:/metric/net
-     */
-    netList: (params: RequestParams = {}) =>
-      this.http.request<DatabaseNetInfo, any>({
-        path: `/metric/net`,
         method: "GET",
         type: ContentType.Json,
         format: "json",
@@ -817,7 +816,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @request GET:/recorder
      */
     recorderList: (params: RequestParams = {}) =>
-      this.http.request<V1RecordingStatus, void>({
+      this.http.request<ResponsesRecordingStatusResponse, void>({
         path: `/recorder`,
         method: "GET",
         ...params,
@@ -1027,7 +1026,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
      * @summary Cut a video and merge all defined segments
      * @request POST:/recordings/{id}/cut
      */
-    cutCreate: (id: number, CutRequest: V1CutRequest, params: RequestParams = {}) =>
+    cutCreate: (id: number, CutRequest: RequestsCutRequest, params: RequestParams = {}) =>
       this.http.request<DatabaseJob, any>({
         path: `/recordings/${id}/cut`,
         method: "POST",
@@ -1097,6 +1096,24 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
     convertCreate: (id: number, mediaType: string, params: RequestParams = {}) =>
       this.http.request<DatabaseJob, any>({
         path: `/recordings/${id}/${mediaType}/convert`,
+        method: "POST",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  user = {
+    /**
+     * @description Get user profile
+     *
+     * @tags user
+     * @name ProfileCreate
+     * @summary Get user profile
+     * @request POST:/user/profile
+     */
+    profileCreate: (params: RequestParams = {}) =>
+      this.http.request<any, any>({
+        path: `/user/profile`,
         method: "POST",
         type: ContentType.Json,
         format: "json",

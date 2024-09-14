@@ -25,7 +25,7 @@
 
     <nav class="navbar fixed-bottom navbar-light bg-light border-info border-top">
       <div class="container-fluid justify-content-between">
-        <div class="btn-group dropup" v-if="selectedRecordings.length === 0">
+        <div class="btn-group dropup" v-if="!areItemsSelected">
           <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
             Options
           </button>
@@ -59,11 +59,11 @@
         </div>
 
         <div class="btn-group">
-          <button type="button" v-if="selectedRecordings.length > 0" class="btn btn-danger justify-content-between me-2" @click="destroySelection">
+          <button type="button" v-if="areItemsSelected" class="btn btn-danger justify-content-between me-2" @click="destroySelection">
             <span class="me-2">Delete selection</span>
             <i class="bi bi-trash3-fill"/>
           </button>
-          <button type="button" v-if="selectedRecordings.length > 0" class="btn btn-primary justify-content-between me-2" @click="cancelSelection">
+          <button type="button" v-if="areItemsSelected" class="btn btn-primary justify-content-between me-2" @click="cancelSelection">
             <span class="me-2">Cancel</span>
             <i class="bi bi-stop-fill"/>
           </button>
@@ -75,8 +75,8 @@
       </div>
     </nav>
 
-    <div class="row my-1 mb-3">
-      <div class="d-flex align-middle fs-5 pb-2 fw-bolder">
+    <div class="row pb-5">
+      <div class="d-flex align-middle fs-5 mb-3 fw-bolder">
         <span class="text-primary">{{ route.params.name }}</span>
       </div>
 
@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import RecordingItem from '../components/RecordingItem.vue';
 import { createClient } from '../services/api/v1/ClientFactory';
 import { DatabaseRecording } from '../services/api/v1/StreamSinkClient';
@@ -105,7 +105,7 @@ import {
 import { CancelTokenSource } from 'axios';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '../store';
-import { MessageType, socket } from '../utils/socket.ts';
+import { createSocket, MessageType, socket } from '../utils/socket.ts';
 import BusyOverlay from '../components/BusyOverlay.vue';
 
 // --------------------------------------------------------------------------------------
@@ -129,6 +129,12 @@ const channelId = (+route.params.id) as unknown as number;
 const client = createClient();
 let cancellationToken: CancelTokenSource | null = null;
 const showModal = ref(false);
+
+// --------------------------------------------------------------------------------------
+// Computes
+// --------------------------------------------------------------------------------------
+
+const areItemsSelected = computed(() => selectedRecordings.value.length > 0);
 
 // --------------------------------------------------------------------------------------
 // Methods
@@ -168,10 +174,7 @@ const selectRecording = (data: { checked: boolean, recording: RecordingResponse 
   if (data.checked) {
     selectedRecordings.value.push(data.recording);
   } else {
-    const i = selectedRecordings.value.findIndex(rec => rec.filename === data.recording.filename);
-    if (i !== -1) {
-      selectedRecordings.value.splice(i, 1);
-    }
+    selectedRecordings.value = selectedRecordings.value.filter(x => x.recordingId !== data.recording.recordingId);
   }
 };
 
@@ -201,7 +204,7 @@ const submit = () => {
   if (el.files && el.files!.length > 0) {
     uploadProgress.value = 0;
     showModal.value = true;
-    const [req, cancelToken] = api.channelUpload(channelId, el.files![0], pcent => uploadProgress.value = pcent);
+    const [ req, cancelToken ] = api.channelUpload(channelId, el.files![0], pcent => uploadProgress.value = pcent);
     req.then(res => {
       uploadProgress.value = 0;
       channel.value?.recordings?.unshift(res.data);
@@ -242,10 +245,14 @@ const bookmark = () => {
 // --------------------------------------------------------------------------------------
 
 onMounted(async () => {
+  const socket = createSocket();
+
   socket.on(MessageType.RecordingAdd, recording => {
     const r = recording as DatabaseRecording;
     console.log(r);
   });
+
+  socket.connect();
 
   window.scrollTo(0, 0);
 });

@@ -72,47 +72,47 @@ const api = createClient();
 const myChart = ref<HTMLCanvasElement | null>(null);
 
 onMounted(async () => {
-  const response = await api.metric.cpuList();
-
-  const ctx = myChart.value!.getContext("2d");
-
-  const chart = new Chart(ctx!, {
-    type: "line",
-    data: {
-      labels: [ response.data ].map(d => new Date(d.createdAt).toLocaleDateString("de-DE", {
-        hour: "numeric",
-        minute: "numeric",
-        day: "numeric",
-        month: "numeric",
-      })),
-      datasets: [
-        {
-          data: [ response.data ].filter(c => c.cpu === "cpu").map(d => (d.load * 100).toFixed(2)),
-          label: "Transmitted",
-          borderColor: "Green",
-          fill: false
-        },
-      ]
-    },
-    options: {
-      // title: {
-      //   display: true,
-      //   text: "CPU Load"
-      // },
-      scales: {
-        y: {
-          min: 0,
-          max: 100,
-        },
-        x: {
-          ticks: {
-            autoSkip: true,
-            maxTicksLimit: 20
-          }
-        }
-      }
-    }
-  });
+  // const response = await api.metric.cpuList();
+  //
+  // const ctx = myChart.value!.getContext("2d");
+  //
+  // const chart = new Chart(ctx!, {
+  //   type: "line",
+  //   data: {
+  //     labels: [ response.data ].map(d => new Date(d.createdAt).toLocaleDateString("de-DE", {
+  //       hour: "numeric",
+  //       minute: "numeric",
+  //       day: "numeric",
+  //       month: "numeric",
+  //     })),
+  //     datasets: [
+  //       {
+  //         data: [ response.data ].filter(c => c.cpu === "cpu").map(d => (d.load * 100).toFixed(2)),
+  //         label: "Transmitted",
+  //         borderColor: "Green",
+  //         fill: false
+  //       },
+  //     ]
+  //   },
+  //   options: {
+  //     // title: {
+  //     //   display: true,
+  //     //   text: "CPU Load"
+  //     // },
+  //     scales: {
+  //       y: {
+  //         min: 0,
+  //         max: 100,
+  //       },
+  //       x: {
+  //         ticks: {
+  //           autoSkip: true,
+  //           maxTicksLimit: 20
+  //         }
+  //       }
+  //     }
+  //   }
+  // });
 });
 </script>
 

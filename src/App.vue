@@ -1,7 +1,7 @@
 <template>
-  <NavTop :routes="routes" :title="title" @add="showModal=true"/>
+  <NavTop v-if="loggedIn" :routes="routes" :title="title" @add="showModal=true" :show-logout="loggedIn" @logout="logout"/>
 
-  <main class="container-fluid" style="padding-top: 4rem">
+  <main class="container-fluid" :data-logged-in="loggedIn">
     <RouterView v-slot="{ Component }">
       <template v-if="Component">
         <KeepAlive include="SteamView,ChannelsView,JobView">
@@ -32,37 +32,31 @@
         @save="save"
         @close="showModal=false"/>
 
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-      <div v-for="toast in toasts" class="toast border-dark" :class="{'show': toast.hide !== true}" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header bg-info-light">
-          <strong class="me-auto">{{ toast.title }}</strong>
-          <button type="button" class="btn-close" @click="() => store.commit('toast:hide', toast)" aria-label="Close"></button>
-        </div>
-        <div class="toast-body bg-secondary-subtle text-dark">
-          <div>
-            {{ toast.message }}
-          </div>
-          <div style="height: 3px;" :style="{'width': toast.countdown + '%'}" class="mt-2 bg-warning"></div>
-        </div>
-      </div>
-    </div>
+    <Toaster :toasts="toasts"/>
   </main>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref } from 'vue';
-import { DatabaseJob, V1ChannelRequest as ChannelRequest } from './services/api/v1/StreamSinkClient';
-import { socket, MessageType } from './utils/socket';
+import { computed, inject, onMounted, ref, watch } from 'vue';
+import { DatabaseJob, RequestsChannelRequest as ChannelRequest } from './services/api/v1/StreamSinkClient';
+import { createSocket, MessageType } from './utils/socket';
 import ChannelModal from './components/modals/ChannelModal.vue';
 import NavTop from './components/navs/NavTop.vue';
-import { createClient } from './services/api/v1/ClientFactory';
+import { createClient, MyClient } from './services/api/v1/ClientFactory';
 import { useI18n } from 'vue-i18n';
 import { TaskInfo, useStore } from './store';
+import router from "./route.ts";
+import Toaster from "./components/Toaster.vue";
+
+// --------------------------------------------------------------------------------------
+// Declarations
+// --------------------------------------------------------------------------------------
 
 const { t } = useI18n();
 const store = useStore();
 
-const api = createClient();
+let api: MyClient = null;
+const socket = createSocket();
 
 const title = inject('appName') as string;
 const showModal = ref(false);
@@ -78,6 +72,10 @@ const routes = [
   { icon: 'bi-eye-fill', url: '/admin', title: t('menu.admin') }
 ];
 
+// --------------------------------------------------------------------------------------
+// Methods
+// --------------------------------------------------------------------------------------
+
 const save = (data: ChannelRequest) => {
   api.channels.channelsCreate(data)
       .then(res => store.commit('addChannel', res.data))
@@ -85,7 +83,36 @@ const save = (data: ChannelRequest) => {
       .finally(() => showModal.value = false);
 };
 
+const logout = () => {
+  store.dispatch('logout');
+  router.push("/login", { force: true });
+};
+
+const connector = (loggedIn: boolean) => {
+  if (loggedIn) {
+    socket.connect();
+    api = createClient();
+    api.jobs.jobsDetail(0, 100).then(res => store.commit('jobs:update', res.data.jobs));
+  } else {
+    socket.close();
+  }
+};
+
+// --------------------------------------------------------------------------------------
+// Computes
+// --------------------------------------------------------------------------------------
+
+const loggedIn = computed(() => store.getters.isLoggedIn);
+
+watch(loggedIn, loggedIn => connector(loggedIn));
+
+// --------------------------------------------------------------------------------------
+// Hooks
+// --------------------------------------------------------------------------------------
+
 onMounted(async () => {
+  connector(loggedIn);
+
   socket.on(MessageType.JobStart, data => {
     const job = data as TaskInfo;
     store.commit('job:start', job);
@@ -123,9 +150,6 @@ onMounted(async () => {
     store.commit('channel:start', id);
     store.commit('toast:add', { title: 'Channel recording', message: `Channel id ${id}` });
   });
-
-  const jobs = await api.jobs.jobsDetail(0, 100);
-  store.commit('jobs:update', jobs.data.jobs);
 });
 
 </script>

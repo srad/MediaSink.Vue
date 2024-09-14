@@ -1,12 +1,14 @@
 import { InjectionKey } from 'vue';
 import { createStore, Store, useStore as baseUseStore } from 'vuex';
-import { DatabaseJob as JobData, DatabaseJob, DatabaseJobStatus, ServicesChannelInfo as ChannelInfo } from '../services/api/v1/StreamSinkClient';
+import { DatabaseJob as JobData, DatabaseJob, DatabaseJobStatus, RequestsAuthenticationRequest, ServicesChannelInfo as ChannelInfo } from '../services/api/v1/StreamSinkClient';
+import AuthService, { AuthHeader } from "../services/auth.service.ts";
 
 export interface State {
   channels: ChannelInfo[];
   jobs: JobData[];
   toasts: Toast[];
   loggedIn: boolean;
+  user: AuthState;
 }
 
 export interface TaskInfo {
@@ -33,7 +35,17 @@ export interface Toast {
   countdown: number;
 }
 
+interface AuthState {
+  status: {
+    loggedIn: boolean;
+  };
+  user: AuthHeader | null;
+}
+
 export const key: InjectionKey<Store<State>> = Symbol();
+
+// User initial state.
+const token = AuthService.getToken();
 
 //--------------------------------------------------------------------
 //                 !!! Mutations must be synchronous !!!
@@ -43,8 +55,9 @@ export const store = createStore<State>({
   state: {
     channels: [],
     jobs: [],
-    loggedIn: false,
-    toasts: []
+    loggedIn: token !== null,
+    toasts: [],
+    user: null //{ status: { loggedIn: user !== null }, user }
   },
   getters: {
     getToast(state: State): Toast[] {
@@ -58,11 +71,56 @@ export const store = createStore<State>({
     },
     nonOpenJobs(state: State): JobData[] {
       return state.jobs.filter(x => x.status !== DatabaseJobStatus.StatusOpen)
+    },
+    isLoggedIn(state: State): boolean {
+      return state.loggedIn;
     }
   },
+  actions: {
+    login({ commit }, user: RequestsAuthenticationRequest) {
+      return AuthService.login(user).then(res => {
+        commit('loginSuccess');
+        return Promise.resolve(res);
+      }).catch(error => {
+        commit('loginFailure');
+        return Promise.reject(error);
+      });
+    },
+    logout({ commit }) {
+      AuthService.logout();
+      commit('logout');
+    },
+    register({ commit }, user) {
+      return AuthService.signup(user).then(response => {
+        commit('registerSuccess');
+        return Promise.resolve(response.data);
+      }).catch(error => {
+        commit('registerFailure');
+        return Promise.reject(error);
+      });
+    },
+    error({ commit }, message: string) {
+      commit('toast:add', { title: 'Error', message: message });
+    },
+  },
   mutations: {
-    error(state: State, message: string) {
-      store.commit('toast:add', { title: 'Error', message: message });
+    loginSuccess(state) {
+      state.loggedIn = true;
+    },
+    loginFailure(state) {
+      state.loggedIn = false;
+    },
+    login(state) {
+      state.loggedIn = true;
+    },
+    logout(state) {
+      state.loggedIn = false;
+    },
+    registerSuccess(state) {
+      state.loggedIn = false;
+    },
+    registerFailure(state) {
+      state.loggedIn = false;
     },
     'job:done'(state: State, job: DatabaseJob) {
       const i = state.jobs.findIndex(j => j.jobId === job.jobId);
@@ -169,12 +227,6 @@ export const store = createStore<State>({
         state.channels[i].isRecording = true;
         state.channels[i].isOnline = true;
       }
-    },
-    login(state: State) {
-      state.loggedIn = true;
-    },
-    logout(state: State) {
-      state.loggedIn = true;
     },
     addChannel(state: State, channel: ChannelInfo) {
       if (!state.channels.some(c => c.channelId === channel.channelId)) {
