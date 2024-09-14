@@ -12,14 +12,16 @@ export interface AuthHeader {
 }
 
 export default class AuthService {
-  static login(user: RequestsAuthenticationRequest): string {
-    return client.auth.loginCreate(user).then(response => {
-      const r = response.data as unknown as AuthInfo;
-      if (r.token) {
-        localStorage.setItem('token', r.token);
-      }
+  static login(user: RequestsAuthenticationRequest) {
+    return new Promise<string>((resolve, reject) => {
+      client.auth.loginCreate(user).then(response => {
+        const r = response.data as unknown as AuthInfo;
+        if (r.token) {
+          localStorage.setItem('token', r.token);
+        }
 
-      return r.token;
+        return resolve(r.token);
+      });
     });
   }
 

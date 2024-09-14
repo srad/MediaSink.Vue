@@ -105,7 +105,7 @@ import {
 import { CancelTokenSource } from 'axios';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '../store';
-import { createSocket, MessageType, socket } from '../utils/socket.ts';
+import { createSocket, MessageType } from '../utils/socket.ts';
 import BusyOverlay from '../components/BusyOverlay.vue';
 
 // --------------------------------------------------------------------------------------

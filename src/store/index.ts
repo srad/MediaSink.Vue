@@ -8,7 +8,6 @@ export interface State {
   jobs: JobData[];
   toasts: Toast[];
   loggedIn: boolean;
-  user: AuthState;
 }
 
 export interface TaskInfo {
@@ -57,7 +56,6 @@ export const store = createStore<State>({
     jobs: [],
     loggedIn: token !== null,
     toasts: [],
-    user: null //{ status: { loggedIn: user !== null }, user }
   },
   getters: {
     getToast(state: State): Toast[] {
@@ -78,10 +76,10 @@ export const store = createStore<State>({
   },
   actions: {
     login({ commit }, user: RequestsAuthenticationRequest) {
-      return AuthService.login(user).then(res => {
+      return AuthService.login(user).then(token => {
         commit('loginSuccess');
-        return Promise.resolve(res);
-      }).catch(error => {
+        return Promise.resolve(token);
+      }).catch((error: any) => {
         commit('loginFailure');
         return Promise.reject(error);
       });

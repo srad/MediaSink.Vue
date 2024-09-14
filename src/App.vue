@@ -55,7 +55,7 @@ import Toaster from "./components/Toaster.vue";
 const { t } = useI18n();
 const store = useStore();
 
-let api: MyClient = null;
+let api: MyClient | null = null;
 const socket = createSocket();
 
 const title = inject('appName') as string;
@@ -77,7 +77,7 @@ const routes = [
 // --------------------------------------------------------------------------------------
 
 const save = (data: ChannelRequest) => {
-  api.channels.channelsCreate(data)
+  api?.channels.channelsCreate(data)
       .then(res => store.commit('addChannel', res.data))
       .catch(res => alert(res.error))
       .finally(() => showModal.value = false);
@@ -85,7 +85,7 @@ const save = (data: ChannelRequest) => {
 
 const logout = () => {
   store.dispatch('logout');
-  router.push("/login", { force: true });
+  router.push("/login");
 };
 
 const connector = (loggedIn: boolean) => {
@@ -111,7 +111,7 @@ watch(loggedIn, loggedIn => connector(loggedIn));
 // --------------------------------------------------------------------------------------
 
 onMounted(async () => {
-  connector(loggedIn);
+  connector(loggedIn.value);
 
   socket.on(MessageType.JobStart, data => {
     const job = data as TaskInfo;

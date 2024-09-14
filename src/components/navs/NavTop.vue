@@ -32,7 +32,7 @@
           <div class="offcanvas-body">
             <ul class="navbar-nav justify-content-end flex-grow-1">
               <li class="nav-item" style="cursor: pointer" v-for="link in props.routes" :key="link.url" @click="() => {showNav=false; router.push(link.url);}">
-                <a :class="{active: router.path === link.url}" @click="navigate" class="nav-link">
+                <a :class="{active: route.path === link.url}" @click="collapseNav=true" class="nav-link">
                   <span data-bs-dismiss="offcanvas" data-bs-target="#collapsibleNavbar">{{ link.title }}</span>
                 </a>
               </li>
@@ -131,14 +131,14 @@ const query = () => new Promise((resolve, reject) => {
         diskInfo.pcent = diskRes.data.pcent!;
         diskInfo.size = diskRes.data.sizeFormattedGb!;
         diskInfo.used = diskRes.data.usedFormattedGb!;
-        resolve();
+        resolve(null);
       })
       .catch(error => {
         reject(error);
       });
 });
 
-const record = async (resume: boolean) => {
+const record = async () => {
   try {
     if (isRecording.value) {
       await api.recorder.pauseCreate();
@@ -155,7 +155,7 @@ const record = async (resume: boolean) => {
   }
 };
 
-let thread: number | undefined = undefined;
+let thread: undefined | ReturnType<typeof setInterval> = undefined;
 
 const connector = (loggedIn: boolean) => {
   query().then(() => {

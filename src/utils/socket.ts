@@ -1,7 +1,7 @@
 import AuthService from "../services/auth.service.ts";
 
 class SocketManager {
-  static connection?: WebSocket = null;
+  static connection?: WebSocket = undefined;
   listeners: { [key: string]: ((data: Object) => void)[] } = {};
 
   connect() {
@@ -32,9 +32,9 @@ class SocketManager {
 
   close() {
     SocketManager.connection?.close();
-    this.listeners = [];
+    this.listeners = {};
 
-    SocketManager.connection = null;
+    SocketManager.connection = undefined;
   }
 
   on(event: string, fn: (data: Object) => void) {

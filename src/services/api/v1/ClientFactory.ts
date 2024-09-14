@@ -16,7 +16,7 @@ const getHeader = () => {
 };
 
 export class MyClient extends StreamSinkClient<any> {
-  constructor(header: AuthHeader | null = null) {
+  constructor(header: HeadersInit | undefined = undefined) {
     const client = new HttpClient({
       baseApiParams: { headers: header || {} },
       baseUrl: apiUrl,
@@ -49,12 +49,14 @@ export class MyClient extends StreamSinkClient<any> {
    */
   async isRecording(): Promise<boolean> {
     const header = getHeader();
-    const res = await axios.get<ResponsesRecordingStatusResponse>(`${apiUrl}/recorder`, {headers: header});
+    const res = await axios.get<ResponsesRecordingStatusResponse>(`${apiUrl}/recorder`, { headers: header });
     return res.data.isRecording;
   }
 }
 
 export const createClient = (): MyClient => {
   const header = getHeader();
-  return new MyClient(header);
+  const init: HeadersInit = header.Authorization ? [ 'Authorization', header.Authorization ] : undefined;
+
+  return new MyClient(init);
 }
