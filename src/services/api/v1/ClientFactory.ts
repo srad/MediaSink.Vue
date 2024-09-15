@@ -1,7 +1,6 @@
 import { StreamSinkClient, DatabaseRecording as RecordingResponse, ResponsesRecordingStatusResponse, HttpClient } from './StreamSinkClient';
 import axios, { AxiosResponse } from 'axios';
 import { CancelTokenSource } from 'axios';
-import { AuthHeader } from "../../auth.service.ts";
 
 const apiUrl = window.VUE_APP_APIURL;
 
@@ -30,17 +29,17 @@ export class MyClient extends StreamSinkClient<any> {
    * @param file File object to upload
    * @param progress Returns the progress as number in range [0.0 ... 1.0]
    */
-  channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [ Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource ] {
+  channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource] {
     const header = getHeader();
     const source = axios.CancelToken.source();
     const formData = new FormData();
     formData.append('file', file);
 
-    return [ axios.post(`${apiUrl}/channels/${channelId}/upload`, formData, {
+    return [axios.post(`${apiUrl}/channels/${channelId}/upload`, formData, {
       cancelToken: source.token,
       headers: { 'Content-Type': 'multipart/form-data', ...header },
       onUploadProgress: progressEvent => progressEvent.total ? progress(progressEvent.loaded / progressEvent.total) : 0
-    }), source ];
+    }), source];
   }
 
   /**
@@ -49,14 +48,14 @@ export class MyClient extends StreamSinkClient<any> {
    */
   async isRecording(): Promise<boolean> {
     const header = getHeader();
-    const res = await axios.get<ResponsesRecordingStatusResponse>(`${apiUrl}/recorder`, { headers: header });
+    const res = await axios.get<ResponsesRecordingStatusResponse>(`${apiUrl}/recorder`, { headers: header || {} });
     return res.data.isRecording;
   }
 }
 
 export const createClient = (): MyClient => {
   const header = getHeader();
-  const init: HeadersInit = header.Authorization ? [ 'Authorization', header.Authorization ] : undefined;
+  const init: HeadersInit | undefined = header ? [['Authorization', header.Authorization]] : undefined;
 
   return new MyClient(init);
-}
+};
