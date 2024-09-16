@@ -144,6 +144,7 @@ import { useStore } from "../store";
 import { useI18n } from 'vue-i18n'
 import ModalConfirmDialog from "../components/modals/ModalConfirmDialog.vue";
 import MarkingsTable from "../components/MarkingsTable.vue";
+import { ToastMutation } from '../store/modules/toast.ts';
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -332,7 +333,7 @@ const destroy = () => {
 
   api.recordings.recordingsDelete(id.value!)
       .then(() => {
-        store.commit('toast:add', { title: 'Video deleted', message: recording.value?.filename });
+        store.commit(ToastMutation.Add, { title: 'Video deleted', message: recording.value?.filename });
         router.back();
       })
       .catch((err) => store.commit('error', err))

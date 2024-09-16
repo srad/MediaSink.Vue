@@ -127,6 +127,7 @@ import ChannelItem from '../components/ChannelItem.vue';
 import ChannelModal, { ChannelUpdate } from '../components/modals/ChannelModal.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '../store';
+import { ChannelMutation } from '../store/modules/channel.ts';
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -154,7 +155,7 @@ const store = useStore();
 const router = useRouter();
 
 const res = await api.channels.channelsList();
-res.data.forEach(channel => store.commit('addChannel', channel));
+res.data.forEach(channel => store.commit(ChannelMutation.Add, channel));
 
 // --------------------------------------------------------------------------------------
 // Watchers
@@ -184,24 +185,24 @@ const searchTerms = computed(() => search.value.split(' ').filter(s => s[0] !== 
 
 const tagTerms = computed(() => search.value.split(' ').filter(s => s[0] === '#').map(s => s.slice(1, s.length)).join(' '));
 
-const notRecordingStreams = computed(() => store.state.channels.slice()
+const notRecordingStreams = computed(() => store.state.channel.channels.slice()
     .filter(row => !row.isRecording && !row.isPaused)
     .sort(sort));
 
-const disabledStreams = computed(() => store.state.channels.slice()
+const disabledStreams = computed(() => store.state.channel.channels.slice()
     .filter(row => row.isPaused)
     .sort(sort));
 
-const recordingStreams = computed(() => store.state.channels.slice()
+const recordingStreams = computed(() => store.state.channel.channels.slice()
     .filter(row => row.isRecording && !row.isTerminating)
     .sort(sort));
 
-const favStreams = computed(() => store.state.channels.slice()
+const favStreams = computed(() => store.state.channel.channels.slice()
     .filter(row => row.fav)
     .filter(row => favs.value ? row.fav : true)
     .sort(sort));
 
-const searchResults = computed(() => store.state.channels.slice()
+const searchResults = computed(() => store.state.channel.channels.slice()
     .filter(channel => searchFilter(channel, searchTerms.value, tagTerms.value))
     .filter(channel => favs.value ? channel.fav : true) // Only use, if defined.
     .sort(sort));
@@ -216,7 +217,7 @@ const searchFilter = (channel: ChannelResponse, search: string, tag: string): bo
       ((tag && tag.length > 0 && channel.tags) ? channel.tags.some(t => t === tag) : true);
 
   return matches;
-}
+};
 
 const sort = (a: ChannelResponse, b: ChannelResponse) => a.channelName!.localeCompare(b.channelName!);
 

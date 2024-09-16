@@ -40,14 +40,14 @@
                 <DiskStatus :pcent="diskInfo.pcent"/>
               </li>
               <li class="nav-item d-none d-lg-block">
-                <RecordingControls :jobs="jobs" :recording="isRecording" @add="emit('add')" @record="showConfirmRecording=true" :show-logout="showLogout" @logout="emit('logout')"/>
+                <RecordingControls :jobs="jobs" :total-count="jobsCount" :recording="isRecording" @add="emit('add')" @record="showConfirmRecording=true" :show-logout="showLogout" @logout="emit('logout')"/>
               </li>
             </ul>
           </div>
         </div>
 
         <div class="d-lg-none">
-          <RecordingControls :jobs="jobs" :recording="isRecording" @add="emit('add')" @record="showConfirmRecording=true" :show-logout="showLogout" @logout="emit('logout')"/>
+          <RecordingControls :jobs="jobs" :total-count="jobsCount" :recording="isRecording" @add="emit('add')" @record="showConfirmRecording=true" :show-logout="showLogout" @logout="emit('logout')"/>
         </div>
 
         <button class="navbar-toggler d-l-none" type="button" @click="showNav = !showNav">
@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, watch, defineEmits, computed, ref, reactive, onMounted } from 'vue';
+import { computed, defineEmits, defineProps, onMounted, reactive, ref, watch } from 'vue';
 import { createClient } from '../../services/api/v1/ClientFactory';
 import DiskStatus from '../DiskStatus.vue';
 import RecordingControls from '../RecordingControls.vue';
@@ -67,7 +67,7 @@ import AppBrand from '../AppBrand.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '../../store';
 import { createSocket, MessageType } from '../../utils/socket.ts';
-import ModalConfirmDialog from "../modals/ModalConfirmDialog.vue";
+import ModalConfirmDialog from '../modals/ModalConfirmDialog.vue';
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -116,14 +116,15 @@ watch(route, () => collapseNav.value = true);
 // Computes
 // --------------------------------------------------------------------------------------
 
-const jobs = computed(() => store.getters.openJobs);
+const jobs = computed(() => store.getters['job/getOpen']);
+const jobsCount = computed(() => store.state.job.jobsCount);
 
 // --------------------------------------------------------------------------------------
 // Methods
 // --------------------------------------------------------------------------------------
 
 const query = () => new Promise((resolve, reject) => {
-  Promise.all([ api.isRecording(), api.info.diskList() ])
+  Promise.all([api.isRecording(), api.info.diskList()])
       .then(res => {
         isRecording.value = res[0];
         const diskRes = res[1];
@@ -157,11 +158,10 @@ const record = async () => {
 
 let thread: undefined | ReturnType<typeof setInterval> = undefined;
 
-const connector = (loggedIn: boolean) => {
+const connector = () => {
   query().then(() => {
     // The catch stops the polling when the query is rejected because of 401 unauthorized.
     thread = setInterval(() => query().catch(() => clearInterval(thread)), 1000 * 10);
-    api.jobs.jobsDetail(0, 100).then(res => store.commit('jobs:update', res.data.jobs));
   }).catch(err => {
     clearInterval(thread);
   });
@@ -183,6 +183,6 @@ onMounted(async () => {
   });
 
   socket.connect();
-  connector(store.getters.isLoggedIn);
+  connector();
 });
 </script>

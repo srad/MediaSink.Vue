@@ -107,6 +107,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '../store';
 import { createSocket, MessageType } from '../utils/socket.ts';
 import BusyOverlay from '../components/BusyOverlay.vue';
+import { ToastMutation } from '../store/modules/toast.ts';
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -144,7 +145,7 @@ const pauseChannel = (element: HTMLInputElement): void => {
   const fn = element.checked ? client.channels.resumeCreate : client.channels.pauseCreate;
   fn(channel.value!.channelId).then(() => {
     store.commit(element.checked ? 'channel:resume' : 'channel:pause', channel.value?.channelId);
-    store.commit('toast:add', {
+    store.commit(ToastMutation.Add, {
       title: element.checked ? 'Channel resume' : 'Channel pause',
       message: `Channel ${channel.value?.displayName}`
     });
@@ -186,7 +187,7 @@ const deleteChannel = () => {
         .catch(err => alert(err))
         .finally(() => {
           busyOverlay.value = false;
-          store.commit('toast:add', { title: 'Channel deleted', message: `Channel ${channel.value?.displayName}` });
+          store.commit(ToastMutation.Add, { title: 'Channel deleted', message: `Channel ${channel.value?.displayName}` });
           router.replace('/');
         });
   }
@@ -224,7 +225,7 @@ const destroyRecording = (recording: RecordingResponse) => {
   if (channel.value?.recordings) {
     for (let i = 0; i < channel.value?.recordings?.length; i += 1) {
       if (channel.value?.recordings && channel.value?.recordings[i].recordingId === recording.recordingId) {
-        store.commit('toast:add', { title: 'Video deleted', message: channel.value?.recordings[i].filename });
+        store.commit(ToastMutation.Add, { title: 'Video deleted', message: channel.value?.recordings[i].filename });
         channel.value?.recordings?.splice(i, 1);
         break;
       }

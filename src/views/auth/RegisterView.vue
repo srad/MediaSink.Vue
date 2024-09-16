@@ -38,6 +38,7 @@
 import { useRouter } from "vue-router";
 import { useStore } from "../../store";
 import { ref } from "vue";
+import { AuthAction } from '../../store/modules/auth.ts';
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -61,7 +62,7 @@ const register = () => {
   successful.value = false;
   loading.value = true;
 
-  store.dispatch("register", { username: email.value, password: password.value }).then(data => {
+  store.dispatch(AuthAction.Register, { username: email.value, password: password.value }).then(data => {
     message.value = data.message;
     successful.value = true;
     loading.value = false;

@@ -32,10 +32,11 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
-import { useStore } from "../../store";
-import { ref } from "vue";
-import { RequestsAuthenticationRequest } from "../../services/api/v1/StreamSinkClient.ts";
+import { useRouter } from 'vue-router';
+import { useStore } from '../../store';
+import { ref } from 'vue';
+import { RequestsAuthenticationRequest } from '../../services/api/v1/StreamSinkClient.ts';
+import { AuthAction } from '../../store/modules/auth.ts';
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -47,8 +48,8 @@ const router = useRouter();
 const message = ref<string | null>(null);
 const loading = ref(false);
 
-const email = ref("");
-const password = ref("");
+const email = ref('');
+const password = ref('');
 
 // --------------------------------------------------------------------------------------
 // Methods
@@ -59,8 +60,8 @@ const login = () => {
 
   const data: RequestsAuthenticationRequest = { username: email.value, password: password.value };
 
-  store.dispatch("login", data).then(() => {
-    router.replace("/");
+  store.dispatch(AuthAction.Login, data).then(() => {
+    router.replace('/');
   }).catch(response => {
     loading.value = false;
     message.value = response.error;

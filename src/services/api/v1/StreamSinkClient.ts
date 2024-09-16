@@ -47,10 +47,14 @@ export interface DatabaseJob {
   /** Default values only not to break migrations. */
   task: DatabaseJobTask;
 }
+export enum DatabaseJobOrder {
+  JobOrderASC = "ASC",
+  JobOrderDESC = "DESC",
+}
 export enum DatabaseJobStatus {
   StatusJobCompleted = "completed",
-  StatusOpen = "open",
-  StatusError = "error",
+  StatusJobOpen = "open",
+  StatusJobError = "error",
   StatusJobCanceled = "canceled",
 }
 export enum DatabaseJobTask {
@@ -126,16 +130,22 @@ export interface RequestsCutRequest {
   ends: string[];
   starts: string[];
 }
+export interface RequestsJobsRequest {
+  skip?: number;
+  sortOrder: DatabaseJobOrder;
+  states: DatabaseJobStatus[];
+  take?: number;
+}
 export interface ResponsesImportInfoResponse {
   isImporting?: boolean;
   progress?: number;
   size?: number;
 }
-export interface ResponsesJobResponse {
+export interface ResponsesJobsResponse {
   jobs?: DatabaseJob[];
-  skip?: number;
-  take?: number;
-  totalCount?: number;
+  skip: number;
+  take: number;
+  totalCount: number;
 }
 export interface ResponsesRecordingStatusResponse {
   isRecording: boolean;
@@ -722,6 +732,24 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
   };
   jobs = {
     /**
+     * @description Allow paging through jobs by providing skip, take, statuses, and sort order.
+     *
+     * @tags jobs
+     * @name ListCreate
+     * @summary Jobs pagination
+     * @request POST:/jobs/list
+     */
+    listCreate: (JobsRequest: RequestsJobsRequest, params: RequestParams = {}) =>
+      this.http.request<ResponsesJobsResponse, any>({
+        path: `/jobs/list`,
+        method: "POST",
+        body: JobsRequest,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Interrupt job gracefully
      *
      * @tags jobs
@@ -766,23 +794,6 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
       this.http.request<any, string>({
         path: `/jobs/${id}`,
         method: "DELETE",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Return a list of jobs
-     *
-     * @tags jobs
-     * @name JobsDetail
-     * @summary Return a list of jobs
-     * @request GET:/jobs/{skip}/{take}
-     */
-    jobsDetail: (skip: number, take: number, params: RequestParams = {}) =>
-      this.http.request<ResponsesJobResponse, any>({
-        path: `/jobs/${skip}/${take}`,
-        method: "GET",
         type: ContentType.Json,
         format: "json",
         ...params,

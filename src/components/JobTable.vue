@@ -3,6 +3,7 @@
     <table class="table table-sm bg-white table-bordered">
       <thead class="bg-light">
       <tr>
+        <th class="bg-light p-2" style="width: 5%">#</th>
         <th class="bg-light p-2" style="width: 5%">{{ t('jobTable.col.pid') }}</th>
         <th class="bg-light p-2" style="width: 10%">{{ t('jobTable.col.channel') }}</th>
         <th class="bg-light p-2 align-bottom" style="width: 10%">{{ t('jobTable.col.file') }}</th>
@@ -19,6 +20,9 @@
       </thead>
       <tbody>
       <tr class="align-top" :key="i" v-for="(job, i) in props.jobs" :class="{'table-success': job.active}">
+        <td class="text-end p-2">
+          {{ i + 1 }}
+        </td>
         <td class="text-end p-2">
           <div v-if="job.active" style="width: 1rem; height: 1rem" class="spinner-border text-success" role="status">
             <span class="visually-hidden">{{ t('jobTable.loading') }}</span>
@@ -40,8 +44,8 @@
           <span class="text-capitalize">{{ job.task }}</span>
         </td>
         <td class="p-1">
-          <span class="text-capitalize badge p-2" :class="{'bg-primary': job.status===DatabaseJobStatus.StatusOpen, 'bg-primary blink': job.active, 'bg-success': job.status===DatabaseJobStatus.StatusJobCompleted, 'bg-warning': job.status===DatabaseJobStatus.StatusJobCanceled, 'bg-danger' : job.status===DatabaseJobStatus.StatusError}">
-            <span v-if="job.status===DatabaseJobStatus.StatusOpen && job.active">Working</span>
+          <span class="text-capitalize badge p-2" :class="{'bg-primary': job.status===DatabaseJobStatus.StatusJobOpen, 'bg-danger blink': job.active, 'bg-success': job.status===DatabaseJobStatus.StatusJobCompleted, 'bg-warning': job.status===DatabaseJobStatus.StatusJobCanceled, 'bg-danger' : job.status===DatabaseJobStatus.StatusJobError}">
+            <span v-if="job.status===DatabaseJobStatus.StatusJobOpen && job.active">Working</span>
             <span v-else>{{ job.status }}</span>
           </span>
         </td>
@@ -78,9 +82,9 @@
 
 <script setup lang="ts">
 import { defineEmits, defineProps } from 'vue';
-import { JobTableItem } from "../views/JobView.vue";
-import { useI18n } from 'vue-i18n'
-import { DatabaseJobStatus } from "../services/api/v1/StreamSinkClient.ts";
+import { JobTableItem } from '../views/JobView.vue';
+import { useI18n } from 'vue-i18n';
+import { DatabaseJobStatus } from '../services/api/v1/StreamSinkClient.ts';
 
 const { t } = useI18n();
 
@@ -91,6 +95,7 @@ const emit = defineEmits<{
 
 const props = defineProps<{
   jobs: JobTableItem[];
+  totalCount: number;
 }>();
 </script>
 

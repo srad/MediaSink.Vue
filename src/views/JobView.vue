@@ -24,8 +24,13 @@
 
     <ul class="nav nav-tabs my-2" id="pills-tab" role="tablist">
       <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="pills-open-tab" data-bs-toggle="pill" data-bs-target="#pills-open" type="button" role="tab" aria-controls="pills-open" aria-selected="false">
+        <button class="nav-link active" id="pills-open-tab" data-bs-toggle="pill" data-bs-target="#pills-open" type="button" role="tab" aria-controls="pills-open" aria-selected="true">
           {{ t('general.jobs') }} (open)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="pills-completed-tab" data-bs-toggle="pill" data-bs-target="#pills-completed" type="button" role="tab" aria-controls="pills-completed" aria-selected="false">
+          {{ t('general.jobs') }} (completed)
         </button>
       </li>
       <li class="nav-item" role="presentation">
@@ -41,12 +46,17 @@
     </ul>
     <div class="tab-content" id="pills-tabContent">
       <div class="tab-pane fade show active" id="pills-open" role="tabpanel" aria-labelledby="pills-open-tab">
-        <JobTable :jobs="openJobs" @destroy="destroy"/>
+        <JobTable :jobs="itemsOpen" @destroy="destroy" :total-count="itemsCount"/>
+      </div>
+
+      <div class="tab-pane fade" id="pills-completed" role="tabpanel" aria-labelledby="pills-completed-tab">
+        <JobTable :jobs="itemsCompleted" @destroy="destroy" :total-count="itemsCompletedCount"/>
       </div>
 
       <div class="tab-pane fade" id="pills-other" role="tabpanel" aria-labelledby="pills-other-tab">
-        <JobTable :jobs="otherJobs" @destroy="destroy"/>
+        <JobTable :jobs="itemsOther" @destroy="destroy" :total-count="itemsCompletedCount"/>
       </div>
+
       <div class="tab-pane fade" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
 
       </div>
@@ -88,15 +98,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
 import JobTable from '../components/JobTable.vue';
-import { DatabaseJob, ServicesProcessInfo as ProcessInfo } from '../services/api/v1/StreamSinkClient';
-import { fromNow } from "../utils/datetime.ts";
-import { useStore } from "../store";
+import { DatabaseJob, DatabaseJobOrder, DatabaseJobStatus, ResponsesJobsResponse, ServicesProcessInfo as ProcessInfo } from '../services/api/v1/StreamSinkClient';
+import { fromNow } from '../utils/datetime.ts';
 import { Tab } from 'bootstrap';
-import { useI18n } from 'vue-i18n'
-import { onBeforeRouteUpdate } from "vue-router";
+import { useI18n } from 'vue-i18n';
+import { useStore } from '../store';
+import { JobMutation } from '../store/modules/job.ts';
 
 const { t } = useI18n();
 
@@ -123,32 +133,56 @@ const resetFilters = () => {
   take.value = 50;
 };
 
+const jobsCompleted = ref<ResponsesJobsResponse | null>(null);
+const jobsOther = ref<ResponsesJobsResponse | null>(null);
+
 const getData = async () => {
-  const res = await Promise.all([ api.jobs.jobsDetail(skip.value, take.value), api.processes.processesList() ]);
-  if (res[0].data.jobs) {
-    store.commit('jobs:refresh', res[0].data.jobs.sort((a: DatabaseJob, b: DatabaseJob) => a.jobId - b.jobId));
-  }
-  processes.value = res[1].data || [];
+  const promise = Promise.all([
+    api.jobs.listCreate({ skip: skip.value, take: take.value, states: [DatabaseJobStatus.StatusJobOpen], sortOrder: DatabaseJobOrder.JobOrderASC }),
+    api.jobs.listCreate({ skip: skip.value, take: take.value, states: [DatabaseJobStatus.StatusJobCompleted], sortOrder: DatabaseJobOrder.JobOrderDESC }),
+    api.jobs.listCreate({ skip: skip.value, take: take.value, states: [DatabaseJobStatus.StatusJobCanceled, DatabaseJobStatus.StatusJobCanceled, DatabaseJobStatus.StatusJobError], sortOrder: DatabaseJobOrder.JobOrderDESC }),
+    api.processes.processesList()
+  ]);
+
+  promise.then(res => {
+    const open = res[0];
+    const completed = res[1];
+    const others = res[2];
+    const process = res[3];
+
+    if (open.data.jobs) {
+      store.commit(JobMutation.Refresh, { jobs: open.data.jobs, totalCount: open.data.totalCount });
+    }
+
+    if (completed.data.jobs) {
+      jobsCompleted.value = completed.data;
+    }
+
+    if (others.data.jobs) {
+      jobsOther.value = others.data;
+    }
+
+    processes.value = process.data || [];
+  });
 };
 
-const openJobs = computed(() => {
-  return store.getters.openJobs.map((job: DatabaseJob) => {
-    const newJob: JobTableItem = { ...job };
-    newJob.fromNow = fromNow(Date.parse(newJob.createdAt));
-    return newJob;
-  });
-});
+const addFromNowToJob = (job: DatabaseJob): JobTableItem => {
+  const newJob: JobTableItem = { ...job };
+  newJob.fromNow = fromNow(Date.parse(newJob.createdAt));
+  return newJob;
+};
 
-const otherJobs = computed(() => {
-  return store.getters.nonOpenJobs.map((job: DatabaseJob) => {
-    const newJob: JobTableItem = { ...job };
-    newJob.fromNow = fromNow(Date.parse(newJob.createdAt));
-    return newJob;
-  });
-});
+const itemsOpen = computed(() => (store.state.job.jobs || []).map(addFromNowToJob));
+const itemsCount = computed(() => store.state.job.jobsCount);
+
+const itemsCompleted = computed(() => (jobsCompleted.value?.jobs || []).map(addFromNowToJob));
+const itemsCompletedCount = computed(() => jobsCompleted.value?.totalCount || 0);
+
+const itemsOther = computed(() => (jobsOther.value?.jobs || []).map(addFromNowToJob));
+const itemsOtherCount = computed(() => jobsOther.value?.totalCount || 0);
 
 const destroy = (id: number) => {
-  if (window.confirm("Delete?")) {
+  if (window.confirm('Delete?')) {
     api.jobs.jobsDelete(id)
         .then(() => store.commit('destroyJob', id))
         .catch(res => alert(res));
@@ -157,17 +191,16 @@ const destroy = (id: number) => {
 
 onMounted(() => {
   // Bootstrap tab events
-  const triggerTabList = document.querySelectorAll('#pills-tab button')
+  const triggerTabList = document.querySelectorAll('#pills-tab button');
   triggerTabList.forEach(triggerEl => {
     const tabTrigger = new Tab(triggerEl);
 
     triggerEl.addEventListener('click', event => {
       event.preventDefault();
       tabTrigger.show();
-    })
+    });
   });
+
+  getData();
 });
 </script>
-
-<style scoped>
-</style>
