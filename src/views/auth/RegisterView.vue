@@ -1,14 +1,12 @@
 <template>
   <div class="d-flex align-items-center justify-content-center vh-100">
-    <div class="card shadow-sm border border-primary">
+    <div class="card shadow-sm border border-primary" style="width: 400px">
       <h5 class="card-header p-3 bg-primary text-white">Register</h5>
       <div class="card-body px-4 py-3">
         <form @submit.prevent="register">
           <div class="row mb-3" v-if="message!==null">
-            <div class="col">
-              <div class="alert alert-danger">
+              <div class="alert alert-danger px-3 py-2">
                 {{ message }}
-              </div>
             </div>
           </div>
           <div class="mb-3 row">
@@ -67,9 +65,9 @@ const register = () => {
     successful.value = true;
     loading.value = false;
     router.push('/login')
-  }).catch(response => {
+  }).catch(error => {
     loading.value = false;
-    message.value = JSON.stringify(response);
+    message.value = error.response.data;
     successful.value = false;
   });
 };

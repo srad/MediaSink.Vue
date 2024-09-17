@@ -68,6 +68,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '../../store';
 import { createSocket, MessageType } from '../../utils/socket.ts';
 import ModalConfirmDialog from '../modals/ModalConfirmDialog.vue';
+import { ChannelMutation } from "../../store/modules/channel.ts";
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -143,7 +144,7 @@ const record = async () => {
   try {
     if (isRecording.value) {
       await api.recorder.pauseCreate();
-      store.commit('stopChannels');
+      store.commit(ChannelMutation.Stop);
       isRecording.value = false;
     } else {
       await api.recorder.resumeCreate();

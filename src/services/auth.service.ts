@@ -21,7 +21,7 @@ export default class AuthService {
         }
 
         return resolve(r.token);
-      });
+      }).catch(reject);
     });
   }
 

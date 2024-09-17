@@ -224,7 +224,7 @@ const sort = (a: ChannelResponse, b: ChannelResponse) => a.channelName!.localeCo
 const save = async (data: ChannelUpdate) => {
   try {
     const res = await api.channels.channelsPartialUpdate(data.channelId, data);
-    store.commit('updateChannel', res.data);
+    store.commit(ChannelMutation.Update, res.data);
     showModal.value = false;
   } catch (e) {
     alert(e);

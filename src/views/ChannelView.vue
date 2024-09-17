@@ -108,6 +108,7 @@ import { useStore } from '../store';
 import { createSocket, MessageType } from '../utils/socket.ts';
 import BusyOverlay from '../components/BusyOverlay.vue';
 import { ToastMutation } from '../store/modules/toast.ts';
+import { ChannelMutation } from "../store/modules/channel.ts";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -144,7 +145,7 @@ const areItemsSelected = computed(() => selectedRecordings.value.length > 0);
 const pauseChannel = (element: HTMLInputElement): void => {
   const fn = element.checked ? client.channels.resumeCreate : client.channels.pauseCreate;
   fn(channel.value!.channelId).then(() => {
-    store.commit(element.checked ? 'channel:resume' : 'channel:pause', channel.value?.channelId);
+    store.commit(element.checked ? ChannelMutation.Resume : ChannelMutation.Pause, channel.value?.channelId);
     store.commit(ToastMutation.Add, {
       title: element.checked ? 'Channel resume' : 'Channel pause',
       message: `Channel ${channel.value?.displayName}`
@@ -183,7 +184,7 @@ const deleteChannel = () => {
   if (window.confirm(`Delete channel "${channelId}"?`)) {
     busyOverlay.value = true;
     api.channels.channelsDelete(channelId)
-        .then(() => store.commit('destroyChannel', channelId))
+        .then(() => store.commit(ChannelMutation.Destroy, channelId))
         .catch(err => alert(err))
         .finally(() => {
           busyOverlay.value = false;

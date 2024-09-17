@@ -31,6 +31,7 @@ import { createClient } from '../services/api/v1/ClientFactory';
 import { useI18n } from "vue-i18n";
 import { useRouter } from 'vue-router'
 import { useStore } from "../store";
+import { ChannelMutation } from "../store/modules/channel.ts";
 
 // --------------------------------------------------------------------------------------
 // Emits
@@ -68,12 +69,12 @@ const previewVideo = computed(() => fileUrl + '/' + props.channel.preview + '?' 
 
 const fav = async (channel: ChannelInfo) => {
   await api.channels.favPartialUpdate(channel.channelId!);
-  store.commit('fav', channel.channelId);
+  store.commit(ChannelMutation.Fav, channel.channelId);
 };
 
 const unfav = async (channel: ChannelInfo) => {
   await api.channels.unfavPartialUpdate(channel.channelId!);
-  store.commit('unfav', channel.channelId);
+  store.commit(ChannelMutation.Unfav, channel.channelId);
 };
 
 const destroyChannel = async (channel: ChannelInfo) => {
@@ -83,7 +84,7 @@ const destroyChannel = async (channel: ChannelInfo) => {
       await api.channels.channelsDelete(channel.channelId!);
       destroyed.value = true;
       setTimeout(() => {
-        store.commit('destroyChannel', channel.channelId);
+        store.commit(ChannelMutation.Destroy, channel.channelId);
       }, 1000);
     } catch (ex) {
       alert(ex);
@@ -100,7 +101,7 @@ const pause = async (channel: ChannelInfo) => {
     await method(channel.channelId!);
 
     // Invert current paused mode.
-    store.commit(channel.isPaused ? 'channel:resume' : 'channel:pause', channel.channelId);
+    store.commit(channel.isPaused ? ChannelMutation.Resume : ChannelMutation.Pause, channel.channelId);
   } catch (err) {
     console.log(err);
   } finally {

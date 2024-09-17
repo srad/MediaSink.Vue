@@ -1,7 +1,7 @@
 import { StreamSinkClient, DatabaseRecording as RecordingResponse, ResponsesRecordingStatusResponse, HttpClient } from './StreamSinkClient';
 import axios, { AxiosResponse } from 'axios';
 import { CancelTokenSource } from 'axios';
-import { AuthHeader } from "../../auth.service.ts";
+import AuthService, { AuthHeader } from "../../auth.service.ts";
 
 const apiUrl = window.VUE_APP_APIURL;
 
@@ -18,10 +18,21 @@ const getHeader = (): AuthHeader | undefined => {
   return header;
 };
 
+const unauthorizedInterceptor = error => {
+  if (error.config.url !== '/auth/login' && error.response && error.response.status === 401) {
+    AuthService.logout();
+    window.location = '/login';
+  }
+  return Promise.reject(error);
+};
+
 export class MyClient extends StreamSinkClient<any> {
   constructor(header: AuthHeader | undefined) {
-    //@ts-ignore
-    const client = new HttpClient({ baseApiParams: { headers: header || {} }, baseUrl: apiUrl, });
+    const client = new HttpClient({
+      baseURL: apiUrl,
+      headers: header,
+    });
+    client.instance.interceptors.response.use(value => value, unauthorizedInterceptor);
     super(client);
   }
 

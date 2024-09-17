@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref, watch } from 'vue';
+import { computed, inject, onActivated, onMounted, ref, watch } from 'vue';
 import { DatabaseJob, RequestsChannelRequest as ChannelRequest } from './services/api/v1/StreamSinkClient';
 import { createSocket, MessageType } from './utils/socket';
 import ChannelModal from './components/modals/ChannelModal.vue';
@@ -102,13 +102,13 @@ const connector = async (loggedIn: boolean) => {
 
 const loggedIn = computed(() => store.getters['auth/isLoggedIn']);
 
-watch(loggedIn, loggedIn => connector(loggedIn));
-
 // --------------------------------------------------------------------------------------
 // Hooks
 // --------------------------------------------------------------------------------------
 
-onMounted(async () => {
+onActivated(async () => {
+  alert('ac')
+  watch(loggedIn, loggedIn => connector(loggedIn));
   await connector(loggedIn.value);
 
   socket.on(MessageType.JobStart, data => {

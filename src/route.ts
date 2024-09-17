@@ -22,7 +22,7 @@ const routes: Readonly<RouteRecordRaw[]> = [
   { path: '/register', name: 'Register', component: RegisterView },
   { path: '/channels', name: 'Channels', component: ChannelsView },
   { path: '/admin', name: 'Admin', component: AdminView },
-  { path: '/jobs', name: 'Job', component: JobView },
+  { path: '/jobs/:tab?', name: 'Job', component: JobView },
   { path: '/streams/:tab/tab/:tag?', name: 'Stream', component: StreamView },
   { path: '/channel/:id/:name?', name: 'Channel', component: ChannelView, props: true },
   { path: '/filter', name: 'Filter', component: SortView },
@@ -41,6 +41,11 @@ router.beforeEach((to, from, next) => {
   const authRequired = !publicPages.includes(to.path);
   const hasAuthHeader = AuthService.getAuthHeader();
   const isLoggedIn = AuthService.isLoggedIn();
+
+  if (isLoggedIn && (to.path === '/login' || to.path === '/register')) {
+    next('/');
+    return;
+  }
 
   if (isLoggedIn && !authRequired) {
     next();

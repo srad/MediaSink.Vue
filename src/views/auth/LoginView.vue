@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex align-items-center justify-content-center vh-100">
-    <div class="card shadow-sm border border-primary">
+    <div class="card shadow-sm border border-primary" style="width: 400px" v-if="!loggedIn">
       <h5 class="card-header p-3 bg-primary text-white">Login</h5>
       <div class="card-body px-4 py-3">
         <form @submit.prevent="login">
@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useStore } from '../../store';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { RequestsAuthenticationRequest } from '../../services/api/v1/StreamSinkClient.ts';
 import { AuthAction } from '../../store/modules/auth.ts';
 
@@ -52,19 +52,26 @@ const email = ref('');
 const password = ref('');
 
 // --------------------------------------------------------------------------------------
+// Computes
+// --------------------------------------------------------------------------------------
+
+const loggedIn = computed(() => store.getters['auth/isLoggedIn']);
+
+// --------------------------------------------------------------------------------------
 // Methods
 // --------------------------------------------------------------------------------------
 
-const login = () => {
+const login = async () => {
   loading.value = true;
 
   const data: RequestsAuthenticationRequest = { username: email.value, password: password.value };
 
-  store.dispatch(AuthAction.Login, data).then(() => {
-    router.replace('/');
-  }).catch(response => {
+  try {
+    await store.dispatch(AuthAction.Login, data);
+    await router.replace('/');
+  } catch (error) {
     loading.value = false;
-    message.value = response.error;
-  });
+    message.value = error.response.data;
+  }
 };
 </script>

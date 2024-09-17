@@ -24,43 +24,40 @@
 
     <ul class="nav nav-tabs my-2" id="pills-tab" role="tablist">
       <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="pills-open-tab" data-bs-toggle="pill" data-bs-target="#pills-open" type="button" role="tab" aria-controls="pills-open" aria-selected="true">
+        <button data-tab="general" class="nav-link" id="pills-open-tab" data-bs-toggle="pill" data-bs-target="#pills-open" type="button" role="tab" aria-controls="pills-open" aria-selected="true">
           {{ t('general.jobs') }} (open)
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="pills-completed-tab" data-bs-toggle="pill" data-bs-target="#pills-completed" type="button" role="tab" aria-controls="pills-completed" aria-selected="false">
+        <button data-tab="completed" class="nav-link" id="pills-completed-tab" data-bs-toggle="pill" data-bs-target="#pills-completed" type="button" role="tab" aria-controls="pills-completed" aria-selected="false">
           {{ t('general.jobs') }} (completed)
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="pills-other-tab" data-bs-toggle="pill" data-bs-target="#pills-other" type="button" role="tab" aria-controls="pills-other" aria-selected="false">
+        <button data-tab="other" class="nav-link" id="pills-other-tab" data-bs-toggle="pill" data-bs-target="#pills-other" type="button" role="tab" aria-controls="pills-other" aria-selected="false">
           {{ t('general.jobs') }} (other)
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="pills-processes-tab" data-bs-toggle="pill" data-bs-target="#pills-processes" type="button" role="tab" aria-controls="pills-processes" aria-selected="false">
+        <button data-tab="streams" class="nav-link" id="pills-processes-tab" data-bs-toggle="pill" data-bs-target="#pills-processes" type="button" role="tab" aria-controls="pills-processes" aria-selected="false">
           {{ t('general.streams') }}
         </button>
       </li>
     </ul>
     <div class="tab-content" id="pills-tabContent">
-      <div class="tab-pane fade show active" id="pills-open" role="tabpanel" aria-labelledby="pills-open-tab">
+      <div data-tab="general" class="tab-pane fade" id="pills-open" role="tabpanel" aria-labelledby="pills-open-tab">
         <JobTable :jobs="itemsOpen" @destroy="destroy" :total-count="itemsCount"/>
       </div>
 
-      <div class="tab-pane fade" id="pills-completed" role="tabpanel" aria-labelledby="pills-completed-tab">
+      <div data-tab="completed" class="tab-pane fade" id="pills-completed" role="tabpanel" aria-labelledby="pills-completed-tab">
         <JobTable :jobs="itemsCompleted" @destroy="destroy" :total-count="itemsCompletedCount"/>
       </div>
 
-      <div class="tab-pane fade" id="pills-other" role="tabpanel" aria-labelledby="pills-other-tab">
+      <div data-tab="other" class="tab-pane fade" id="pills-other" role="tabpanel" aria-labelledby="pills-other-tab">
         <JobTable :jobs="itemsOther" @destroy="destroy" :total-count="itemsCompletedCount"/>
       </div>
 
-      <div class="tab-pane fade" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
-
-      </div>
-      <div class="tab-pane fade" id="pills-processes" role="tabpanel" aria-labelledby="pills-processes-tab">
+      <div data-tab="streams" class="tab-pane fade" id="pills-processes" role="tabpanel" aria-labelledby="pills-processes-tab">
         <div class="table-responsive">
           <table class="table table-bordered">
             <thead>
@@ -98,21 +95,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
 import JobTable from '../components/JobTable.vue';
-import { DatabaseJob, DatabaseJobOrder, DatabaseJobStatus, ResponsesJobsResponse, ServicesProcessInfo as ProcessInfo } from '../services/api/v1/StreamSinkClient';
+import {
+  DatabaseJob,
+  DatabaseJobOrder,
+  DatabaseJobStatus,
+  ResponsesJobsResponse,
+  ServicesProcessInfo as ProcessInfo
+} from '../services/api/v1/StreamSinkClient';
 import { fromNow } from '../utils/datetime.ts';
 import { Tab } from 'bootstrap';
 import { useI18n } from 'vue-i18n';
 import { useStore } from '../store';
 import { JobMutation } from '../store/modules/job.ts';
+import { useRoute, useRouter } from "vue-router";
 
 const { t } = useI18n();
 
 const api = createClient();
 const store = useStore();
-
+const route = useRoute();
+const router = useRouter();
 const processes = ref<ProcessInfo[]>([]);
 
 export interface JobTableItem extends DatabaseJob {
@@ -138,9 +143,24 @@ const jobsOther = ref<ResponsesJobsResponse | null>(null);
 
 const getData = async () => {
   const promise = Promise.all([
-    api.jobs.listCreate({ skip: skip.value, take: take.value, states: [DatabaseJobStatus.StatusJobOpen], sortOrder: DatabaseJobOrder.JobOrderASC }),
-    api.jobs.listCreate({ skip: skip.value, take: take.value, states: [DatabaseJobStatus.StatusJobCompleted], sortOrder: DatabaseJobOrder.JobOrderDESC }),
-    api.jobs.listCreate({ skip: skip.value, take: take.value, states: [DatabaseJobStatus.StatusJobCanceled, DatabaseJobStatus.StatusJobCanceled, DatabaseJobStatus.StatusJobError], sortOrder: DatabaseJobOrder.JobOrderDESC }),
+    api.jobs.listCreate({
+      skip: skip.value,
+      take: take.value,
+      states: [ DatabaseJobStatus.StatusJobOpen ],
+      sortOrder: DatabaseJobOrder.JobOrderASC
+    }),
+    api.jobs.listCreate({
+      skip: skip.value,
+      take: take.value,
+      states: [ DatabaseJobStatus.StatusJobCompleted ],
+      sortOrder: DatabaseJobOrder.JobOrderDESC
+    }),
+    api.jobs.listCreate({
+      skip: skip.value,
+      take: take.value,
+      states: [ DatabaseJobStatus.StatusJobCanceled, DatabaseJobStatus.StatusJobCanceled, DatabaseJobStatus.StatusJobError ],
+      sortOrder: DatabaseJobOrder.JobOrderDESC
+    }),
     api.processes.processesList()
   ]);
 
@@ -166,6 +186,8 @@ const getData = async () => {
   });
 };
 
+const tab = route.params.tab;
+
 const addFromNowToJob = (job: DatabaseJob): JobTableItem => {
   const newJob: JobTableItem = { ...job };
   newJob.fromNow = fromNow(Date.parse(newJob.createdAt));
@@ -184,12 +206,30 @@ const itemsOtherCount = computed(() => jobsOther.value?.totalCount || 0);
 const destroy = (id: number) => {
   if (window.confirm('Delete?')) {
     api.jobs.jobsDelete(id)
-        .then(() => store.commit('destroyJob', id))
+        .then(() => store.commit(JobMutation.Delete, id))
         .catch(res => alert(res));
   }
 };
 
+const selectTab = () => {
+  const tab = route.params.tab === '' ? 'general' : route.params.tab;
+  document.querySelectorAll(`#pills-tab button[data-tab]`)?.forEach(x => x.classList.remove('active'));
+  const button = document.querySelector(`#pills-tab button[data-tab="${tab}"]`);
+  if (button) {
+    button.classList.add('active');
+  }
+  const tabItem = document.querySelector(`#pills-tabContent div[data-tab="${tab}"]`);
+  if (tabItem) {
+    tabItem.classList.add('show');
+    tabItem.classList.add('active');
+  }
+};
+
+
+watch(route, selectTab);
+
 onMounted(() => {
+  selectTab();
   // Bootstrap tab events
   const triggerTabList = document.querySelectorAll('#pills-tab button');
   triggerTabList.forEach(triggerEl => {
@@ -197,7 +237,9 @@ onMounted(() => {
 
     triggerEl.addEventListener('click', event => {
       event.preventDefault();
-      tabTrigger.show();
+      //tabTrigger.show();
+      const dataTab = (event.target as HTMLElement).dataset.tab;
+      router.push('/jobs' + ('/' + dataTab ?? ''));
     });
   });
 

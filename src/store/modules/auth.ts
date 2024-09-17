@@ -47,14 +47,13 @@ export const module: Module<AuthState, State> = {
   actions: {
     async [_action.Login]({ commit }: { commit: Commit }, user: RequestsAuthenticationRequest) {
       return new Promise(async (resolve, reject) => {
-        try {
-          let token = await AuthService.login(user);
+        AuthService.login(user).then(token => {
           commit(_mutation.LoginSuccess);
-          return resolve(token);
-        } catch (error) {
+          resolve(token);
+        }).catch(error => {
           commit(_mutation.LoginFailure);
           return reject(error);
-        }
+        });
       });
     },
     [_action.Logout]({ commit }: { commit: Commit }) {

@@ -110,6 +110,7 @@ import { defineProps, watch, ref, reactive, onBeforeMount } from 'vue';
 import { createClient } from '../../services/api/v1/ClientFactory';
 import { useRoute } from "vue-router";
 import { useStore } from "../../store";
+import { ChannelMutation } from "../../store/modules/channel.ts";
 
 const api = createClient();
 
@@ -152,7 +153,7 @@ const record = async (resume: boolean) => {
     if (window.confirm('Do you want to stop all recordings?')) {
       try {
         await api.recorder.pauseCreate();
-        store.commit('stopChannels');
+        store.commit(ChannelMutation.Stop);
         recording.value = false;
       } catch (ex) {
         alert(ex);
