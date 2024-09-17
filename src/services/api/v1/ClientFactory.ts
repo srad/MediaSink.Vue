@@ -18,10 +18,10 @@ const getHeader = (): AuthHeader | undefined => {
   return header;
 };
 
-const unauthorizedInterceptor = error => {
+const unauthorizedInterceptor = (error: any) => {
   if (error.config.url !== '/auth/login' && error.response && error.response.status === 401) {
     AuthService.logout();
-    window.location = '/login';
+    window.location.assign('/login');
   }
   return Promise.reject(error);
 };
@@ -30,7 +30,7 @@ export class MyClient extends StreamSinkClient<any> {
   constructor(header: AuthHeader | undefined) {
     const client = new HttpClient({
       baseURL: apiUrl,
-      headers: header,
+      headers: {...header},
     });
     client.instance.interceptors.response.use(value => value, unauthorizedInterceptor);
     super(client);

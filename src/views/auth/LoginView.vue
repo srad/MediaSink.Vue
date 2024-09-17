@@ -69,7 +69,7 @@ const login = async () => {
   try {
     await store.dispatch(AuthAction.Login, data);
     await router.replace('/');
-  } catch (error) {
+  } catch (error: any) {
     loading.value = false;
     message.value = error.response.data;
   }

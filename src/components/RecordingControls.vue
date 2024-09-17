@@ -7,7 +7,7 @@
     </button>
     <button v-else class="btn btn-danger blink d-flex" @click="emit('record', false)">
       <i class="bi bi-stop-fill me-2"></i>
-      <span>{{ t('navtop.stopRecording') }}</span>
+      <span class="d-none d-xl-inline d-flex justify-content-between ms-1">{{ t('navtop.stopRecording') }}</span>
     </button>
     <button class="btn btn-success ms-2 d-flex d-none d-sm-none d-md-block" @click="emit('add')">
       <i class="bi bi-plus"></i>

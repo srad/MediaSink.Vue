@@ -225,7 +225,6 @@ const selectTab = () => {
   }
 };
 
-
 watch(route, selectTab);
 
 onMounted(() => {
@@ -239,7 +238,7 @@ onMounted(() => {
       event.preventDefault();
       //tabTrigger.show();
       const dataTab = (event.target as HTMLElement).dataset.tab;
-      router.push('/jobs' + ('/' + dataTab ?? ''));
+      router.push('/jobs' + (dataTab ? '/' + dataTab : ''));
     });
   });
 
