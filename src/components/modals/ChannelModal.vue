@@ -53,7 +53,7 @@
 
       <div class="mb-3">
         <div class="form-check form-switch">
-          <input :id="`${id}_isPaused`" type="checkbox" required :checked="myIsPaused" class="form-check-input" :name="`${id}_isPaused`" v-model="myIsPaused">
+          <input :id="`${id}_isPaused`" type="checkbox" :checked="myIsPaused" class="form-check-input" :name="`${id}_isPaused`" v-model="myIsPaused">
           <label class="form-check-label" :for="`${id}_isPaused`">Pause Recording</label>
         </div>
         <div class="fs-6 my-2">
