@@ -67,11 +67,10 @@ Chart.register(
     SubTitle
 );
 
-const api = createClient();
-
 const myChart = ref<HTMLCanvasElement | null>(null);
 
 onMounted(async () => {
+  // const api = createClient();
   // const response = await api.metric.cpuList();
   //
   // const ctx = myChart.value!.getContext("2d");

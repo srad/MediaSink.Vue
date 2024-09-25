@@ -12,7 +12,7 @@
       </tr>
       <tr>
         <th colspan="6" class="bg-light border border-primary bg-primary-subtle">
-          <button @click="() => downloadChannelsAsJson(api)" type="button" class="btn btn-primary btn-sm me-2">
+          <button @click="() => downloadChannelsAsJson()" type="button" class="btn btn-primary btn-sm me-2">
             Export channels
           </button>
           <button @click="inputFileClick" type="button" class="btn btn-primary btn-sm">Import channels</button>
@@ -60,28 +60,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from 'vue';
+import { computed, inject, onMounted, ref } from 'vue';
 import { createClient, MyClient } from '../services/api/v1/ClientFactory.ts';
-import { DatabaseChannel } from '../services/api/v1/StreamSinkClient';
+import { DatabaseChannel, ServicesChannelInfo } from '../services/api/v1/StreamSinkClient';
 import { downloadObjectAsJson } from '../utils/file.ts';
 import ChannelFavButton from '../components/controls/ChannelFavButton.vue';
 
-const api = createClient();
 const isImporting = ref(false);
 const fileUrl = inject('fileUrl');
 const channelsFile = ref<HTMLInputElement | null>(null);
 
-const response = await api.channels.channelsList();
-const channels = response.data.sort((a, b) => a.channelName.localeCompare(b.channelName));
+const channels = ref<ServicesChannelInfo[]>([]);
 
-const totalSize = computed(() => channels.map(x => x.recordingsSize).reduce((a, b) => a + b, 0) / 1024 / 1024 / 1024);
-const totalCount = computed(() => channels.map(x => x.recordingsCount).reduce((a, b) => a + b, 0));
+const totalSize = computed(() => channels.value.map(x => x.recordingsSize).reduce((a, b) => a + b, 0) / 1024 / 1024 / 1024);
+const totalCount = computed(() => channels.value.map(x => x.recordingsCount).reduce((a, b) => a + b, 0));
 
 /**
  * All client side, creates a JSON file of all channel data.
  * @param client
  */
-const downloadChannelsAsJson = (client: MyClient) => {
+const downloadChannelsAsJson = () => {
+  const client = createClient();
   client.channels.channelsList()
       .then(res => {
         downloadObjectAsJson(res.data, 'channels', document.body);
@@ -108,7 +107,7 @@ const inputFileChanged = (event: Event) => {
 
   file.text()
       .then(JSON.parse)
-      .then(channels => importChannels(api, channels));
+      .then(channels => importChannels(channels));
 };
 
 /**
@@ -116,8 +115,10 @@ const inputFileChanged = (event: Event) => {
  * @param client
  * @param channelsResponse
  */
-const importChannels = (client: MyClient, channelsResponse: DatabaseChannel[]) => {
+const importChannels = (channelsResponse: DatabaseChannel[]) => {
   isImporting.value = true;
+
+  const client = createClient();
 
   channelsResponse.forEach(async channel => {
     try {
@@ -131,15 +132,17 @@ const importChannels = (client: MyClient, channelsResponse: DatabaseChannel[]) =
         url: channel.url
       });
 
-      channels.push(response.data);
+      channels.value.push(response.data);
     } catch (err) {
       alert(err);
     }
   });
   isImporting.value = false;
 };
+
+onMounted(async () => {
+  const api = createClient();
+  const response = await api.channels.channelsList();
+  channels.value = response.data.sort((a, b) => a.channelName.localeCompare(b.channelName));
+});
 </script>
-
-<style scoped>
-
-</style>

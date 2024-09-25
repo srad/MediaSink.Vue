@@ -151,7 +151,6 @@ import { ToastMutation } from '../store/modules/toast.ts';
 // --------------------------------------------------------------------------------------
 const router = useRouter();
 const route = useRoute();
-const api = createClient();
 const { t } = useI18n();
 
 const cookies = useCookies([ 'locale' ]);
@@ -204,6 +203,7 @@ onUnmounted(() => {
 
 onMounted(async () => {
   try {
+    const api = createClient();
     id.value = Number(route.params.id);
     const rec = await api.recordings.recordingsDetail(id.value);
     recording.value = rec.data;
@@ -328,8 +328,11 @@ const destroy = () => {
     return;
   }
 
-  unloadVideo();
   busy.value = true;
+
+  unloadVideo();
+
+  const api = createClient();
 
   api.recordings.recordingsDelete(id.value!)
       .then(() => {
@@ -341,6 +344,7 @@ const destroy = () => {
 };
 
 const cutVideo = () => {
+  const api = createClient();
   const starts = markings.value.map(m => String(m.timestart.toFixed(4)));
   const ends = markings.value.map(m => String(m.timeend.toFixed(4)));
 

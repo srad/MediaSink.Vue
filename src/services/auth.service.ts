@@ -1,8 +1,6 @@
 import { createClient } from "./api/v1/ClientFactory.ts";
 import { RequestsAuthenticationRequest } from "./api/v1/StreamSinkClient.ts";
 
-const client = createClient();
-
 export interface AuthInfo {
   token: string;
 }
@@ -11,38 +9,44 @@ export interface AuthHeader {
   Authorization: string;
 }
 
+const TOKEN_NAME = "jwt";
+
 export default class AuthService {
   static login(user: RequestsAuthenticationRequest) {
     return new Promise<string>((resolve, reject) => {
+      const client = createClient();
       client.auth.loginCreate(user).then(response => {
         const r = response.data as unknown as AuthInfo;
         if (r.token) {
-          localStorage.setItem('token', r.token);
+          localStorage.removeItem(TOKEN_NAME);
+          localStorage.setItem(TOKEN_NAME, r.token);
+          return resolve(r.token);
+        } else {
+          return reject("token not found");
         }
-
-        return resolve(r.token);
       }).catch(reject);
     });
   }
 
   static logout() {
-    localStorage.removeItem('token');
+    localStorage.removeItem(TOKEN_NAME);
   }
 
   static getToken() {
-    return localStorage.getItem('token');
+    return localStorage.getItem(TOKEN_NAME);
   }
 
   static isLoggedIn() {
-    return AuthService.getToken() !== null;
+    return localStorage.getItem(TOKEN_NAME) !== null;
   }
 
   static signup(user: RequestsAuthenticationRequest) {
+    const client = createClient();
     return client.auth.signupCreate(user);
   }
 
   static getAuthHeader(): AuthHeader | null {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem(TOKEN_NAME);
     if (!token) {
       return null;
     }

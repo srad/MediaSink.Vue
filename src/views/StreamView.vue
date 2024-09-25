@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <LoadIndicator :busy="busy">
     <ChannelModal
         @save="save"
         @close="showModal=false"
@@ -115,25 +115,25 @@
       </div>
 
     </div>
-    <!-- Body -->
-  </div>
+    <!-- Body end -->
+  </LoadIndicator>
 </template>
 
 <script setup lang="ts">
 import { createClient } from '../services/api/v1/ClientFactory';
 import { DatabaseChannel as ChannelResponse } from '../services/api/v1/StreamSinkClient';
-import { watch, computed, ref } from 'vue';
+import { watch, computed, ref, onMounted, onBeforeUpdate, onActivated } from 'vue';
 import ChannelItem from '../components/ChannelItem.vue';
 import ChannelModal, { ChannelUpdate } from '../components/modals/ChannelModal.vue';
-import { useRoute, useRouter } from 'vue-router';
+import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router';
 import { useStore } from '../store';
 import { ChannelMutation } from '../store/modules/channel.ts';
+import LoadIndicator from "../components/LoadIndicator.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations
 // --------------------------------------------------------------------------------------
 
-const api = createClient();
 const route = useRoute();
 
 const channelItemClass = 'col-lg-6 col-xl-6 col-xxl-4 col-md-6';
@@ -143,6 +143,7 @@ const channelName = ref('');
 const displayName = ref('');
 const isPaused = ref(false);
 const url = ref('');
+const busy = ref(true);
 
 const minDuration = ref(0);
 const skipStart = ref(0);
@@ -153,27 +154,6 @@ const searchVal = ref<string>((route.query.search || route.query.tag || route.pa
 const tagFilter = ref<string>((route.params.tag || route.query.tag || '') as string);
 const store = useStore();
 const router = useRouter();
-
-const res = await api.channels.channelsList();
-res.data.forEach(channel => store.commit(ChannelMutation.Add, channel));
-
-// --------------------------------------------------------------------------------------
-// Watchers
-// --------------------------------------------------------------------------------------
-
-watch(searchVal, (search) => router.replace({ query: { search } }));
-
-watch(() => route.query, params => {
-  if (params.tag && params.tag !== '') {
-    searchVal.value = `#${params.tag}`;
-  } else {
-    searchVal.value = (params.search || '') as string;
-  }
-});
-
-watch(tagFilter, val => {
-  router.replace({ params: { tag: val } });
-});
 
 // --------------------------------------------------------------------------------------
 // Computes
@@ -207,6 +187,8 @@ const searchResults = computed(() => store.state.channel.channels.slice()
     .filter(channel => favs.value ? channel.fav : true) // Only use, if defined.
     .sort(sort));
 
+const loggedIn = computed(() => store.getters['auth/isLoggedIn']);
+
 // --------------------------------------------------------------------------------------
 // Methods
 // --------------------------------------------------------------------------------------
@@ -223,6 +205,7 @@ const sort = (a: ChannelResponse, b: ChannelResponse) => a.channelName!.localeCo
 
 const save = async (data: ChannelUpdate) => {
   try {
+    const api = createClient();
     const res = await api.channels.channelsPartialUpdate(data.channelId, data);
     store.commit(ChannelMutation.Update, res.data);
     showModal.value = false;
@@ -243,6 +226,39 @@ const editChannel = (channel: ChannelResponse) => {
 };
 
 const tab = (tab: string) => router.push({ name: 'Stream', params: { tag: tagFilter.value, tab } });
+
+const loginHandler = async (isLoggedIn: boolean) => {
+  if (isLoggedIn) {
+    const api = createClient();
+    const res = await api.channels.channelsList();
+    res.data.forEach(channel => store.commit(ChannelMutation.Add, channel));
+    busy.value = false;
+  }
+};
+
+// --------------------------------------------------------------------------------------
+// Watchers
+// --------------------------------------------------------------------------------------
+
+watch(loggedIn, value => loginHandler(value));
+
+watch(searchVal, (search) => router.replace({ query: { search } }));
+
+watch(() => route.query, params => {
+  if (params.tag && params.tag !== '') {
+    searchVal.value = `#${params.tag}`;
+  } else {
+    searchVal.value = (params.search || '') as string;
+  }
+});
+
+watch(tagFilter, val => {
+  router.replace({ params: { tag: val } });
+});
+
+onMounted(() => {
+  loginHandler(loggedIn.value);
+});
 </script>
 
 <style lang="scss" scoped>

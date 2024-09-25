@@ -1,7 +1,8 @@
 import AuthService from '../services/auth.service.ts';
+import { Exception } from "sass";
 
 class SocketManager {
-  private connection?: WebSocket = undefined;
+  private connection: WebSocket | null = null;
   private listeners: { [key: string]: ((data: Object) => void)[] } = {};
   private static readonly socketUrl: string = import.meta.env.SSR ? import.meta.env.VITE_VUE_APP_SOCKETURL : window.VUE_APP_SOCKETURL;
 
@@ -10,7 +11,13 @@ class SocketManager {
       return;
     }
 
-    this.connection = new WebSocket(SocketManager.socketUrl + '?Authorization=' + AuthService.getAuthHeader()?.Authorization);
+    const header = AuthService.getAuthHeader();
+    const token = header?.Authorization;
+    if (!header || !token) {
+      throw { error: "WebSocket missing authorization token" };
+    }
+
+    this.connection = new WebSocket(SocketManager.socketUrl + '?Authorization=' + token);
 
     this.connection.addEventListener('message', (msg: any) => {
       const json = JSON.parse(msg.data) as { name: string, data: Object };
@@ -32,7 +39,7 @@ class SocketManager {
 
   close() {
     this.connection?.close();
-    this.connection = undefined;
+    this.connection = null;
     this.listeners = {};
   }
 

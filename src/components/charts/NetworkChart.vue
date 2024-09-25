@@ -67,10 +67,10 @@ Chart.register(
     SubTitle
 );
 
-const api = createClient();
 const myChart = ref<HTMLCanvasElement | null>(null);
 
 onBeforeMount(async () => {
+  // const api = createClient();
   // const response = await api.metric.netList();
   //
   // const ctx = myChart.value!.getContext("2d");

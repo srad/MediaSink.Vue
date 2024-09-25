@@ -90,8 +90,6 @@ const emit = defineEmits<{
 // Declarations
 // --------------------------------------------------------------------------------------
 
-const api = createClient();
-
 const tagArray = ref<string[]>(props.channel.tags || []);
 const tagVal = ref('');
 const showTagInput = ref(false);
@@ -123,6 +121,7 @@ const seconds = computed(() => {
 
 const destroyTag = async (tag: string) => {
   const removeTag = tagArray.value?.filter(t => t !== tag);
+  const api = createClient();
   await api.channels.tagsPartialUpdate(props.channel.channelId!, { tags: removeTag });
   tagArray.value = removeTag;
 };
@@ -143,6 +142,7 @@ const addTag = () => {
   // Optimistic add.
   tagArray.value.push(tag);
 
+  const api = createClient();
   api.channels.tagsPartialUpdate(props.channel.channelId!, { tags: tagArray.value })
       .then(() => {
         showTagInput.value = false;

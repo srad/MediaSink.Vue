@@ -114,7 +114,6 @@ import { ChannelMutation } from "../store/modules/channel.ts";
 // Declarations
 // --------------------------------------------------------------------------------------
 
-const api = createClient();
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
@@ -128,7 +127,6 @@ const uploadProgress = ref(0);
 const busyOverlay = ref(false);
 const channel = ref<ChannelResponse | null>(null);
 const channelId = (+route.params.id) as unknown as number;
-const client = createClient();
 let cancellationToken: CancelTokenSource | null = null;
 const showModal = ref(false);
 
@@ -143,6 +141,7 @@ const areItemsSelected = computed(() => selectedRecordings.value.length > 0);
 // --------------------------------------------------------------------------------------
 
 const pauseChannel = (element: HTMLInputElement): void => {
+  const client = createClient();
   const fn = element.checked ? client.channels.resumeCreate : client.channels.pauseCreate;
   fn(channel.value!.channelId).then(() => {
     store.commit(element.checked ? ChannelMutation.Resume : ChannelMutation.Pause, channel.value?.channelId);
@@ -161,6 +160,7 @@ const destroySelection = async () => {
   if (!window.confirm('Delete selection?')) {
     return;
   }
+  const api = createClient();
   for (let i = 0; i < selectedRecordings.value.length; i++) {
     const rec = selectedRecordings.value[i];
     await api.recordings.recordingsDelete(rec.recordingId);
@@ -183,6 +183,7 @@ const selectRecording = (data: { checked: boolean, recording: RecordingResponse 
 const deleteChannel = () => {
   if (window.confirm(`Delete channel "${channelId}"?`)) {
     busyOverlay.value = true;
+    const api = createClient();
     api.channels.channelsDelete(channelId)
         .then(() => store.commit(ChannelMutation.Destroy, channelId))
         .catch(err => alert(err))
@@ -206,6 +207,7 @@ const submit = () => {
   if (el.files && el.files!.length > 0) {
     uploadProgress.value = 0;
     showModal.value = true;
+    const api = createClient();
     const [ req, cancelToken ] = api.channelUpload(channelId, el.files![0], pcent => uploadProgress.value = pcent);
     req.then(res => {
       uploadProgress.value = 0;
@@ -235,6 +237,7 @@ const destroyRecording = (recording: RecordingResponse) => {
 };
 
 const bookmark = () => {
+  const api = createClient();
   const fn = channel.value!.fav ? api.channels.unfavPartialUpdate : api.channels.favPartialUpdate;
 
   fn(channel.value!.channelId)
@@ -257,11 +260,9 @@ onMounted(async () => {
   socket.connect();
 
   window.scrollTo(0, 0);
+
+  const api = createClient();
+  const res = await api.channels.channelsDetail(channelId);
+  channel.value = res.data;
 });
-
-const res = await api.channels.channelsDetail(channelId);
-channel.value = res.data;
 </script>
-
-<style scoped>
-</style>

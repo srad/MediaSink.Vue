@@ -81,8 +81,6 @@ const props = defineProps<{
 // Declarations
 // --------------------------------------------------------------------------------------
 
-const api = createClient();
-
 const checked = ref(props.select || false);
 const busy = ref(false);
 const destroyed = ref(false);
@@ -119,6 +117,7 @@ watch(() => props.select, val => {
 const bookmark = async (recording: RecordingResponse, yesNo: boolean) => {
   try {
     busy.value = true;
+    const api = createClient();
     const method = yesNo ? api.recordings.favPartialUpdate : api.recordings.unfavPartialUpdate;
     await method(recording.recordingId);
     recording.bookmark = yesNo;
@@ -134,6 +133,7 @@ const generatePreview = async (recording: RecordingResponse) => {
   if (window.confirm('Generate new preview?')) {
     try {
       busy.value = true;
+      const api = createClient();
       await api.recordings.previewCreate(recording.recordingId);
     } catch (ex) {
       alert(ex);
@@ -150,6 +150,7 @@ const convert = async ({ recording, mediaType }: { recording: RecordingResponse,
 
   try {
     busy.value = true;
+    const api = createClient();
     await api.recordings.convertCreate(recording.recordingId, mediaType);
   } catch (ex) {
     alert(ex);
@@ -165,6 +166,7 @@ const destroyRecording = async (recording: RecordingResponse) => {
 
   try {
     busy.value = true;
+    const api = createClient();
     await api.recordings.recordingsDelete(recording.recordingId);
     destroyed.value = true;
     setTimeout(() => emit('destroyed', recording), 1000);

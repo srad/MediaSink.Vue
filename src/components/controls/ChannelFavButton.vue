@@ -21,7 +21,6 @@ const props = defineProps<{
 // Declarations
 // --------------------------------------------------------------------------------------
 
-const api = createClient();
 const busy = ref(false);
 const fav = ref(props.bookmarked);
 
@@ -37,6 +36,7 @@ watch(() => props.bookmarked, val => fav.value = val);
 
 const bookmark = () => {
   busy.value = true;
+  const api = createClient();
   const fn = fav.value ? api.channels.unfavPartialUpdate : api.channels.favPartialUpdate;
 
   fn(props.channelId)
@@ -45,6 +45,3 @@ const bookmark = () => {
       .finally(() => busy.value = false);
 };
 </script>
-
-<style scoped>
-</style>

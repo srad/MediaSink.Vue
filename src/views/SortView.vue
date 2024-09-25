@@ -49,13 +49,11 @@
 import { createClient } from '../services/api/v1/ClientFactory';
 import { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
 import RecordingItem from '../components/RecordingItem.vue';
-import { ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import {useI18n} from 'vue-i18n'
+import { useI18n } from 'vue-i18n'
 
-const {t} = useI18n();
-
-const api = createClient();
+const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
@@ -75,9 +73,9 @@ const limits = ref([
   200,
 ]);
 
-const columns = [['Created at', 'created_at'], ['Filesize', 'size'], ['Video duration', 'duration']];
+const columns = [ [ 'Created at', 'created_at' ], [ 'Filesize', 'size' ], [ 'Video duration', 'duration' ] ];
 
-const order = ['asc', 'desc'];
+const order = [ 'asc', 'desc' ];
 
 const recordings = ref<RecordingResponse[]>([]);
 
@@ -101,6 +99,7 @@ const resetFilters = () => {
 };
 
 const fetch = async () => {
+  const api = createClient();
   const res = await api.recordings.filterDetail(route.query.column as string || 'created_at', route.query.order as string || 'desc', route.query.limit as string || '25');
   recordings.value = res.data;
 };
@@ -114,5 +113,7 @@ const destroyRecording = (recording: RecordingResponse) => {
   }
 };
 
-await fetch();
+onMounted(() => {
+  fetch();
+});
 </script>

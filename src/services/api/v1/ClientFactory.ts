@@ -1,4 +1,4 @@
-import { StreamSinkClient, DatabaseRecording as RecordingResponse, ResponsesRecordingStatusResponse, HttpClient } from './StreamSinkClient';
+import { StreamSinkClient, DatabaseRecording as RecordingResponse, ResponsesRecordingStatusResponse, HttpClient, Auth } from './StreamSinkClient';
 import axios, { AxiosResponse } from 'axios';
 import { CancelTokenSource } from 'axios';
 import AuthService, { AuthHeader } from "../../auth.service.ts";
@@ -7,16 +7,6 @@ const apiUrl = window.VUE_APP_APIURL;
 
 // The type annotations of swagger-gen for baseApiParams are wrong.
 // That's the reason for couple of ts-ignores.
-
-const getHeader = (): AuthHeader | undefined => {
-  const token = localStorage.getItem('token');
-  let header;
-  if (token) {
-    header = { Authorization: 'Bearer ' + token };
-  }
-
-  return header;
-};
 
 const unauthorizedInterceptor = (error: any) => {
   if (error.config.url !== '/auth/login' && error.response && error.response.status === 401) {
@@ -27,7 +17,7 @@ const unauthorizedInterceptor = (error: any) => {
 };
 
 export class MyClient extends StreamSinkClient<any> {
-  constructor(header: AuthHeader | undefined) {
+  constructor(header: AuthHeader | null) {
     const client = new HttpClient({
       baseURL: apiUrl,
       headers: {...header},
@@ -43,7 +33,7 @@ export class MyClient extends StreamSinkClient<any> {
    * @param progress Returns the progress as number in range [0.0 ... 1.0]
    */
   channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [ Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource ] {
-    const header = getHeader();
+    const header = AuthService.getAuthHeader();
     const source = axios.CancelToken.source();
     const formData = new FormData();
     formData.append('file', file);
@@ -60,7 +50,7 @@ export class MyClient extends StreamSinkClient<any> {
    * although the returned data look fine in the browser.
    */
   async isRecording(): Promise<boolean> {
-    const header = getHeader();
+    const header = AuthService.getAuthHeader();
     //@ts-ignore
     const res = await axios.get<ResponsesRecordingStatusResponse>(`${apiUrl}/recorder`, { headers: header || {} });
     //@ts-ignore
@@ -69,6 +59,6 @@ export class MyClient extends StreamSinkClient<any> {
 }
 
 export const createClient = (): MyClient => {
-  const header = getHeader();
+  const header = AuthService.getAuthHeader();
   return new MyClient(header);
 };

@@ -121,8 +121,6 @@ import { onBeforeRouteLeave } from 'vue-router';
 //import CPUChart from '../charts/CPUChart.vue';
 //import NetworkChart from '../charts/NetworkChart.vue';
 
-const api = createClient();
-
 const build = inject('build');
 const version = inject('version');
 
@@ -169,6 +167,7 @@ const mainCpuLoad = computed(() => cpuInfo.value && cpuInfo.value.loadCpu!.lengt
 
 const startImport = async () => {
   if (window.confirm('Start Import?')) {
+    const api = createClient();
     await api.admin.importCreate();
     importing.value = true;
   }
@@ -176,6 +175,7 @@ const startImport = async () => {
 
 const posters = async () => {
   if (window.confirm('Regenerate all posters?')) {
+    const api = createClient();
     await api.recordings.generatePostersCreate();
   }
 };
@@ -187,7 +187,7 @@ const posters = async () => {
 
 const updateInfo = () => {
   if (window.confirm('Check all durations and update in database?')) {
-
+    const api = createClient();
     api.recordings.updateinfoCreate()
         .then(() => isUpdating.value = true)
         .catch(res => console.error(res.error));
@@ -196,6 +196,7 @@ const updateInfo = () => {
 
 const fetch = async () => {
   try {
+    const api = createClient();
     const result = await Promise.all([api.info.infoDetail(1), api.admin.importList()]);
 
     netInfo.value = result[0].data.netInfo;
@@ -215,6 +216,7 @@ onBeforeRouteLeave(() => {
 });
 
 onMounted(async () => {
+  const api = createClient();
   //fillData();
   await fetch();
   const res = await api.admin.versionList();

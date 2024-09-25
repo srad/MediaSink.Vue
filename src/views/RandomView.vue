@@ -32,15 +32,13 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref, onBeforeMount } from 'vue';
+import { watch, ref, onBeforeMount, onMounted } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
 import RecordingItem from '../components/RecordingItem.vue';
 import { useRoute } from 'vue-router';
 import { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient.ts';
 
 const route = useRoute();
-
-const api = createClient();
 
 watch(route, () => {
   fetch();
@@ -59,6 +57,7 @@ const limits = ref([
 const recordings = ref<RecordingResponse[]>([]);
 
 const fetch = async () => {
+  const api = createClient();
   const res = await api.recordings.randomDetail(filterLimit);
   recordings.value = res.data;
 };
@@ -72,7 +71,9 @@ const destroyRecording = (recording: RecordingResponse) => {
   }
 };
 
-await fetch();
+onMounted(() => {
+  fetch();
+});
 </script>
 
 <style scoped>

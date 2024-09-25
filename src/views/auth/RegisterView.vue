@@ -33,9 +33,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "../../store";
-import { ref } from "vue";
 import { AuthAction } from '../../store/modules/auth.ts';
 
 // --------------------------------------------------------------------------------------

@@ -35,7 +35,6 @@
 import { useRouter } from 'vue-router';
 import { useStore } from '../../store';
 import { computed, ref } from 'vue';
-import { RequestsAuthenticationRequest } from '../../services/api/v1/StreamSinkClient.ts';
 import { AuthAction } from '../../store/modules/auth.ts';
 
 // --------------------------------------------------------------------------------------
@@ -62,16 +61,14 @@ const loggedIn = computed(() => store.getters['auth/isLoggedIn']);
 // --------------------------------------------------------------------------------------
 
 const login = async () => {
-  loading.value = true;
-
-  const data: RequestsAuthenticationRequest = { username: email.value, password: password.value };
-
   try {
-    await store.dispatch(AuthAction.Login, data);
+    loading.value = true;
+    await store.dispatch(AuthAction.Login, { username: email.value, password: password.value });
     await router.replace('/');
   } catch (error: any) {
-    loading.value = false;
     message.value = error.response.data;
+  } finally {
+    loading.value = false;
   }
 };
 </script>

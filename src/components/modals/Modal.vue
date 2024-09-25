@@ -1,7 +1,7 @@
 <template>
   <Transition name="modal">
-    <div v-if="props.show" class="modal-mask">
-      <div class="modal-container border border-dark my-sm-3 my-0">
+    <div v-if="props.show" class="modal-mask d-flex align-items-center">
+      <div class="modal-container border border-dark">
         <div class="modal-header d-flex justify-content-between px-4 py-2 bg-primary-subtle">
           <slot name="header">default header</slot>
           <button type="button" class="m-0 p-0 btn" @click="emit('close')">

@@ -114,7 +114,6 @@ import { useRoute, useRouter } from "vue-router";
 
 const { t } = useI18n();
 
-const api = createClient();
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
@@ -142,6 +141,8 @@ const jobsCompleted = ref<ResponsesJobsResponse | null>(null);
 const jobsOther = ref<ResponsesJobsResponse | null>(null);
 
 const getData = async () => {
+  const api = createClient();
+
   const promise = Promise.all([
     api.jobs.listCreate({
       skip: skip.value,
@@ -186,8 +187,6 @@ const getData = async () => {
   });
 };
 
-const tab = route.params.tab;
-
 const addFromNowToJob = (job: DatabaseJob): JobTableItem => {
   const newJob: JobTableItem = { ...job };
   newJob.fromNow = fromNow(Date.parse(newJob.createdAt));
@@ -205,6 +204,7 @@ const itemsOtherCount = computed(() => jobsOther.value?.totalCount || 0);
 
 const destroy = (id: number) => {
   if (window.confirm('Delete?')) {
+    const api = createClient();
     api.jobs.jobsDelete(id)
         .then(() => store.commit(JobMutation.Delete, id))
         .catch(res => alert(res));

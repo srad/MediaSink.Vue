@@ -93,8 +93,6 @@ const emit = defineEmits<{
 // Declarations
 // --------------------------------------------------------------------------------------
 
-const api = createClient();
-
 const diskInfo = reactive({ avail: '', pcent: '', size: '', used: '' });
 const collapseNav = ref(true);
 const isRecording = ref(false);
@@ -107,11 +105,7 @@ const showConfirmRecording = ref(false);
 const router = useRouter();
 const socket = createSocket();
 
-// --------------------------------------------------------------------------------------
-// Watchers
-// --------------------------------------------------------------------------------------
-
-watch(route, () => collapseNav.value = true);
+let thread: undefined | ReturnType<typeof setInterval> = undefined;
 
 // --------------------------------------------------------------------------------------
 // Computes
@@ -119,29 +113,27 @@ watch(route, () => collapseNav.value = true);
 
 const jobs = computed(() => store.getters['job/getOpen']);
 const jobsCount = computed(() => store.state.job.jobsCount);
+const loggedIn = computed(() => store.getters['auth/isLoggedIn']);
 
 // --------------------------------------------------------------------------------------
 // Methods
 // --------------------------------------------------------------------------------------
 
-const query = () => new Promise((resolve, reject) => {
-  Promise.all([api.isRecording(), api.info.diskList()])
-      .then(res => {
-        isRecording.value = res[0];
-        const diskRes = res[1];
-        diskInfo.avail = diskRes.data.availFormattedGb!;
-        diskInfo.pcent = diskRes.data.pcent!;
-        diskInfo.size = diskRes.data.sizeFormattedGb!;
-        diskInfo.used = diskRes.data.usedFormattedGb!;
-        resolve(null);
-      })
-      .catch(error => {
-        reject(error);
-      });
-});
+const query = async () => {
+  const api = createClient();
+  const res = await Promise.all([ api.isRecording(), api.info.diskList() ]);
+
+  isRecording.value = res[0];
+  const diskRes = res[1];
+  diskInfo.avail = diskRes.data.availFormattedGb!;
+  diskInfo.pcent = diskRes.data.pcent!;
+  diskInfo.size = diskRes.data.sizeFormattedGb!;
+  diskInfo.used = diskRes.data.usedFormattedGb!;
+};
 
 const record = async () => {
   try {
+    const api = createClient();
     if (isRecording.value) {
       await api.recorder.pauseCreate();
       store.commit(ChannelMutation.Stop);
@@ -157,33 +149,43 @@ const record = async () => {
   }
 };
 
-let thread: undefined | ReturnType<typeof setInterval> = undefined;
+const connector = async (isLoggedIn: boolean) => {
+  if (isLoggedIn) {
+    socket.connect();
 
-const connector = () => {
-  query().then(() => {
+    socket.on(MessageType.HeartBeat, nextUpdate => {
+      heartBeatNextUpdate.value = nextUpdate as number;
+      const id = setInterval(() => {
+        heartBeatNextUpdate.value -= 1;
+        if (heartBeatNextUpdate.value <= 0) {
+          clearInterval(id);
+        }
+      }, 1000);
+    });
+
+    await query();
     // The catch stops the polling when the query is rejected because of 401 unauthorized.
-    thread = setInterval(() => query().catch(() => clearInterval(thread)), 1000 * 10);
-  }).catch(err => {
-    clearInterval(thread);
-  });
+    thread = setInterval(async () => {
+      try {
+        await query();
+      } catch (e) {
+        clearInterval(thread);
+      }
+    }, 1000 * 10);
+
+  } else {
+    socket.close();
+  }
 };
 
 // --------------------------------------------------------------------------------------
-// Hooks
+// Watchers
 // --------------------------------------------------------------------------------------
 
-onMounted(async () => {
-  socket.on(MessageType.HeartBeat, nextUpdate => {
-    heartBeatNextUpdate.value = nextUpdate as number;
-    const id = setInterval(() => {
-      heartBeatNextUpdate.value -= 1;
-      if (heartBeatNextUpdate.value <= 0) {
-        clearInterval(id);
-      }
-    }, 1000);
-  });
+watch(route, () => collapseNav.value = true);
+watch(loggedIn, connector);
 
-  socket.connect();
-  connector();
+onMounted(() => {
+  connector(loggedIn.value);
 });
 </script>

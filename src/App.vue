@@ -1,43 +1,30 @@
 <template>
-  <NavTop v-if="loggedIn" :routes="routes" :title="title" @add="showModal=true" :show-logout="loggedIn" @logout="logout"/>
+  <div>
+    <NavTop v-if="loggedIn" :routes="routes" :title="title" @add="showModal=true" :show-logout="loggedIn" @logout="logout"/>
 
-  <main class="container-fluid" :data-logged-in="loggedIn">
-    <RouterView v-slot="{ Component }">
-      <template v-if="Component">
+    <main class="container-fluid" :data-logged-in="loggedIn">
+      <RouterView v-slot="{ Component }">
         <KeepAlive include="SteamView,ChannelsView,JobView">
-          <suspense>
-            <!-- main content -->
-            <component :is="Component"></component>
-
-            <!-- loading state -->
-            <template #fallback>
-              <div class="d-flex justify-content-center my-3">
-                <div class="text-center">
-                  <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </suspense>
+          <component :is="Component"></component>
         </KeepAlive>
-      </template>
-    </RouterView>
+      </RouterView>
 
-    <ChannelModal
-        :clear="showModal"
-        :show="showModal"
-        :is-paused="false"
-        title="Add Stream"
-        @save="save"
-        @close="showModal=false"/>
+      <ChannelModal
+          v-if="loggedIn"
+          :clear="showModal"
+          :show="showModal"
+          :is-paused="false"
+          title="Add Stream"
+          @save="save"
+          @close="showModal=false"/>
 
-    <Toaster :toasts="toasts"/>
-  </main>
+      <Toaster v-if="loggedIn" :toasts="toasts"/>
+    </main>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onActivated, onMounted, ref, watch } from 'vue';
+import { computed, inject, onMounted, ref, watch } from 'vue';
 import { DatabaseJob, RequestsChannelRequest as ChannelRequest } from './services/api/v1/StreamSinkClient';
 import { createSocket, MessageType } from './utils/socket';
 import ChannelModal from './components/modals/ChannelModal.vue';
@@ -87,9 +74,52 @@ const logout = () => {
   router.push('/login');
 };
 
-const connector = async (loggedIn: boolean) => {
-  if (loggedIn) {
+const loginHandler = async (isLoggedIn: boolean) => {
+  if (isLoggedIn) {
     socket.connect();
+
+    socket.on(MessageType.JobStart, data => {
+      const job = data as TaskInfo;
+      store.commit(JobMutation.Start, job);
+    });
+    // Dispatch
+    socket.on(MessageType.JobCreate, data => {
+      const job = data as DatabaseJob;
+      store.dispatch(JobAction.Create, job);
+      store.commit(ToastMutation.Add, { title: 'Job created', message: `File ${job.filename} in ${job.channelName}` });
+    });
+
+    socket.on(MessageType.JobDestroy, data => {
+      const d = data as TaskInfo;
+      const job = d.job;
+      store.commit(JobMutation.Delete, job);
+      store.commit(ToastMutation.Add, {
+        title: 'Job destroyed',
+        message: `File ${job.filename} in ${job.channelName}`
+      });
+    });
+
+    socket.on(MessageType.JobPreviewDone, data => {
+      const d = data as TaskInfo;
+      const job = d.job;
+      store.dispatch(JobAction.Done, job);
+      store.commit(ToastMutation.Add, { title: 'Job done', message: `File ${job.filename} in ${job.channelName}` });
+    });
+
+    socket.on(MessageType.JobDeleted, data => store.commit(JobMutation.Delete, data));
+    socket.on(MessageType.JobProgress, data => store.commit(JobMutation.Progress, data));
+    socket.on(MessageType.JobPreviewProgress, data => store.commit(JobMutation.Progress, data));
+
+    socket.on(MessageType.ChannelOnline, data => store.commit(ChannelMutation.Online, data));
+    socket.on(MessageType.ChannelOffline, data => store.commit(ChannelMutation.Offline, data));
+    socket.on(MessageType.ChannelThumbnail, data => store.commit(ChannelMutation.Thumbnail, data));
+
+    socket.on(MessageType.ChannelStart, data => {
+      const id = data as number;
+      store.commit(ChannelMutation.Start, id);
+      store.commit(ToastMutation.Add, { title: 'Channel recording', message: `Channel id ${id}` });
+    });
+
     await store.dispatch(JobAction.Load);
   } else {
     socket.close();
@@ -103,51 +133,13 @@ const connector = async (loggedIn: boolean) => {
 const loggedIn = computed(() => store.getters['auth/isLoggedIn']);
 
 // --------------------------------------------------------------------------------------
-// Hooks
+// Watchers
 // --------------------------------------------------------------------------------------
 
-onActivated(async () => {
-  alert('ac')
-  watch(loggedIn, loggedIn => connector(loggedIn));
-  await connector(loggedIn.value);
+watch(loggedIn, isLoggedIn => loginHandler(isLoggedIn));
 
-  socket.on(MessageType.JobStart, data => {
-    const job = data as TaskInfo;
-    store.commit(JobMutation.Start, job);
-  });
-  // Dispatch
-  socket.on(MessageType.JobCreate, data => {
-    const job = data as DatabaseJob;
-    store.dispatch(JobAction.Create, job);
-    store.commit(ToastMutation.Add, { title: 'Job created', message: `File ${job.filename} in ${job.channelName}` });
-  });
-
-  socket.on(MessageType.JobDestroy, data => {
-    const d = data as TaskInfo;
-    const job = d.job;
-    store.commit(JobMutation.Delete, job);
-    store.commit(ToastMutation.Add, { title: 'Job destroyed', message: `File ${job.filename} in ${job.channelName}` });
-  });
-
-  socket.on(MessageType.JobPreviewDone, data => {
-    const d = data as TaskInfo;
-    const job = d.job;
-    store.dispatch(JobAction.Done, job);
-    store.commit(ToastMutation.Add, { title: 'Job done', message: `File ${job.filename} in ${job.channelName}` });
-  });
-  socket.on(MessageType.JobDeleted, data => store.commit(JobMutation.Delete, data));
-  socket.on(MessageType.JobProgress, data => store.commit(JobMutation.Progress, data));
-  socket.on(MessageType.JobPreviewProgress, data => store.commit(JobMutation.Progress, data));
-
-  socket.on(MessageType.ChannelOnline, data => store.commit(ChannelMutation.Online, data));
-  socket.on(MessageType.ChannelOffline, data => store.commit(ChannelMutation.Offline, data));
-  socket.on(MessageType.ChannelThumbnail, data => store.commit(ChannelMutation.Thumbnail, data));
-
-  socket.on(MessageType.ChannelStart, data => {
-    const id = data as number;
-    store.commit(ChannelMutation.Start, id);
-    store.commit(ToastMutation.Add, { title: 'Channel recording', message: `Channel id ${id}` });
-  });
+onMounted(() => {
+  loginHandler(loggedIn.value);
 });
 </script>
 

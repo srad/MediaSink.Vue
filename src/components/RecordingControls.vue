@@ -3,7 +3,7 @@
     <JobStatus :jobs="jobs" :total-count="totalCount"/>
     <button v-if="!props.recording" class="btn btn-info d-flex" @click="emit('record', true)">
       <i class="bi bi-play-fill"></i>
-      <span class="ms-1">{{ t('navtop.startRecording') }}</span>
+      <span class="ms-1 d-none d-sm-inline">{{ t('navtop.startRecording') }}</span>
     </button>
     <button v-else class="btn btn-danger blink d-flex" @click="emit('record', false)">
       <i class="bi bi-stop-fill"></i>
@@ -15,9 +15,11 @@
         {{ t('navtop.addStream') }}
       </span>
     </button>
-    <button v-if="route.name=='Stream'" class="border-success-subtle btn btn-lg shadow-sm btn-success text-white ms-2 d-flex d-md-none position-fixed" style="bottom: 5%; right: 10%; border-radius: 50%;" @click="emit('add')">
-      <i class="bi bi-plus-lg"></i>
+
+    <button v-if="route.name=='Stream'" class="btn btn-lg btn-success shadow-sm border-success-subtle d-md-none position-fixed d-flex justify-content-center align-items-center" style="bottom: 5%; right: 10%; border-radius: 50%; width: 3.5rem; height: 3.5rem;" @click="emit('add')">
+      <i class="bi bi-plus-lg fw-bold"></i>
     </button>
+
     <button v-if="showLogout" type="button" class="ms-2 btn btn-warning" @click="emit('logout')">
       <i class="bi bi-box-arrow-right"></i>
       <span class="d-none d-xl-inline d-flex justify-content-between ms-1">Logout</span>

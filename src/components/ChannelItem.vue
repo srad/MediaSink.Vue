@@ -53,7 +53,6 @@ const { t } = useI18n();
 
 const router = useRouter()
 const store = useStore();
-const api = createClient();
 
 const fileUrl = inject('fileUrl');
 
@@ -68,11 +67,13 @@ const previewVideo = computed(() => fileUrl + '/' + props.channel.preview + '?' 
 // --------------------------------------------------------------------------------------
 
 const fav = async (channel: ChannelInfo) => {
+  const api = createClient();
   await api.channels.favPartialUpdate(channel.channelId!);
   store.commit(ChannelMutation.Fav, channel.channelId);
 };
 
 const unfav = async (channel: ChannelInfo) => {
+  const api = createClient();
   await api.channels.unfavPartialUpdate(channel.channelId!);
   store.commit(ChannelMutation.Unfav, channel.channelId);
 };
@@ -80,6 +81,7 @@ const unfav = async (channel: ChannelInfo) => {
 const destroyChannel = async (channel: ChannelInfo) => {
   if (window.confirm(t('crud.destroy', [ channel.channelName ]))) {
     try {
+      const api = createClient();
       busy.value = true;
       await api.channels.channelsDelete(channel.channelId!);
       destroyed.value = true;
@@ -96,6 +98,7 @@ const destroyChannel = async (channel: ChannelInfo) => {
 
 const pause = async (channel: ChannelInfo) => {
   try {
+    const api = createClient();
     busy.value = true;
     const method = channel.isPaused ? api.channels.resumeCreate : api.channels.pauseCreate;
     await method(channel.channelId!);
