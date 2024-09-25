@@ -158,6 +158,10 @@ export interface ResponsesImportInfoResponse {
     size?: number;
 }
 
+export interface ResponsesJobWorkerStatus {
+    isProcessing: boolean;
+}
+
 export interface ResponsesJobsResponse {
     jobs?: DatabaseJob[];
     skip: number;
@@ -579,6 +583,38 @@ export namespace Jobs {
     }
 
     /**
+     * @description Stops the job processing
+     * @tags jobs
+     * @name PauseCreate
+     * @summary Stops the job processing
+     * @request POST:/jobs/pause
+     * @response `200` `any` OK
+     */
+    export namespace PauseCreate {
+        export type RequestParams = {};
+        export type RequestQuery = {};
+        export type RequestBody = never;
+        export type RequestHeaders = {};
+        export type ResponseBody = any;
+    }
+
+    /**
+     * @description Start the job processing
+     * @tags jobs
+     * @name ResumeCreate
+     * @summary Start the job processing
+     * @request POST:/jobs/resume
+     * @response `200` `any` OK
+     */
+    export namespace ResumeCreate {
+        export type RequestParams = {};
+        export type RequestQuery = {};
+        export type RequestBody = never;
+        export type RequestHeaders = {};
+        export type ResponseBody = any;
+    }
+
+    /**
      * @description Interrupt job gracefully
      * @tags jobs
      * @name StopCreate
@@ -597,6 +633,22 @@ export namespace Jobs {
         export type RequestBody = never;
         export type RequestHeaders = {};
         export type ResponseBody = void;
+    }
+
+    /**
+     * @description Job worker status
+     * @tags jobs
+     * @name WorkerList
+     * @summary Job worker status
+     * @request GET:/jobs/worker
+     * @response `200` `ResponsesJobWorkerStatus` OK
+     */
+    export namespace WorkerList {
+        export type RequestParams = {};
+        export type RequestQuery = {};
+        export type RequestBody = never;
+        export type RequestHeaders = {};
+        export type ResponseBody = ResponsesJobWorkerStatus;
     }
 
     /**
@@ -1550,6 +1602,38 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
             }),
 
         /**
+         * @description Stops the job processing
+         *
+         * @tags jobs
+         * @name PauseCreate
+         * @summary Stops the job processing
+         * @request POST:/jobs/pause
+         * @response `200` `any` OK
+         */
+        pauseCreate: (params: RequestParams = {}) =>
+            this.http.request<any, any>({
+                path: `/jobs/pause`,
+                method: "POST",
+                ...params,
+            }),
+
+        /**
+         * @description Start the job processing
+         *
+         * @tags jobs
+         * @name ResumeCreate
+         * @summary Start the job processing
+         * @request POST:/jobs/resume
+         * @response `200` `any` OK
+         */
+        resumeCreate: (params: RequestParams = {}) =>
+            this.http.request<any, any>({
+                path: `/jobs/resume`,
+                method: "POST",
+                ...params,
+            }),
+
+        /**
          * @description Interrupt job gracefully
          *
          * @tags jobs
@@ -1565,6 +1649,23 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
                 path: `/jobs/stop/${pid}`,
                 method: "POST",
                 type: ContentType.Json,
+                ...params,
+            }),
+
+        /**
+         * @description Job worker status
+         *
+         * @tags jobs
+         * @name WorkerList
+         * @summary Job worker status
+         * @request GET:/jobs/worker
+         * @response `200` `ResponsesJobWorkerStatus` OK
+         */
+        workerList: (params: RequestParams = {}) =>
+            this.http.request<ResponsesJobWorkerStatus, any>({
+                path: `/jobs/worker`,
+                method: "GET",
+                format: "json",
                 ...params,
             }),
 
@@ -1643,6 +1744,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
             this.http.request<ResponsesRecordingStatusResponse, void>({
                 path: `/recorder`,
                 method: "GET",
+                format: "json",
                 ...params,
             }),
 

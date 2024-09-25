@@ -1,9 +1,33 @@
 <template>
   <div>
+    <ModalConfirmDialog :show="showConfirmToggleWorkerDialog" @cancel="showConfirmToggleWorkerDialog=false" @confirm="toggleWorker">
+      <template #header>
+        <div class="d-flex justify-content-between">
+          <h5 class="modal-title">
+            <span v-if="processingJobs">Pause job worker?</span>
+            <span v-else>Resume job worker?</span>
+          </h5>
+        </div>
+      </template>
+      <template #body>
+        <span v-if="processingJobs">
+          Do you want to pause the job worker?
+        </span>
+        <span v-else>
+          Do you want to resume the job worker?
+        </span>
+      </template>
+    </ModalConfirmDialog>
     <div class="row mb-2">
       <div class="col">
         <div class="d-flex justify-content-end">
-          <div class="d-flex justify-content-center me-2">
+          <div class="d-flex justify-content-center">
+            <div class="col-auto">
+              <button type="button" class="btn me-2" :class="{'btn-success': !processingJobs, 'btn-danger': processingJobs}" @click="showConfirmToggleWorkerDialog=true">
+                <span v-if="processingJobs"><i class="bi bi-pause-fill blink"/> <span class="ms-1 d-none d-sm-inline-flex">Pause</span></span>
+                <span v-else><i class="bi bi-play-fill"/> <span class="ms-1 d-none d-sm-inline-flex">Resume</span></span>
+              </button>
+            </div>
             <!-- filter row -->
             <div class="row align-items-center">
               <div class="col-auto">
@@ -110,7 +134,8 @@ import { Tab } from 'bootstrap';
 import { useI18n } from 'vue-i18n';
 import { useStore } from '../store';
 import { JobMutation } from '../store/modules/job.ts';
-import { useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter } from 'vue-router';
+import ModalConfirmDialog from '../components/modals/ModalConfirmDialog.vue';
 
 const { t } = useI18n();
 
@@ -118,6 +143,8 @@ const store = useStore();
 const route = useRoute();
 const router = useRouter();
 const processes = ref<ProcessInfo[]>([]);
+const processingJobs = ref(true);
+const showConfirmToggleWorkerDialog = ref(false);
 
 export interface JobTableItem extends DatabaseJob {
   fromNow?: string;
@@ -147,22 +174,23 @@ const getData = async () => {
     api.jobs.listCreate({
       skip: skip.value,
       take: take.value,
-      states: [ DatabaseJobStatus.StatusJobOpen ],
+      states: [DatabaseJobStatus.StatusJobOpen],
       sortOrder: DatabaseJobOrder.JobOrderASC
     }),
     api.jobs.listCreate({
       skip: skip.value,
       take: take.value,
-      states: [ DatabaseJobStatus.StatusJobCompleted ],
+      states: [DatabaseJobStatus.StatusJobCompleted],
       sortOrder: DatabaseJobOrder.JobOrderDESC
     }),
     api.jobs.listCreate({
       skip: skip.value,
       take: take.value,
-      states: [ DatabaseJobStatus.StatusJobCanceled, DatabaseJobStatus.StatusJobCanceled, DatabaseJobStatus.StatusJobError ],
+      states: [DatabaseJobStatus.StatusJobCanceled, DatabaseJobStatus.StatusJobCanceled, DatabaseJobStatus.StatusJobError],
       sortOrder: DatabaseJobOrder.JobOrderDESC
     }),
-    api.processes.processesList()
+    api.processes.processesList(),
+    api.jobs.workerList(),
   ]);
 
   promise.then(res => {
@@ -170,6 +198,7 @@ const getData = async () => {
     const completed = res[1];
     const others = res[2];
     const process = res[3];
+    const jobWorker = res[4];
 
     if (open.data.jobs) {
       store.commit(JobMutation.Refresh, { jobs: open.data.jobs, totalCount: open.data.totalCount });
@@ -184,6 +213,7 @@ const getData = async () => {
     }
 
     processes.value = process.data || [];
+    processingJobs.value = jobWorker.data.isProcessing;
   });
 };
 
@@ -223,6 +253,16 @@ const selectTab = () => {
     tabItem.classList.add('show');
     tabItem.classList.add('active');
   }
+};
+
+const toggleWorker = () => {
+  const api = createClient();
+  const fn = processingJobs.value ? api.jobs.pauseCreate : api.jobs.resumeCreate;
+
+  fn().then(() => {
+    processingJobs.value = !processingJobs.value;
+  }).catch(res => alert(res.error))
+      .finally(() => showConfirmToggleWorkerDialog.value = false);
 };
 
 watch(route, selectTab);
