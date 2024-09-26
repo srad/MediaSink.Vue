@@ -18,7 +18,7 @@
       </span>
       <span v-if="props.recording.videoType==='cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
       <RouterLink :to="link">
-        <Preview class="card-img-top" :data="recording.recordingId" :preview-video="previewVideoUrl"/>
+        <Preview class="card-img-top" :data="recording.recordingId" :preview-video="previewVideoUrl" :preview-image="previewPosterUrl" :preview-missing="!props.recording.previewCover"/>
       </RouterLink>
     </div>
     <div v-if="props.showTitle" class="card-body">
@@ -55,6 +55,7 @@ import { DatabaseRecording as RecordingResponse } from '../services/api/v1/Strea
 import { createClient } from '../services/api/v1/ClientFactory';
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
+import { channel } from "node:diagnostics_channel";
 
 // --------------------------------------------------------------------------------------
 // Emits
@@ -89,6 +90,8 @@ const apiUrl = inject('apiUrl');
 const fileUrl = inject('fileUrl');
 
 const previewVideoUrl = `${fileUrl}/${props.recording.previewVideo}`;
+// TODO: Pass a default image from the server, if the preview image is missing.
+const previewPosterUrl = `${fileUrl}/${(props.recording.previewCover|| (props.recording.channelName + '/.previews/live.jpg'))}`;
 const recordingUrl = `${apiUrl + props.recording.channelName}/${props.recording.filename}`;
 
 const { t } = useI18n();

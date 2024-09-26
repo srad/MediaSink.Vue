@@ -46,6 +46,7 @@ const _mutation = {
   Delete: 'delete',
   Progress: 'progress',
   Refresh: 'refresh',
+  DeleteChannel: 'deleteChannel',
 };
 
 export const JobMutation = {
@@ -58,6 +59,7 @@ export const JobMutation = {
   Delete: 'job/delete',
   Progress: 'job/progress',
   Refresh: 'job/refresh',
+  DeleteChannel: 'job/deleteChannel',
 };
 
 export const module: Module<JobState, State> = {
@@ -87,7 +89,7 @@ export const module: Module<JobState, State> = {
     // Just load 100 jobs for the initial state.
     async [_action.Load]({ commit }) {
       const api = createClient();
-      const res = await api.jobs.listCreate({ skip: 0, take: 100, states: [DatabaseJobStatus.StatusJobOpen], sortOrder: DatabaseJobOrder.JobOrderASC });
+      const res = await api.jobs.listCreate({ skip: 0, take: 100, states: [ DatabaseJobStatus.StatusJobOpen ], sortOrder: DatabaseJobOrder.JobOrderASC });
       commit(_mutation.Update, { jobs: res.data.jobs || [], totalCount: res.data.totalCount });
     }
   },
@@ -146,6 +148,9 @@ export const module: Module<JobState, State> = {
     },
     [_mutation.Delete](state: JobState, jobId: number) {
       state.jobs = state.jobs.filter(x => x.jobId !== jobId);
+    },
+    [_mutation.DeleteChannel](state: JobState, channelId: number) {
+      state.jobs = state.jobs.filter(x => x.channelId !== channelId);
     },
   }
 };

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <LoadIndicator :busy="busy">
     <BusyOverlay :visible="busyOverlay"/>
     <div ref="upload" style="display: none" class="modal modal-dialog modal-dialog-centered" tabindex="-1">
       <div class="modal-dialog">
@@ -75,11 +75,17 @@
       </div>
     </nav>
 
-    <div class="row pb-5">
-      <div class="d-flex align-middle fs-5 mb-3 fw-bolder">
-        <span class="text-primary">{{ route.params.name }}</span>
+    <div class="d-flex align-items-center mb-3 justify-content-between pb-2 border-bottom">
+      <div class="text-primary  fs-5 fw-bolder">{{ channel?.displayName }}</div>
+      <div class="d-flex align-items-center fs-5">
+        <button type="button" class="btn btn-secondary" disabled>Count: {{ channel?.recordingsCount }}</button>
+        <button type="button" class="btn btn-secondary ms-2" disabled>
+          Size: {{ (channel?.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB
+        </button>
       </div>
+    </div>
 
+    <div class="row mb-5">
       <div v-for="recording in channel?.recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
         <RecordingItem
             @destroyed="destroyRecording"
@@ -90,7 +96,7 @@
             :show-title="false"/>
       </div>
     </div>
-  </div>
+  </LoadIndicator>
 </template>
 
 <script setup lang="ts">
@@ -103,12 +109,13 @@ import {
   DatabaseRecording as RecordingResponse
 } from '../services/api/v1/StreamSinkClient';
 import { AxiosError, CancelTokenSource } from 'axios';
-import { useRoute, useRouter } from 'vue-router';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useStore } from '../store';
-import { createSocket, MessageType } from '../utils/socket.ts';
+import { createSocket, MessageType, SocketManager } from '../utils/socket.ts';
 import BusyOverlay from '../components/BusyOverlay.vue';
 import { ToastMutation } from '../store/modules/toast.ts';
 import { ChannelMutation } from "../store/modules/channel.ts";
+import LoadIndicator from "../components/LoadIndicator.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -125,6 +132,7 @@ const upload = ref<HTMLDivElement | null>(null);
 const selectedRecordings = ref<RecordingResponse[]>([]);
 const uploadProgress = ref(0);
 const busyOverlay = ref(false);
+const busy = ref(true);
 const channel = ref<ChannelResponse | null>(null);
 const channelId = (+route.params.id) as unknown as number;
 let cancellationToken: CancelTokenSource | null = null;
@@ -248,14 +256,20 @@ const bookmark = () => {
       .catch(err => store.commit('error', err));
 };
 
+let socket: SocketManager | null = null;
+
 // --------------------------------------------------------------------------------------
 // Hooks
 // --------------------------------------------------------------------------------------
 
+onBeforeRouteLeave((to, from) => {
+  socket?.close();
+})
+
 onMounted(async () => {
   try {
-    const socket = createSocket();
-    socket.connect();
+    socket = createSocket();
+    socket?.connect();
 
     socket.on(MessageType.RecordingAdd, recording => {
       const r = recording as DatabaseRecording;
@@ -267,6 +281,7 @@ onMounted(async () => {
     const api = createClient();
     const res = await api.channels.channelsDetail(channelId);
     channel.value = res.data;
+    busy.value = false;
   } catch (error: any) {
     const err = error as AxiosError;
     alert(err.response?.data);

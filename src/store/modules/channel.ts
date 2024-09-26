@@ -2,6 +2,7 @@ import { RequestsChannelRequest as ChannelRequest, ServicesChannelInfo as Channe
 import { createClient } from '../../services/api/v1/ClientFactory.ts';
 import { State } from '../index.ts';
 import { Module } from 'vuex';
+import { JobMutation } from "./job.ts";
 
 export interface ChannelState {
   channels: ChannelInfo[];
@@ -9,10 +10,12 @@ export interface ChannelState {
 
 export const ChannelAction = {
   Save: 'channel/save',
+  Destroy: 'channel/destroy',
 };
 
 const _action = {
   Save: 'save',
+  Destroy: 'destroy',
 };
 
 export const ChannelMutation = {
@@ -63,6 +66,10 @@ export const module: Module<ChannelState, State> = {
           })
           .catch(res => reject(res.error));
       });
+    },
+    [_action.Destroy]({ commit }, channelId: number) {
+      store.commit(ChannelMutation.Destroy, channelId);
+      store.commit(JobMutation.DeleteChannel, channelId);
     }
   },
   mutations: {
@@ -110,11 +117,8 @@ export const module: Module<ChannelState, State> = {
           });
       }
     },
-    [_mutation.Destroy](state: ChannelState, id: number) {
-      const i = state.channels.findIndex(c => c.channelId === id);
-      if (i !== -1) {
-        state.channels.splice(i, 1);
-      }
+    [_mutation.Destroy](state: ChannelState, channelId: number) {
+      state.channels = state.channels.filter(x => x.channelId !== channelId);
     },
     [_mutation.Pause](state: ChannelState, channelId: number) {
       const i = state.channels.findIndex(c => c.channelId === channelId);

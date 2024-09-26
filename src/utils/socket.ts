@@ -1,13 +1,12 @@
 import AuthService from '../services/auth.service.ts';
-import { Exception } from "sass";
 
-class SocketManager {
+export class SocketManager {
   private connection: WebSocket | null = null;
   private listeners: { [key: string]: ((data: Object) => void)[] } = {};
   private static readonly socketUrl: string = import.meta.env.SSR ? import.meta.env.VITE_VUE_APP_SOCKETURL : window.VUE_APP_SOCKETURL;
 
   connect() {
-    if (this.connection) {
+    if (this.connection !== null) {
       return;
     }
 
@@ -61,7 +60,7 @@ class SocketManager {
   }
 }
 
-export const createSocket = () => {
+export const createSocket: SocketManager = () => {
   return new SocketManager();
 };
 

@@ -1,17 +1,13 @@
 <template>
-  <div class="preview-container">
-    <svg v-if="errorLoad" width="100%" height="100%" @click="emit('selected', props.data)">
-      <rect width="100%" height="100%" fill="lightgrey"/>
-      <text x="50%" y="50%" font-size="1.5em" text-anchor="middle">No Preview</text>
-    </svg>
-    <img v-if="previewImage && !errorLoad"
-         :src="previewImage"
-         alt="preview"
-         @error="errorLoadImage($event)"
-         @click="emit('selected', props.data)"/>
-    <video v-if="previewVideo"
+  <div class="preview-container d-flex justify-content-center align-items-center" style="height: 165px">
+    <div v-if="previewMissing">
+      <LoadIndicator busy="true"/>
+      <div style="text-decoration: none !important;">Generating preview</div>
+    </div>
+    <video v-else
+           :poster="previewImage"
            ref="video"
-           style="user-select: none; z-index: -1"
+           style="user-select: none; z-index: 0;"
            @error="errorLoadImage"
            @contextmenu="context($event)"
            loop muted playsinline
@@ -27,6 +23,7 @@
 
 <script setup lang="ts">
 import { defineEmits, defineProps, ref } from 'vue';
+import LoadIndicator from "./LoadIndicator.vue";
 
 const emit = defineEmits<{ (e: 'selected', value: string | number): void }>();
 
@@ -37,6 +34,7 @@ const errorLoad = ref(false);
 const props = defineProps<{
   data: string | number
   previewImage?: string
+  previewMissing?: boolean
   previewVideo?: string
 }>();
 
@@ -46,6 +44,7 @@ const hoverVideo = async (event: any) => {
   if (video.value) {
     video.value.playbackRate = 16;
     await video.value.play();
+    video.value?.removeAttribute('poster');
   }
 };
 
@@ -56,7 +55,6 @@ const errorLoadImage = (event: Event) => errorLoad.value = true;
 
 <style scoped>
 .preview-container img, .preview-container video {
-  /*position: relative;*/
   width: 100%;
   height: auto;
   vertical-align: middle;
