@@ -102,7 +102,7 @@ import {
   DatabaseChannel as ChannelResponse,
   DatabaseRecording as RecordingResponse
 } from '../services/api/v1/StreamSinkClient';
-import { CancelTokenSource } from 'axios';
+import { AxiosError, CancelTokenSource } from 'axios';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '../store';
 import { createSocket, MessageType } from '../utils/socket.ts';
@@ -189,7 +189,10 @@ const deleteChannel = () => {
         .catch(err => alert(err))
         .finally(() => {
           busyOverlay.value = false;
-          store.commit(ToastMutation.Add, { title: 'Channel deleted', message: `Channel ${channel.value?.displayName}` });
+          store.commit(ToastMutation.Add, {
+            title: 'Channel deleted',
+            message: `Channel ${channel.value?.displayName}`
+          });
           router.replace('/');
         });
   }
@@ -250,19 +253,23 @@ const bookmark = () => {
 // --------------------------------------------------------------------------------------
 
 onMounted(async () => {
-  const socket = createSocket();
+  try {
+    const socket = createSocket();
+    socket.connect();
 
-  socket.on(MessageType.RecordingAdd, recording => {
-    const r = recording as DatabaseRecording;
-    console.log(r);
-  });
+    socket.on(MessageType.RecordingAdd, recording => {
+      const r = recording as DatabaseRecording;
+      console.log(r);
+    });
 
-  socket.connect();
+    window.scrollTo(0, 0);
 
-  window.scrollTo(0, 0);
-
-  const api = createClient();
-  const res = await api.channels.channelsDetail(channelId);
-  channel.value = res.data;
+    const api = createClient();
+    const res = await api.channels.channelsDetail(channelId);
+    channel.value = res.data;
+  } catch (err: AxiosError) {
+    alert(err.response?.data);
+    router.back();
+  }
 });
 </script>
