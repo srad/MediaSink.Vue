@@ -267,7 +267,8 @@ onMounted(async () => {
     const api = createClient();
     const res = await api.channels.channelsDetail(channelId);
     channel.value = res.data;
-  } catch (err: AxiosError) {
+  } catch (error: any) {
+    const err = error as AxiosError;
     alert(err.response?.data);
     router.back();
   }
