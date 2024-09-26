@@ -60,7 +60,7 @@ export class SocketManager {
   }
 }
 
-export const createSocket: SocketManager = () => {
+export const createSocket = () => {
   return new SocketManager();
 };
 

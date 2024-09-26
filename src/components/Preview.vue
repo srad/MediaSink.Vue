@@ -1,7 +1,7 @@
 <template>
   <div class="preview-container d-flex justify-content-center align-items-center" style="height: 165px">
     <div v-if="previewMissing">
-      <LoadIndicator busy="true"/>
+      <LoadIndicator :busy="true"/>
       <div style="text-decoration: none !important;">Generating preview</div>
     </div>
     <video v-else

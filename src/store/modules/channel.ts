@@ -68,8 +68,8 @@ export const module: Module<ChannelState, State> = {
       });
     },
     [_action.Destroy]({ commit }, channelId: number) {
-      store.commit(ChannelMutation.Destroy, channelId);
-      store.commit(JobMutation.DeleteChannel, channelId);
+      commit(ChannelMutation.Destroy, channelId);
+      commit(JobMutation.DeleteChannel, channelId);
     }
   },
   mutations: {

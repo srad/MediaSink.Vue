@@ -80,7 +80,7 @@
       <div class="d-flex align-items-center fs-5">
         <button type="button" class="btn btn-secondary" disabled>Count: {{ channel?.recordingsCount }}</button>
         <button type="button" class="btn btn-secondary ms-2" disabled>
-          Size: {{ (channel?.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB
+          Size: {{ (channel?.recordingsSize! / 1024 / 1024 / 1024).toFixed(1) }}GB
         </button>
       </div>
     </div>
