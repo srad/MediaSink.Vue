@@ -1,21 +1,20 @@
 <template>
-  <div class="preview-container d-flex justify-content-center align-items-center" style="height: 165px">
-    <div v-if="previewMissing">
-      <LoadIndicator :busy="true"/>
-      <div style="text-decoration: none !important;">Generating preview</div>
-    </div>
-    <video v-else
-           :poster="previewImage"
-           ref="video"
+  <div class="d-flex position-relative justify-content-center align-items-center">
+    <span v-if="previewMissing" class="position-absolute text-warning" style="z-index: 1;text-shadow: -1px 0 black, 0 2px black, 2px 0 black, 0 -1px black;">
+      Preview not generated ...
+    </span>
+    <video ref="video" loop muted playsinline
+           class="w-100 h-auto"
+           :class="{missing: previewMissing}"
            style="user-select: none; z-index: 0;"
-           @error="errorLoadImage"
-           @contextmenu="context($event)"
-           loop muted playsinline
+           :poster="previewImage"
            @click="emit('selected', props.data)"
-           @touchstart="hoverVideo($event)"
-           @touchend="leaveVideo($event)"
+           @contextmenu="context($event)"
+           @error="errorLoadImage"
+           @mouseleave="leaveVideo($event)"
            @mouseover="hoverVideo($event)"
-           @mouseleave="leaveVideo($event)">
+           @touchend="leaveVideo($event)"
+           @touchstart="hoverVideo($event)">
       <source :src="previewVideo">
     </video>
   </div>
@@ -59,5 +58,8 @@ const errorLoadImage = (event: Event) => errorLoad.value = true;
   height: auto;
   vertical-align: middle;
   z-index: -1;
+}
+video.missing {
+  filter: blur(4px);clip-path: inset(0);
 }
 </style>

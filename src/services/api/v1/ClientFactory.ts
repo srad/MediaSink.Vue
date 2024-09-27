@@ -5,9 +5,6 @@ import AuthService, { AuthHeader } from "../../auth.service.ts";
 
 const apiUrl = window.VUE_APP_APIURL;
 
-// The type annotations of swagger-gen for baseApiParams are wrong.
-// That's the reason for couple of ts-ignores.
-
 const unauthorizedInterceptor = (error: any) => {
   if (error.config.url !== '/auth/login' && error.response && error.response.status === 401) {
     AuthService.logout();
@@ -20,7 +17,7 @@ export class MyClient extends StreamSinkClient<any> {
   constructor(header: AuthHeader | null) {
     const client = new HttpClient({
       baseURL: apiUrl,
-      headers: {...header},
+      headers: { ...header },
     });
     client.instance.interceptors.response.use(value => value, unauthorizedInterceptor);
     super(client);
@@ -38,7 +35,7 @@ export class MyClient extends StreamSinkClient<any> {
     const formData = new FormData();
     formData.append('file', file);
 
-    return [ axios.post(`${apiUrl}/channels/${channelId}/upload`, formData, {
+    return [ this.http.instance.post(`${apiUrl}/channels/${channelId}/upload`, formData, {
       cancelToken: source.token,
       headers: { 'Content-Type': 'multipart/form-data', ...header },
       onUploadProgress: progressEvent => progressEvent.total ? progress(progressEvent.loaded / progressEvent.total) : 0
@@ -50,10 +47,7 @@ export class MyClient extends StreamSinkClient<any> {
    * although the returned data look fine in the browser.
    */
   async isRecording(): Promise<boolean> {
-    const header = AuthService.getAuthHeader();
-    //@ts-ignore
-    const res = await axios.get<ResponsesRecordingStatusResponse>(`${apiUrl}/recorder`, { headers: header || {} });
-    //@ts-ignore
+    const res = await this.http.instance.get<ResponsesRecordingStatusResponse>(`${apiUrl}/recorder`);
     return res.data.isRecording;
   }
 }
