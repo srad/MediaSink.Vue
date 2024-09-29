@@ -1,6 +1,6 @@
 <template>
   <div class="table-responsive">
-    <table class="table bg-white table-bordered">
+    <table class="table table-sm bg-white table-bordered">
       <thead class="bg-light">
       <tr>
         <th class="bg-light p-2" style="max-width: 5%">#</th>
@@ -13,8 +13,11 @@
           }}
         </th>
         <th class="bg-light p-2 align-bottom  d-none d-lg-table-cell" style="width:20%">Command</th>
-        <th class="bg-light p-2 align-bottom" style="width:10%">{{ t('jobTable.col.progress') }}</th>
-        <th class="bg-light p-2 align-bottom" style="width:10%">{{ t('jobTable.col.created') }}</th>
+        <th v-if="showProgress" class="bg-light p-2 align-bottom" style="width:10%">{{ t('jobTable.col.progress') }}</th>
+        <th class="bg-light p-2 align-bottom" style="width:10%">{{ t('jobTable.col.createdAt') }}</th>
+        <th class="bg-light p-2 align-bottom" style="width:10%">{{ t('jobTable.col.startedAt') }}</th>
+        <th class="bg-light p-2 align-bottom" style="width:10%">{{ t('jobTable.col.completedAt') }}</th>
+        <th class="bg-light p-2 align-bottom" style="width:10%">{{ t('jobTable.col.duration') }}</th>
         <th class="bg-light p-2 align-bottom" style="width:5%">{{ t('jobTable.col.destroy') }}</th>
       </tr>
       </thead>
@@ -44,15 +47,15 @@
           <span class="text-capitalize">{{ job.task }}</span>
         </td>
         <td class="p-1 d-none d-lg-table-cell">
-          <span class="text-capitalize badge p-2" :class="{'bg-primary': job.status===DatabaseJobStatus.StatusJobOpen, 'bg-danger blink': job.active, 'bg-success': job.status===DatabaseJobStatus.StatusJobCompleted, 'bg-warning': job.status===DatabaseJobStatus.StatusJobCanceled, 'bg-danger' : job.status===DatabaseJobStatus.StatusJobError}">
+          <div class="text-capitalize badge p-2" :class="{'bg-primary': job.status===DatabaseJobStatus.StatusJobOpen, 'bg-danger blink': job.active, 'bg-success': job.status===DatabaseJobStatus.StatusJobCompleted, 'bg-warning': job.status===DatabaseJobStatus.StatusJobCanceled, 'bg-danger' : job.status===DatabaseJobStatus.StatusJobError}">
             <span v-if="job.status===DatabaseJobStatus.StatusJobOpen && job.active">Working</span>
             <span v-else>{{ job.status }}</span>
-          </span>
+          </div>
         </td>
         <td class="p-1 d-none d-lg-table-cell">
           <input type="text" class="form-control border-dark rounded-0" style="font-size: 0.8rem; font-family: monospace" disabled :value="job.command"/>
         </td>
-        <td class="p-1">
+        <td v-if="showProgress" class="p-1">
           <div v-if="job.active" class="progress">
             <div class="progress-bar progress-bar-striped bg-info progress-bar-animated" role="progressbar" :style="'width:'+ job.progress + '%'" :aria-valuenow="job.progress" aria-valuemin="0" :aria-valuemax="100"></div>
           </div>
@@ -60,7 +63,10 @@
             {{ job.info }}
           </div>
         </td>
-        <td class="p-1">{{ job.fromNow }}</td>
+        <td class="p-1">{{ job.createdAtFromNow }}</td>
+        <td class="p-1">{{ job.startedFromNow }}</td>
+        <td class="p-1">{{ job.completedAtFromNow }}</td>
+        <td class="p-1">{{ job.jobDuration }}</td>
         <td class="p-1">
           <div class="btn-group-sm btn-group w-100">
             <button class="btn btn-outline-danger btn-sm" @click="emit('destroy', job.jobId)">Destroy</button>
@@ -94,6 +100,7 @@ const emit = defineEmits<{
 const props = defineProps<{
   jobs: JobTableItem[];
   totalCount: number;
+  showProgress: boolean;
 }>();
 </script>
 

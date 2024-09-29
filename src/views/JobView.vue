@@ -49,7 +49,7 @@
     <ul class="nav nav-tabs my-2" id="pills-tab" role="tablist">
       <li class="nav-item" role="presentation">
         <button data-tab="general" class="nav-link" id="pills-open-tab" data-bs-toggle="pill" data-bs-target="#pills-open" type="button" role="tab" aria-controls="pills-open" aria-selected="true">
-          {{ t('general.jobs') }} (open)
+          {{ t('general.jobs') }} <i class="bi bi-arrow-clockwise"/>
         </button>
       </li>
       <li class="nav-item" role="presentation">
@@ -71,15 +71,15 @@
     </ul>
     <div class="tab-content" id="pills-tabContent">
       <div data-tab="general" class="tab-pane fade" id="pills-open" role="tabpanel" aria-labelledby="pills-open-tab">
-        <JobTable :jobs="itemsOpen" @destroy="destroy" :total-count="itemsCount"/>
+        <JobTable :jobs="itemsOpen" @destroy="destroy" :total-count="itemsCount" :show-progress="true"/>
       </div>
 
       <div data-tab="completed" class="tab-pane fade" id="pills-completed" role="tabpanel" aria-labelledby="pills-completed-tab">
-        <JobTable :jobs="itemsCompleted" @destroy="destroy" :total-count="itemsCompletedCount"/>
+        <JobTable :jobs="itemsCompleted" @destroy="destroy" :total-count="itemsCompletedCount" :show-progress="false"/>
       </div>
 
       <div data-tab="other" class="tab-pane fade" id="pills-other" role="tabpanel" aria-labelledby="pills-other-tab">
-        <JobTable :jobs="itemsOther" @destroy="destroy" :total-count="itemsCompletedCount"/>
+        <JobTable :jobs="itemsOther" @destroy="destroy" :total-count="itemsCompletedCount" :show-progress="false"/>
       </div>
 
       <div data-tab="streams" class="tab-pane fade" id="pills-processes" role="tabpanel" aria-labelledby="pills-processes-tab">
@@ -148,7 +148,10 @@ const processingJobs = ref(true);
 const showConfirmToggleWorkerDialog = ref(false);
 
 export interface JobTableItem extends DatabaseJob {
-  fromNow?: string;
+  createdAtFromNow: string;
+  startedFromNow?: string;
+  completedAtFromNow?: string;
+  jobDuration?: string;
 }
 
 const skip = ref(0);
@@ -219,8 +222,19 @@ const getData = async () => {
 };
 
 const addFromNowToJob = (job: DatabaseJob): JobTableItem => {
-  const newJob: JobTableItem = { ...job };
-  newJob.fromNow = fromNow(Date.parse(newJob.createdAt));
+  const newJob: JobTableItem = {
+    createdAtFromNow: fromNow(Date.parse(job.createdAt)),
+    startedFromNow: job.startedAt ? fromNow(Date.parse(job.startedAt)) : '-',
+    completedAtFromNow: job.completedAt ? fromNow(Date.parse(job.completedAt)) : '-',
+    ...job
+  };
+
+  if (job.completedAt && job.startedAt) {
+    const end = Date.parse(job.completedAt);
+    const start = Date.parse(job.startedAt);
+    const diffMS = end - start;
+    newJob.jobDuration = `${(diffMS / 1000 / 60).toFixed(1)}min`;
+  }
   return newJob;
 };
 

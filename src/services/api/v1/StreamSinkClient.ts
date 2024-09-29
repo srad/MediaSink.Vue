@@ -35,6 +35,7 @@ export interface DatabaseJob {
     /** Unique entry, this is the actual primary key */
     channelName: string;
     command?: string;
+    completedAt: string;
     createdAt: string;
     filename: string;
     info?: string;
@@ -44,6 +45,7 @@ export interface DatabaseJob {
     pid?: number;
     progress?: string;
     recordingId: number;
+    startedAt: string;
     status: DatabaseJobStatus;
     /** Default values only not to break migrations. */
     task: DatabaseJobTask;
