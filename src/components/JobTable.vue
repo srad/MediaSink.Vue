@@ -1,10 +1,10 @@
 <template>
   <div class="table-responsive">
-    <table class="table table-sm bg-white table-bordered">
+    <table class="table bg-white table-bordered">
       <thead class="bg-light">
       <tr>
-        <th class="bg-light p-2" style="width: 5%">#</th>
-        <th class="bg-light p-2" style="width: 5%">{{ t('jobTable.col.pid') }}</th>
+        <th class="bg-light p-2" style="max-width: 5%">#</th>
+        <th class="bg-light p-2" style="width: 7%;min-width: 100px">{{ t('jobTable.col.pid') }}</th>
         <th class="bg-light p-2" style="width: 10%">{{ t('jobTable.col.channel') }}</th>
         <th class="bg-light p-2 align-bottom" style="width: 10%">{{ t('jobTable.col.file') }}</th>
         <th class="bg-light p-2 align-bottom d-none d-lg-table-cell" style="width: 5%">{{ t('jobTable.col.task') }}</th>
@@ -12,14 +12,14 @@
             t('jobTable.col.status')
           }}
         </th>
-        <th class="bg-light p-2 align-bottom" style="width:20%">Command</th>
+        <th class="bg-light p-2 align-bottom  d-none d-lg-table-cell" style="width:20%">Command</th>
         <th class="bg-light p-2 align-bottom" style="width:10%">{{ t('jobTable.col.progress') }}</th>
         <th class="bg-light p-2 align-bottom" style="width:10%">{{ t('jobTable.col.created') }}</th>
         <th class="bg-light p-2 align-bottom" style="width:5%">{{ t('jobTable.col.destroy') }}</th>
       </tr>
       </thead>
       <tbody>
-      <tr class="align-top" :key="i" v-for="(job, i) in props.jobs" :class="{'table-success': job.active}">
+      <tr class="align-middle" :key="i" v-for="(job, i) in props.jobs" :class="{'table-success': job.active}">
         <td class="text-end p-2">
           {{ i + 1 }}
         </td>
@@ -40,19 +40,17 @@
           </RouterLink>
         </td>
 
-        <td class="p-1">
+        <td class="p-1 d-none d-lg-table-cell">
           <span class="text-capitalize">{{ job.task }}</span>
         </td>
-        <td class="p-1">
+        <td class="p-1 d-none d-lg-table-cell">
           <span class="text-capitalize badge p-2" :class="{'bg-primary': job.status===DatabaseJobStatus.StatusJobOpen, 'bg-danger blink': job.active, 'bg-success': job.status===DatabaseJobStatus.StatusJobCompleted, 'bg-warning': job.status===DatabaseJobStatus.StatusJobCanceled, 'bg-danger' : job.status===DatabaseJobStatus.StatusJobError}">
             <span v-if="job.status===DatabaseJobStatus.StatusJobOpen && job.active">Working</span>
             <span v-else>{{ job.status }}</span>
           </span>
         </td>
-        <td class="p-1">
-          <div class="bg-light border rounded-2 px-2" style="height: 4rem; overflow-y: scroll">
-            <code class="p-0" style="font-size: 0.7rem">{{ job.command }}</code>
-          </div>
+        <td class="p-1 d-none d-lg-table-cell">
+          <input type="text" class="form-control border-dark rounded-0" style="font-size: 0.8rem; font-family: monospace" disabled :value="job.command"/>
         </td>
         <td class="p-1">
           <div v-if="job.active" class="progress">
@@ -62,8 +60,8 @@
             {{ job.info }}
           </div>
         </td>
-        <td class="p-2">{{ job.fromNow }}</td>
-        <td class="p-2">
+        <td class="p-1">{{ job.fromNow }}</td>
+        <td class="p-1">
           <div class="btn-group-sm btn-group w-100">
             <button class="btn btn-outline-danger btn-sm" @click="emit('destroy', job.jobId)">Destroy</button>
           </div>

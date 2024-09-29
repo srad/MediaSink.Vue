@@ -114,8 +114,10 @@ import { useStore } from '../store';
 import { createSocket, MessageType, SocketManager } from '../utils/socket.ts';
 import BusyOverlay from '../components/BusyOverlay.vue';
 import { ToastMutation } from '../store/modules/toast.ts';
-import { ChannelMutation } from "../store/modules/channel.ts";
-import LoadIndicator from "../components/LoadIndicator.vue";
+import { ChannelMutation } from '../store/modules/channel.ts';
+import LoadIndicator from '../components/LoadIndicator.vue';
+import { JobAction, JobMutation } from '../store/modules/job.ts';
+import { RecordingAction } from '../store/modules/recording.ts';
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -219,7 +221,7 @@ const submit = () => {
     uploadProgress.value = 0;
     showModal.value = true;
     const api = createClient();
-    const [ req, cancelToken ] = api.channelUpload(channelId, el.files![0], pcent => uploadProgress.value = pcent);
+    const [req, cancelToken] = api.channelUpload(channelId, el.files![0], pcent => uploadProgress.value = pcent);
     req.then(res => {
       uploadProgress.value = 0;
       channel.value?.recordings?.unshift(res.data);
@@ -239,7 +241,7 @@ const destroyRecording = (recording: RecordingResponse) => {
   if (channel.value?.recordings) {
     for (let i = 0; i < channel.value?.recordings?.length; i += 1) {
       if (channel.value?.recordings && channel.value?.recordings[i].recordingId === recording.recordingId) {
-        store.commit(ToastMutation.Add, { title: 'Video deleted', message: channel.value?.recordings[i].filename });
+        store.dispatch(RecordingAction.Destroy, recording);
         channel.value?.recordings?.splice(i, 1);
         break;
       }
@@ -264,7 +266,7 @@ let socket: SocketManager | null = null;
 
 onBeforeRouteLeave((to, from) => {
   socket?.close();
-})
+});
 
 onMounted(async () => {
   try {

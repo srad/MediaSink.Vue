@@ -19,7 +19,7 @@
       <div class="container-fluid">
         <AppBrand class="mr-auto" :title="title"/>
 
-        <span class="text-danger fw-bold">
+        <span class="text-danger fw-bold d-none d-sm-inline">
           <i v-if="heartBeatNextUpdate>=0" class="bi blink bi-heart-pulse-fill"/>
           <i v-else class="bi bi-heart-pulse"></i>
         </span>

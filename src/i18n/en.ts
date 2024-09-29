@@ -2,7 +2,10 @@ export default {
   general: {
     jobs: 'Jobs',
     processes: 'Processes',
-    streams: 'Streams'
+    streams: 'Streams',
+    open: 'Open',
+    other: 'Other',
+    completed: 'Completed',
   },
   menu: {
     streams: 'Streams',

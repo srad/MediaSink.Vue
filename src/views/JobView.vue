@@ -54,17 +54,18 @@
       </li>
       <li class="nav-item" role="presentation">
         <button data-tab="completed" class="nav-link" id="pills-completed-tab" data-bs-toggle="pill" data-bs-target="#pills-completed" type="button" role="tab" aria-controls="pills-completed" aria-selected="false">
-          {{ t('general.jobs') }} (completed)
+          {{ t('general.completed') }} <i class="bi bi-check2-all"/>
         </button>
       </li>
       <li class="nav-item" role="presentation">
         <button data-tab="other" class="nav-link" id="pills-other-tab" data-bs-toggle="pill" data-bs-target="#pills-other" type="button" role="tab" aria-controls="pills-other" aria-selected="false">
-          {{ t('general.jobs') }} (other)
+          {{ t('general.other') }}
+          <i class="bi bi-question"/>
         </button>
       </li>
       <li class="nav-item" role="presentation">
         <button data-tab="streams" class="nav-link" id="pills-processes-tab" data-bs-toggle="pill" data-bs-target="#pills-processes" type="button" role="tab" aria-controls="pills-processes" aria-selected="false">
-          {{ t('general.streams') }}
+          {{ t('general.streams') }} <i class="bi bi-camera-video"/>
         </button>
       </li>
     </ul>

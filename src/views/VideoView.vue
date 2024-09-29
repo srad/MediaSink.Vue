@@ -132,19 +132,22 @@
 //import socket from "@/socket";
 //import event from "@/services/event";
 import { ref, inject, computed, watch, onMounted, onUnmounted } from 'vue';
-import { createClient } from "../services/api/v1/ClientFactory";
+import { createClient } from '../services/api/v1/ClientFactory';
 import { useCookies } from '@vueuse/integrations/useCookies';
 import { Marking } from '../components/Stripe.vue';
 import Stripe from '../components/Stripe.vue';
 import { useRouter, onBeforeRouteLeave, useRoute } from 'vue-router';
-import { DatabaseRecording } from "../services/api/v1/StreamSinkClient.ts";
-import RecordingFavButton from "../components/controls/RecordingFavButton.vue";
-import BusyOverlay from "../components/BusyOverlay.vue";
-import { useStore } from "../store";
-import { useI18n } from 'vue-i18n'
-import ModalConfirmDialog from "../components/modals/ModalConfirmDialog.vue";
-import MarkingsTable from "../components/MarkingsTable.vue";
+import { DatabaseRecording } from '../services/api/v1/StreamSinkClient.ts';
+import RecordingFavButton from '../components/controls/RecordingFavButton.vue';
+import BusyOverlay from '../components/BusyOverlay.vue';
+import { useStore } from '../store';
+import { useI18n } from 'vue-i18n';
+import ModalConfirmDialog from '../components/modals/ModalConfirmDialog.vue';
+import MarkingsTable from '../components/MarkingsTable.vue';
 import { ToastMutation } from '../store/modules/toast.ts';
+import { RecordingAction } from '../store/modules/recording.ts';
+import { JobMutation } from '../store/modules/job.ts';
+import { AxiosError } from 'axios';
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -153,7 +156,7 @@ const router = useRouter();
 const route = useRoute();
 const { t } = useI18n();
 
-const cookies = useCookies([ 'locale' ]);
+const cookies = useCookies(['locale']);
 
 const stripeContainer = ref(null);
 
@@ -198,7 +201,7 @@ onBeforeRouteLeave(() => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener('orientationchange', rotate)
+  window.removeEventListener('orientationchange', rotate);
 });
 
 onMounted(async () => {
@@ -324,7 +327,11 @@ const rotate = () => {
 };
 
 const destroy = () => {
-  if (!window.confirm(t('videoView.destroy', [ recording.value?.filename ]))) {
+  if (!recording.value) {
+    return;
+  }
+
+  if (!window.confirm(t('videoView.destroy', [recording.value.filename]))) {
     return;
   }
 
@@ -333,14 +340,17 @@ const destroy = () => {
   unloadVideo();
 
   const api = createClient();
-
-  api.recordings.recordingsDelete(id.value!)
+  api.recordings.recordingsDelete(recording.value.recordingId)
       .then(() => {
-        store.commit(ToastMutation.Add, { title: 'Video deleted', message: recording.value?.filename });
+        // Remove from Job list if existent.
+        store.commit(JobMutation.DeleteRecording, recording.value!.recordingId);
+        store.commit(ToastMutation.Add, { title: 'Video deleted', message: recording.value!.filename });
         router.back();
       })
-      .catch((err) => store.commit('error', err))
-      .finally(() => busy.value = false);
+      .catch((err: any) => {
+        const error = err as AxiosError;
+        alert(err.message);
+      });
 };
 
 const cutVideo = () => {
