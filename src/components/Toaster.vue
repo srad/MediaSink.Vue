@@ -1,5 +1,5 @@
 <template>
-  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div class="toast-container position-fixed top-0 end-0 p-3">
     <div v-for="toast in props.toasts" class="toast border-dark" :class="{'show': toast.hide !== true}" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="toast-header bg-info-light">
         <strong class="me-auto">{{ toast.title }}</strong>

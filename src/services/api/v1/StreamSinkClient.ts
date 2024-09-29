@@ -91,33 +91,33 @@ export interface DatabaseRecording {
 }
 
 export interface HelpersCPUInfo {
-    loadCpu?: HelpersCPULoad[];
+    loadCpu: HelpersCPULoad[];
 }
 
 export interface HelpersCPULoad {
-    cpu?: string;
-    createdAt?: string;
-    load?: number;
+    cpu: string;
+    createdAt: string;
+    load: number;
 }
 
 export interface HelpersDiskInfo {
-    availFormattedGb?: string;
-    pcent?: string;
-    sizeFormattedGb?: string;
-    usedFormattedGb?: string;
+    availFormattedGb: string;
+    pcent: string;
+    sizeFormattedGb: string;
+    usedFormattedGb: string;
 }
 
 export interface HelpersNetInfo {
-    createdAt?: string;
-    dev?: string;
-    receiveBytes?: number;
-    transmitBytes?: number;
+    createdAt: string;
+    dev: string;
+    receiveBytes: number;
+    transmitBytes: number;
 }
 
 export interface HelpersSysInfo {
-    cpuInfo?: HelpersCPUInfo;
-    diskInfo?: HelpersDiskInfo;
-    netInfo?: HelpersNetInfo;
+    cpuInfo: HelpersCPUInfo;
+    diskInfo: HelpersDiskInfo;
+    netInfo: HelpersNetInfo;
 }
 
 export interface RequestsAuthenticationRequest {

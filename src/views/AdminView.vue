@@ -1,19 +1,5 @@
 <template>
   <div class="container-fluid my-3">
-    <!--
-    <div class="row">
-      <div class="col">
-        <network-chart/>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <c-p-u-chart/>
-      </div>
-    </div>
-    -->
-
     <div class="table-responsive border-secondary border m-0 p-0">
       <table class="table table-bordered m-0">
         <thead>
@@ -44,14 +30,27 @@
         <tbody>
         <tr>
           <td class="bg-light-subtle align-middle">
-            CPU Load <span v-if="cpuInfo">({{ mainCpuLoad.toFixed(1) }}%)</span>
+            CPU Load
           </td>
-          <td class="align-middle">
+          <td class="align-middle pt-3 ps-3">
+            <CPUChart :series="cpuLoadSeries"/>
+            <!--
             <div class="progress">
               <div class="progress-bar" role="progressbar" :style="{width: mainCpuLoad + '%' }" aria-valuenow="0"
                    aria-valuemin="0"
                    aria-valuemax="100"></div>
             </div>
+            -->
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" class="p-0 ">
+          </td>
+        </tr>
+        <tr>
+          <td class="bg-light-subtle align-middle">Network-Traffic</td>
+          <td class="pt-3 ps-3">
+            <TrafficChart :series="trafficSeries"/>
           </td>
         </tr>
         <tr>
@@ -78,23 +77,7 @@
           </td>
         </tr>
         <tr>
-          <td colspan="2" class="p-0 ">
-          </td>
-        </tr>
-        <tr>
-          <td class="bg-light-subtle align-middle">Network-Transmitted</td>
-          <td>
-            {{ transmittedMb }} MB
-          </td>
-        </tr>
-        <tr>
-          <td class="bg-light-subtle align-middle">Network-Received</td>
-          <td>
-            {{ receivedMb }} MB
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2" class="p-0 ">
+          <td colspan="2" class="p-0">
           </td>
         </tr>
         <tr v-for="version in versions">
@@ -112,14 +95,10 @@
 <script setup lang="ts">
 import { inject, computed, ref, onMounted } from 'vue';
 import { createClient } from '../services/api/v1/ClientFactory';
-import {
-  HelpersCPUInfo,
-  HelpersDiskInfo, HelpersNetInfo, ResponsesServerInfoResponse,
-} from '../services/api/v1/StreamSinkClient';
+import { HelpersCPUInfo, HelpersDiskInfo, HelpersNetInfo, ResponsesServerInfoResponse } from '../services/api/v1/StreamSinkClient';
 import { onBeforeRouteLeave } from 'vue-router';
-
-//import CPUChart from '../charts/CPUChart.vue';
-//import NetworkChart from '../charts/NetworkChart.vue';
+import TrafficChart from '../components/charts/TrafficChart.vue';
+import CPUChart from '../components/charts/CPUChart.vue';
 
 const build = inject('build');
 const version = inject('version');
@@ -135,21 +114,10 @@ const importing = ref(false);
 const importProgress = ref(0);
 const importSize = ref(0);
 
-const isUpdating = ref(false);
+const trafficSeries = ref<{ in: number, out: number, time: number }[]>([]);
+const cpuLoadSeries = ref<{ load: number, time: number }[]>([]);
 
-// const cpuInfo = reactive<{
-//   labels: string[],
-//   datasets: { backgroundColor: string, label: string, data: HelpersCPULoad[] }[]
-// }>({
-//   labels: [ 'A', 'B' ],
-//   datasets: [
-//     {
-//       backgroundColor: 'rgb(77, 186, 135)',
-//       label: 'Game Overs',
-//       data: []
-//     }
-//   ]
-// });
+const isUpdating = ref(false);
 
 const serverInfo = ref<ResponsesServerInfoResponse | null>(null);
 
@@ -159,8 +127,8 @@ const netInfo = ref<HelpersNetInfo | undefined>(undefined);
 
 const id = ref<number | NodeJS.Timeout>(0);
 
-const receivedMb = computed(() => ((netInfo.value?.receiveBytes || 0) / 1024 / 1024).toFixed(2));
-const transmittedMb = computed(() => ((netInfo.value?.transmitBytes || 0) / 1024 / 1024).toFixed(2));
+//const receivedMb = computed(() => ((netInfo.value?.receiveBytes || 0) / 1024 / 1024).toFixed(2));
+//const transmittedMb = computed(() => ((netInfo.value?.transmitBytes || 0) / 1024 / 1024).toFixed(2));
 
 //@ts-ignore
 const mainCpuLoad = computed(() => cpuInfo.value && cpuInfo.value.loadCpu!.length > 0 ? cpuInfo.value.loadCpu[0].load * 100 : 0);
@@ -180,11 +148,6 @@ const posters = async () => {
   }
 };
 
-// const fillData = () => {
-//   cpuInfo.labels = [ 'A', 'B' ];
-//   cpuInfo.datasets = []
-// };
-
 const updateInfo = () => {
   if (window.confirm('Check all durations and update in database?')) {
     const api = createClient();
@@ -202,6 +165,9 @@ const fetch = async () => {
     netInfo.value = result[0].data.netInfo;
     cpuInfo.value = result[0].data.cpuInfo;
     diskInfo.value = result[0].data.diskInfo;
+
+    trafficSeries.value = trafficSeries.value.concat({ in: netInfo.value.receiveBytes / 1024 / 1024, out: netInfo.value.transmitBytes / 1024 / 1024, time: Date.now() });
+    cpuLoadSeries.value = cpuLoadSeries.value.concat({ load: result[0].data.cpuInfo.loadCpu[0].load * 100, time: Date.now() });
 
     importing.value = result[1].data.isImporting || false;
     importProgress.value = result[1].data.progress || 0;

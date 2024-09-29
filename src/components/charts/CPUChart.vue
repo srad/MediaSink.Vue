@@ -1,117 +1,42 @@
 <template>
-  <div class="row">
-    <div class="col">
-      <div class="bg-light border shadow-sm px-3">
-        <canvas ref="myChart" width="800" height="400"></canvas>
-      </div>
-    </div>
-  </div>
+  <div class="w-100 h-100" style="min-height: 200px;" ref="container"></div>
 </template>
 
 <script setup lang="ts">
-import {
-  Chart,
-  ArcElement,
-  LineElement,
-  BarElement,
-  PointElement,
-  BarController,
-  BubbleController,
-  DoughnutController,
-  LineController,
-  PieController,
-  PolarAreaController,
-  RadarController,
-  ScatterController,
-  CategoryScale,
-  LinearScale,
-  LogarithmicScale,
-  RadialLinearScale,
-  TimeScale,
-  TimeSeriesScale,
-  Decimation,
-  Filler,
-  Legend,
-  Title,
-  Tooltip,
-  SubTitle
-} from "chart.js";
+import { computed, defineProps, onMounted, ref, watch } from 'vue';
+import { createChart, IChartApi, ISeriesApi, LineData } from 'lightweight-charts';
 
-import { createClient } from '../../services/api/v1/ClientFactory';
-import { onMounted, ref } from "vue";
+const props = defineProps<{
+  series: { load: number, time: number }[]
+}>();
 
-Chart.register(
-    ArcElement,
-    LineElement,
-    BarElement,
-    PointElement,
-    BarController,
-    BubbleController,
-    DoughnutController,
-    LineController,
-    PieController,
-    PolarAreaController,
-    RadarController,
-    ScatterController,
-    CategoryScale,
-    LinearScale,
-    LogarithmicScale,
-    RadialLinearScale,
-    TimeScale,
-    TimeSeriesScale,
-    Decimation,
-    Filler,
-    Legend,
-    Title,
-    Tooltip,
-    SubTitle
-);
+const container = ref<HTMLDivElement | null>(null);
+let chart: IChartApi | null = null;
+let cpuSeries: ISeriesApi<any> | null = null;
 
-const myChart = ref<HTMLCanvasElement | null>(null);
+const getIn = computed(() => (props.series || []).map(((x, i) => ({ time: i, value: x.load } as LineData))));
 
-onMounted(async () => {
-  // const api = createClient();
-  // const response = await api.metric.cpuList();
-  //
-  // const ctx = myChart.value!.getContext("2d");
-  //
-  // const chart = new Chart(ctx!, {
-  //   type: "line",
-  //   data: {
-  //     labels: [ response.data ].map(d => new Date(d.createdAt).toLocaleDateString("de-DE", {
-  //       hour: "numeric",
-  //       minute: "numeric",
-  //       day: "numeric",
-  //       month: "numeric",
-  //     })),
-  //     datasets: [
-  //       {
-  //         data: [ response.data ].filter(c => c.cpu === "cpu").map(d => (d.load * 100).toFixed(2)),
-  //         label: "Transmitted",
-  //         borderColor: "Green",
-  //         fill: false
-  //       },
-  //     ]
-  //   },
-  //   options: {
-  //     // title: {
-  //     //   display: true,
-  //     //   text: "CPU Load"
-  //     // },
-  //     scales: {
-  //       y: {
-  //         min: 0,
-  //         max: 100,
-  //       },
-  //       x: {
-  //         ticks: {
-  //           autoSkip: true,
-  //           maxTicksLimit: 20
-  //         }
-  //       }
-  //     }
-  //   }
-  // });
+watch(() => props.series, () => {
+  cpuSeries?.setData(getIn.value.sort((a, b) => a.time - b.time));
+  chart?.timeScale().fitContent();
+});
+
+onMounted(() => {
+  chart = createChart(container.value!, {
+    autoSize: true,
+    layout: { attributionLogo: false, fontSize: 11 },
+    localization: {
+      priceFormatter: (value: number) => {
+        return value.toFixed(1) + '%';
+      },
+    },
+  });
+  cpuSeries = chart.addLineSeries({
+    pointMarkersVisible: true,
+    lineWidth: 2,
+    color: '#990d37',
+    title: 'Load  ',
+  });
 });
 </script>
 

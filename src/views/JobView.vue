@@ -49,7 +49,7 @@
     <ul class="nav nav-tabs my-2" id="pills-tab" role="tablist">
       <li class="nav-item" role="presentation">
         <button data-tab="general" class="nav-link" id="pills-open-tab" data-bs-toggle="pill" data-bs-target="#pills-open" type="button" role="tab" aria-controls="pills-open" aria-selected="true">
-          {{ t('general.jobs') }} <i class="bi bi-arrow-clockwise"/>
+          {{ t('general.open') }} <i class="bi bi-arrow-clockwise"/>
         </button>
       </li>
       <li class="nav-item" role="presentation">
