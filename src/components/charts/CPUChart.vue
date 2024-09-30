@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { computed, defineProps, onMounted, ref, watch } from 'vue';
-import { createChart, IChartApi, ISeriesApi, LineData } from 'lightweight-charts';
+import { createChart, IChartApi, ISeriesApi } from 'lightweight-charts';
 
 const props = defineProps<{
   series: { load: number, time: number }[]
@@ -14,7 +14,7 @@ const container = ref<HTMLDivElement | null>(null);
 let chart: IChartApi | null = null;
 let cpuSeries: ISeriesApi<any> | null = null;
 
-const getIn = computed(() => (props.series || []).map(((x, i) => ({ time: i, value: x.load } as LineData))));
+const getIn = computed(() => (props.series || []).map(((x, i) => ({ time: i, value: x.load }))));
 
 watch(() => props.series, () => {
   cpuSeries?.setData(getIn.value.sort((a, b) => a.time - b.time));
