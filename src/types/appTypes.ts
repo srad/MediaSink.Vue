@@ -1,5 +1,3 @@
-import type { DatabaseJob, DatabaseJob as Job, ServicesChannelInfo as ChannelInfo } from "./services/api/v1/StreamSinkClient";
-
 export enum AlertType {
   Default,
   Info,
@@ -10,6 +8,12 @@ export enum AlertType {
   Light,
   Dark,
 }
+
+import type {
+  DatabaseJob,
+  DatabaseJob as Job,
+  ServicesChannelInfo as ChannelInfo
+} from "../services/api/v1/StreamSinkClient.ts";
 
 export type TaskInfo = {
   steps: number;

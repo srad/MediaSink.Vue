@@ -18,7 +18,7 @@ import { useChannelStore } from "@/stores/channel";
 import { useJobStore } from "@/stores/job";
 import { useToastStore } from "@/stores/toast";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
-import type { JobMessage, TaskComplete, TaskInfo, TaskProgress } from "@/appTypes";
+import type { JobMessage, TaskComplete, TaskInfo, TaskProgress } from "@/types/appTypes";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";

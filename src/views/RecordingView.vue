@@ -108,7 +108,7 @@ import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
 import MarkingsTable from "@/components/MarkingsTable.vue";
 import { useToastStore } from "@/stores/toast";
 import { useJobStore } from "@/stores/job";
-import type { Marking } from "@/appTypes";
+import type { Marking } from "@/types/appTypes";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import { useSettingsStore } from "@/stores/settings.ts";
 

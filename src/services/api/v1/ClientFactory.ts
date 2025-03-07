@@ -1,5 +1,11 @@
-import { ContentType, type DatabaseRecording, type DatabaseRecording as RecordingResponse, HttpClient, StreamSinkClient } from "./StreamSinkClient";
-import { useAuthStore } from "@/stores/auth";
+import {
+  ContentType,
+  type DatabaseRecording,
+  type DatabaseRecording as RecordingResponse,
+  HttpClient,
+  StreamSinkClient
+} from "./StreamSinkClient";
+import { useAuthStore } from "../../../stores/auth";
 
 declare global {
   interface Window {
@@ -28,7 +34,7 @@ export class MyClient extends StreamSinkClient<unknown> {
         return new Promise<Response>((resolve, reject) => {
           fetch(input, init)
             .then((response) => {
-              if (response.status === 401 && !["/login", "/register"].includes(window.location.pathname)) {
+              if (response.status === 401 && ![ "/login", "/register" ].includes(window.location.pathname)) {
                 authStore.logout();
                 // Unauthorized: Redirect to login page
                 window.location.assign("/login");
@@ -50,7 +56,7 @@ export class MyClient extends StreamSinkClient<unknown> {
    * @param progress Returns the progress as number in range [0.0 ... 1.0]
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [Promise<RecordingResponse>, AbortController] {
+  channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [ Promise<RecordingResponse>, AbortController ] {
     const controller = new AbortController();
     const signal = controller.signal;
     const formData = new FormData();
@@ -64,7 +70,7 @@ export class MyClient extends StreamSinkClient<unknown> {
       signal,
     });
 
-    return [req, controller];
+    return [ req, controller ];
   }
 
   async isRecording(): Promise<boolean> {

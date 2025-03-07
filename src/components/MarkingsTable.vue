@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { defineProps, defineEmits, computed } from 'vue';
-import type { Marking } from '../appTypes';
+import type { Marking } from '../types/appTypes.ts';
 import { useI18n } from 'vue-i18n';
 
 // --------------------------------------------------------------------------------------

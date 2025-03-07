@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 import { useToastStore } from "../stores/toast";
-import type { Toast } from "../appTypes";
+import type { Toast } from "../types/appTypes";
 
 const store = useToastStore();
 const props = defineProps<{ toasts: Toast[] }>();

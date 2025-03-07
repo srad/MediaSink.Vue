@@ -1,7 +1,7 @@
 import type { DatabaseJob as Job } from "../services/api/v1/StreamSinkClient";
 import { DatabaseJobStatus } from "../services/api/v1/StreamSinkClient";
 import { defineStore } from "pinia";
-import type { JobMessage, JobState, TaskComplete, TaskInfo, TaskProgress } from "../appTypes";
+import type { JobMessage, JobState, TaskComplete, TaskInfo, TaskProgress } from "../types/appTypes.ts";
 
 export const useJobStore = defineStore("job", {
   state(): JobState {

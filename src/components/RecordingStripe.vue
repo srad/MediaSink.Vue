@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
-import type { Marking } from "../appTypes";
+import type { Marking } from "../types/appTypes";
 
 // --------------------------------------------------------------------------------------
 // Props

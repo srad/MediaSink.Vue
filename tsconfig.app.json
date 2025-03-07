@@ -3,12 +3,14 @@
   "include": [
     "env.d.ts",
     "src/**/*",
-    "src/**/*.vue"
+    "src/**/*.vue",
+    "src/**/*.d.ts"
   ],
   "exclude": [
     "src/**/__tests__/*"
   ],
   "compilerOptions": {
+    "types": ["pinia-plugin-persistedstate"],
     "lib": [
       "ES2020",
       "DOM",

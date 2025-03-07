@@ -6,7 +6,7 @@ import type {
   ServicesChannelInfo as ChannelInfo
 } from "../services/api/v1/StreamSinkClient";
 import { defineStore } from "pinia";
-import type { ChannelState } from "../appTypes";
+import type { ChannelState } from "../types/appTypes.ts";
 import { createClient } from "../services/api/v1/ClientFactory";
 import { useJobStore } from "../stores/job";
 

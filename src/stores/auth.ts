@@ -1,7 +1,14 @@
+//@ts-nocheck https://github.com/prazdevs/pinia-plugin-persistedstate/issues/373
+
 import { defineStore } from "pinia";
-import type { AuthState } from "../appTypes";
-import AuthService from "@/services/auth.service";
-import type { RequestsAuthenticationRequest } from "@/services/api/v1/StreamSinkClient.ts";
+import type { AuthState } from "../types/appTypes.ts";
+import AuthService from "../services/auth.service";
+import type { RequestsAuthenticationRequest } from "../services/api/v1/StreamSinkClient.ts";
+
+// --------------------------------------------------------------------------------------
+// The useAuthStore(). and arrow syntax is only for the TS type deduction, otherwise
+// it leads to compiler errors.
+// --------------------------------------------------------------------------------------
 
 export const useAuthStore = defineStore("auth", {
   persist: true,
@@ -10,25 +17,21 @@ export const useAuthStore = defineStore("auth", {
     token: null,
   }),
   actions: {
-    async login(user: RequestsAuthenticationRequest) {
+    login: async (user: RequestsAuthenticationRequest) => {
       const token = await AuthService.login(user);
-      this.token = token;
-      this.loggedIn = true;
+      useAuthStore().token = token;
+      useAuthStore().loggedIn = true;
     },
-    logout() {
-      this.token = null;
-      this.loggedIn = false;
+    logout: () => {
+      useAuthStore().token = null;
+      useAuthStore().loggedIn = false;
     },
-    async register(user: RequestsAuthenticationRequest) {
+    register: async (user: RequestsAuthenticationRequest) => {
       await AuthService.signup(user);
     }
   },
   getters: {
-    isLoggedIn(): boolean {
-      return this.token != null && this.token != undefined;
-    },
-    getToken(): string | null | undefined {
-      return this.token
-    },
-  },
+    isLoggedIn: (state: AuthState): boolean => state.token != null && state.token != undefined,
+    getToken: (state: AuthState): string | null | undefined => state.token,
+  }
 });

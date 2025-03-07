@@ -89,8 +89,8 @@ import { inject, onMounted, type Ref, ref } from "vue";
 import { onBeforeRouteLeave } from "vue-router";
 import { createClient } from "@/services/api/v1/ClientFactory";
 
-const build = inject("build");
-const version = inject("version");
+const build = inject("build") as string;
+const version = inject("version") as string;
 
 const importing = ref(false);
 const importProgress = ref(0);

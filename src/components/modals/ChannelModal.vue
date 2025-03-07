@@ -78,9 +78,10 @@ import Modal from "./ModalWindow.vue";
 import { defineEmits, ref, watch } from "vue";
 import { randomString } from "../../utils/math";
 import AppAlert from "../AppAlert.vue";
-import { AlertType, type ChannelUpdate } from "../../appTypes";
+import { type ChannelUpdate } from "../../types/appTypes";
 import { createValidator, type ValidationMessage } from "../../utils/validator";
 import CheckList from "../CheckList.vue";
+import { AlertType } from "../../types/appTypes";
 
 // --------------------------------------------------------------------------------------
 // Props
