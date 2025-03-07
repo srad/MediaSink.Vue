@@ -31,9 +31,9 @@
 </template>
 
 <script setup lang="ts">
-import { Marking } from "./Stripe.vue";
-import { defineProps, defineEmits, computed } from "vue";
-import { useI18n } from "vue-i18n";
+import { defineProps, defineEmits, computed } from 'vue';
+import type { Marking } from '../appTypes';
+import { useI18n } from 'vue-i18n';
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -58,11 +58,11 @@ const secondsToTimeCode = (seconds: number) => {
 
   const s = date.toISOString().substring(11, 19);
 
-  if (s.startsWith("00:0")) {
+  if (s.startsWith('00:0')) {
     return s.substring(4);
   }
 
-  if (s.startsWith("00:")) {
+  if (s.startsWith('00:')) {
     return s.substring(3);
   }
 
@@ -70,7 +70,7 @@ const secondsToTimeCode = (seconds: number) => {
 };
 
 const markingsOverview = computed(() => {
-  return props.markings.sort((a, b) => a.timestart - b.timestart).map(x => {
+  return props.markings.slice().sort((a, b) => a.timestart - b.timestart).map(x => {
     return {
       marking: x,
       start: secondsToTimeCode(x.timestart),

@@ -1,9 +1,9 @@
-import { createI18n } from 'vue-i18n';
-import { messages } from './messages';
+import { messages } from "./messages";
+import { createI18n } from "vue-i18n";
 
-export const i18n = createI18n({
+export default createI18n({
   legacy: false,
-  locale: 'en',
-  fallbackLocale: 'en',
+  locales: ["en", "de"],
+  defaultLocale: "en",
   messages,
 });

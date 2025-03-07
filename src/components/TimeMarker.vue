@@ -1,23 +1,19 @@
 <template>
   <div class="time-marker">
     <div class="progress m-0" v-for="(seg, i) in props.segments" :key="i" style="height: 0.2rem">
-      <div class="progress-bar bg-danger" role="progressbar" @click="() => seek(seg)"
-           :style="`width: ${(seg.end/props.duration*100)-(seg.start/props.duration*100)}%;margin-left: ${(seg.start/props.duration*100)}%`">
-      </div>
+      <div class="progress-bar bg-danger" role="progressbar" @click="() => seek(seg)" :style="`width: ${(seg.end / props.duration) * 100 - (seg.start / props.duration) * 100}%;margin-left: ${(seg.start / props.duration) * 100}%`"></div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineEmits } from 'vue';
-
 // --------------------------------------------------------------------------------------
 // Props
 // --------------------------------------------------------------------------------------
 
 const props = defineProps<{
-  duration: number
-  segments: Timestamp[]
+  duration: number;
+  segments: Timestamp[];
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -34,13 +30,13 @@ interface Timestamp {
 // Emits
 // --------------------------------------------------------------------------------------
 
-const emit = defineEmits<{ (e: 'seek', value: Timestamp): void }>();
+const emit = defineEmits<{ (e: "seek", value: Timestamp): void }>();
 
 // --------------------------------------------------------------------------------------
 // Methods
 // --------------------------------------------------------------------------------------
 
-const seek = (seg: Timestamp) => emit('seek', seg);
+const seek = (seg: Timestamp) => emit("seek", seg);
 </script>
 
 <style scoped>

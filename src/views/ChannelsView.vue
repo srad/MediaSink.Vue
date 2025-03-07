@@ -1,101 +1,71 @@
 <template>
-  <div class="table-responsive">
-    <table class="table table-bordered table-hover table-sm">
-      <thead>
-      <tr v-if="isImporting">
-        <th colspan="6" class="bg-light border border-primary">
-          <h6>Importing ...</h6>
-          <div class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 75%"></div>
-          </div>
-        </th>
-      </tr>
-      <tr>
-        <th colspan="6" class="bg-light border border-primary bg-primary-subtle">
-          <button @click="() => downloadChannelsAsJson()" type="button" class="btn btn-primary btn-sm me-2">
-            Export channels
-          </button>
-          <button @click="inputFileClick" type="button" class="btn btn-primary btn-sm">Import channels</button>
-          <input ref="channelsFile" accept="application/json" type="file" name="importChannels" hidden @change="inputFileChanged"/>
-        </th>
-      </tr>
-      <tr>
-        <th rowspan="2" style="width: 1%" class="bg-light">Preview</th>
-        <th rowspan="2" style="width: 30%" class="bg-light">Name</th>
-        <th rowspan="2" style="width: 5%" class="bg-light">Favourite?</th>
-        <th rowspan="2" style="width: 4%" class="bg-light">Recording?</th>
-        <th style="width: 5%" class="bg-light; text-center">Count</th>
-        <th style="width: 5%" class="bg-light; text-center">Size</th>
-      </tr>
-      <tr>
-        <th class="text-center">{{ totalCount }}</th>
-        <th class="text-center">{{ totalSize.toFixed(1) }}GB</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="channel in channels" class="align-middle">
-        <td class="text-center p-0">
-          <img alt="preview" :src="fileUrl + '/' + channel.preview" class="rounded" style="height: 50px; width: auto"/>
-        </td>
-        <td class="px-2">
-          <RouterLink class="text-decoration-none" :to="`/channel/${channel.channelId}/${channel.channelName}`">
-            <h6 class="m-0">{{ channel.channelName }}</h6>
-          </RouterLink>
-          <a :href="channel.url" target="_blank">{{ channel.url }}</a>
-        </td>
-        <td class="px-2">
-          <ChannelFavButton :bookmarked="channel.fav" :channel-id="channel.channelId"/>
-        </td>
-        <td class="px-2">
-          <button class="btn w-100 btn-danger" v-if="channel.isRecording">
-            <i class="bi bi-record-fill pulse"></i> Recording
-          </button>
-        </td>
-        <td class="px-2 text-center">{{ channel.recordingsCount }}</td>
-        <td class="px-2 text-end">{{ (channel.recordingsSize / 1024 / 1024 / 1024).toFixed(2) }} GB</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
+  <LoadIndicator :busy="isLoading">
+    <div class="mb-2">
+      <div class="d-flex justify-content-end">
+        <button @click="() => settingsStore.setChannelsLayout('grid')" type="button" class="btn btn-sm me-2" :class="{ 'btn-success': settingsStore.isChannelsGridLayout, 'btn-secondary': settingsStore.isChannelsListLayout }">
+          <i class="bi bi-grid"></i>
+        </button>
+        <button @click="() => settingsStore.setChannelsLayout('list')" type="button" class="btn btn-sm me-2" :class="{ 'btn-secondary': settingsStore.isChannelsGridLayout, 'btn-success': settingsStore.isChannelsListLayout }">
+          <i class="bi bi-list"></i>
+        </button>
+        <button @click="downloadChannelsAsJson" type="button" class="btn btn-sm btn-primary me-2">Export channels</button>
+        <button @click="inputFileClick" type="button" class="btn btn-sm btn-primary">Import channels</button>
+        <input ref="channelsFile" accept="application/json" type="file" name="importChannels" hidden @change="inputFileChanged" />
+      </div>
+      <div v-if="isImporting">
+        <h6>Importing ...</h6>
+        <div class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 75%"></div>
+        </div>
+        <hr />
+      </div>
+    </div>
+
+    <ChannelsList v-if="settingsStore.isChannelsListLayout" :channels="channels" />
+    <ChannelsGrid v-else :channels="channels" />
+  </LoadIndicator>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref } from 'vue';
-import { createClient, MyClient } from '../services/api/v1/ClientFactory.ts';
-import { DatabaseChannel, ServicesChannelInfo } from '../services/api/v1/StreamSinkClient';
-import { downloadObjectAsJson } from '../utils/file.ts';
-import ChannelFavButton from '../components/controls/ChannelFavButton.vue';
+import { onMounted, ref, useTemplateRef } from "vue";
+
+import type { DatabaseChannel, ServicesChannelInfo } from "@/services/api/v1/StreamSinkClient";
+import { createClient } from "@/services/api/v1/ClientFactory";
+import { downloadObjectAsJson } from "@/utils/file";
+import LoadIndicator from "@/components/LoadIndicator.vue";
+import { useSettingsStore } from "@/stores/settings.ts";
+import ChannelsGrid from "@/components/channels/ChannelsGrid.vue";
+import ChannelsList from "@/components/channels/ChannelsList.vue";
+
+//type ChannelsViewLayout = "grid" | "list";
+
+// --------------------------------------------------------------------------------------
+// refs
+// --------------------------------------------------------------------------------------
 
 const isImporting = ref(false);
-const fileUrl = inject('fileUrl');
-const channelsFile = ref<HTMLInputElement | null>(null);
-
+const channelsFile = useTemplateRef<HTMLInputElement>("channelsFile");
 const channels = ref<ServicesChannelInfo[]>([]);
+const isLoading = ref(true);
 
-const totalSize = computed(() => channels.value.map(x => x.recordingsSize).reduce((a, b) => a + b, 0) / 1024 / 1024 / 1024);
-const totalCount = computed(() => channels.value.map(x => x.recordingsCount).reduce((a, b) => a + b, 0));
+const settingsStore = useSettingsStore();
 
-/**
- * All client side, creates a JSON file of all channel data.
- * @param client
- */
-const downloadChannelsAsJson = () => {
-  const client = createClient();
-  client.channels.channelsList()
-      .then(res => {
-        downloadObjectAsJson(res.data, 'channels', document.body);
-      })
-      .catch(res => {
-        alert(res.error);
-      });
+// --------------------------------------------------------------------------------------
+// Functions
+// --------------------------------------------------------------------------------------
+
+const downloadChannelsAsJson = async () => {
+  try {
+    const client = createClient();
+    const channels = await client.channels.channelsList();
+    downloadObjectAsJson(channels, "channels", document.body);
+  } catch (error) {
+    alert(error);
+  }
 };
 
 const inputFileClick = () => channelsFile.value?.click();
 
-/**
- * File input event listener.
- * @param event
- */
 const inputFileChanged = (event: Event) => {
   const target = event.target as HTMLInputElement;
 
@@ -105,22 +75,17 @@ const inputFileChanged = (event: Event) => {
 
   const file = target.files[0];
 
-  file.text()
-      .then(JSON.parse)
-      .then(channels => importChannels(channels));
+  file
+    ?.text()
+    .then(JSON.parse)
+    .then((channels) => importChannels(channels));
 };
 
-/**
- * Creates for all channels a client side POST create request.
- * @param client
- * @param channelsResponse
- */
 const importChannels = (channelsResponse: DatabaseChannel[]) => {
   isImporting.value = true;
-
   const client = createClient();
 
-  channelsResponse.forEach(async channel => {
+  channelsResponse.forEach(async (channel) => {
     try {
       const response = await client.channels.channelsCreate({
         minDuration: channel.minDuration,
@@ -129,10 +94,10 @@ const importChannels = (channelsResponse: DatabaseChannel[]) => {
         isPaused: channel.isPaused,
         skipStart: channel.skipStart,
         tags: channel.tags,
-        url: channel.url
+        url: channel.url,
       });
 
-      channels.value.push(response.data);
+      channels.value.push(response);
     } catch (err) {
       alert(err);
     }
@@ -140,9 +105,15 @@ const importChannels = (channelsResponse: DatabaseChannel[]) => {
   isImporting.value = false;
 };
 
+// --------------------------------------------------------------------------------------
+// Hooks
+// --------------------------------------------------------------------------------------
+
 onMounted(async () => {
-  const api = createClient();
-  const response = await api.channels.channelsList();
-  channels.value = response.data.sort((a, b) => a.channelName.localeCompare(b.channelName));
+  const client = createClient();
+  const data = await client.channels.channelsList();
+  const sortedChannels: ServicesChannelInfo[] = (data || []).sort((a: ServicesChannelInfo, b: ServicesChannelInfo) => a.channelName.localeCompare(b.channelName));
+  channels.value = sortedChannels;
+  isLoading.value = false;
 });
 </script>

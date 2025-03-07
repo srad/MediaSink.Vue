@@ -1,53 +1,59 @@
 <template>
   <div>
-    <ModalConfirmDialog :show="showConfirmRecording" @cancel="showConfirmRecording=false" @confirm="record">
-      <template #header>
+    <ModalConfirmDialog :show="showConfirmRecording" @cancel="showConfirmRecording = false" @confirm="record">
+      <template v-slot:header>
         <span v-if="isRecording">Stop Recording</span>
         <span v-else>Resume Recording</span>
       </template>
-      <template #body>
-        <div v-if="isRecording">
-          Do you want to stop recording?
-        </div>
-        <div v-else>
-          Do you want to continue recording?
-        </div>
+      <template v-slot:body>
+        <div v-if="isRecording">Do you want to stop recording?</div>
+        <div v-else>Do you want to continue recording?</div>
       </template>
     </ModalConfirmDialog>
 
-    <nav class="navbar navbar-dark navbar-expand-lg fixed-top m-0 d-flex bg-primary">
+    <nav class="navbar navbar-dark navbar-expand-lg fixed-top shadow-sm border-bottom border-primary-subtle m-0 d-flex bg-primary">
       <div class="container-fluid">
-        <AppBrand class="mr-auto" :title="title"/>
+        <AppBrand class="mr-auto" :title="title" />
 
         <span class="text-danger fw-bold d-none d-sm-inline">
-          <i v-if="heartBeatNextUpdate>=0" class="bi blink bi-heart-pulse-fill"/>
+          <i v-if="heartBeatNextUpdate >= 0" class="bi blink bi-heart-pulse-fill" />
           <i v-else class="bi bi-heart-pulse"></i>
         </span>
 
-        <div class="offcanvas offcanvas-end bg-dark" :class="{'show': showNav}" data-bs-backdrop="static" tabindex="-1" aria-labelledby="collapsibleNavbarLabel" id="collapsibleNavbar">
+        <div class="offcanvas offcanvas-end bg-dark" :class="{ show: showNav }" data-bs-backdrop="static" tabindex="-1" aria-labelledby="collapsibleNavbarLabel" id="collapsibleNavbar">
           <div class="offcanvas-header bg-primary text-white">
-            <AppBrand class="mr-auto" :title="title"/>
+            <AppBrand class="mr-auto" :title="title" />
             <button type="button" class="btn-close btn-close-white" @click="showNav = !showNav"></button>
           </div>
           <div class="offcanvas-body">
             <ul class="navbar-nav justify-content-end flex-grow-1">
-              <li class="nav-item" style="cursor: pointer" v-for="link in props.routes" :key="link.url" @click="() => {showNav=false; router.push(link.url);}">
-                <a :class="{active: route.path === link.url}" @click="collapseNav=true" class="nav-link">
+              <li
+                class="nav-item"
+                style="cursor: pointer"
+                v-for="link in props.routes"
+                :key="link.url"
+                @click="
+                  () => {
+                    showNav = false;
+                    router.push(link.url);
+                  }
+                ">
+                <a :class="{ active: route.path === link.url }" @click="collapseNav = true" class="nav-link">
                   <span data-bs-dismiss="offcanvas" data-bs-target="#collapsibleNavbar">{{ link.title }}</span>
                 </a>
               </li>
               <li class="nav-item d-flex align-items-center">
-                <DiskStatus :pcent="diskInfo.pcent"/>
+                <DiskStatus :pcent="diskAvailablePercentage" />
               </li>
               <li class="nav-item d-none d-lg-block">
-                <RecordingControls :jobs="jobs" :total-count="jobsCount" :recording="isRecording" @add="emit('add')" @record="showConfirmRecording=true" :show-logout="showLogout" @logout="emit('logout')"/>
+                <RecordingControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')" />
               </li>
             </ul>
           </div>
         </div>
 
         <div class="d-lg-none">
-          <RecordingControls :jobs="jobs" :total-count="jobsCount" :recording="isRecording" @add="emit('add')" @record="showConfirmRecording=true" :show-logout="showLogout" @logout="emit('logout')"/>
+          <RecordingControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')" />
         </div>
 
         <button class="navbar-toggler d-l-none" type="button" @click="showNav = !showNav">
@@ -59,25 +65,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineEmits, defineProps, onMounted, reactive, ref, watch } from 'vue';
-import { createClient } from '../../services/api/v1/ClientFactory';
-import DiskStatus from '../DiskStatus.vue';
-import RecordingControls from '../RecordingControls.vue';
-import AppBrand from '../AppBrand.vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useStore } from '../../store';
-import { createSocket, MessageType } from '../../utils/socket.ts';
-import ModalConfirmDialog from '../modals/ModalConfirmDialog.vue';
-import { ChannelMutation } from "../../store/modules/channel.ts";
+import { closeSocket, connectSocket, MessageType, socketOn } from "../../utils/socket";
+import { useChannelStore } from "../../stores/channel";
+import { useJobStore } from "../../stores/job";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import DiskStatus from "../DiskStatus.vue";
+import RecordingControls from "../RecordingControls.vue";
+import AppBrand from "../AppBrand.vue";
+import ModalConfirmDialog from "../modals/ModalConfirmDialog.vue";
+import type { HelpersDiskInfo } from "../../services/api/v1/StreamSinkClient";
+import { createClient } from "../../services/api/v1/ClientFactory";
 
 // --------------------------------------------------------------------------------------
 // Props
 // --------------------------------------------------------------------------------------
 
 const props = defineProps<{
-  routes: { icon: string, url: string, title: string }[]
-  title: string
-  showLogout: boolean
+  routes: { icon: string; url: string; title: string }[];
+  title: string;
+  showLogout: boolean;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -85,25 +92,28 @@ const props = defineProps<{
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: 'add'): void
-  (e: 'logout'): void
+  (e: "add"): void;
+  (e: "logout"): void;
 }>();
 
 // --------------------------------------------------------------------------------------
 // Declarations
 // --------------------------------------------------------------------------------------
 
-const diskInfo = reactive({ avail: '', pcent: '', size: '', used: '' });
+// Stores
+const channelStore = useChannelStore();
+const jobStore = useJobStore();
+
+// Refs
+const diskAvailablePercentage = ref(0);
 const collapseNav = ref(true);
 const isRecording = ref(false);
 const heartBeatNextUpdate = ref<number>(-1);
 const route = useRoute();
-const store = useStore();
 const showNav = ref(false);
 const showConfirmRecording = ref(false);
 
 const router = useRouter();
-const socket = createSocket();
 
 let thread: undefined | ReturnType<typeof setInterval> = undefined;
 
@@ -111,35 +121,29 @@ let thread: undefined | ReturnType<typeof setInterval> = undefined;
 // Computes
 // --------------------------------------------------------------------------------------
 
-const jobs = computed(() => store.getters['job/getOpen']);
-const jobsCount = computed(() => store.state.job.jobsCount);
-const loggedIn = computed(() => store.getters['auth/isLoggedIn']);
+const jobs = computed(() => jobStore.getOpen);
+const jobsCount = computed(() => jobStore.jobsCount);
 
 // --------------------------------------------------------------------------------------
-// Methods
+// Functions
 // --------------------------------------------------------------------------------------
 
 const query = async () => {
-  const api = createClient();
-  const res = await Promise.all([ api.isRecording(), api.info.diskList() ]);
-
-  isRecording.value = res[0];
-  const diskRes = res[1];
-  diskInfo.avail = diskRes.data.availFormattedGb!;
-  diskInfo.pcent = diskRes.data.pcent!;
-  diskInfo.size = diskRes.data.sizeFormattedGb!;
-  diskInfo.used = diskRes.data.usedFormattedGb!;
+  const client = createClient();
+  const [recRes, diskRes] = await Promise.all<[Promise<boolean>, Promise<HelpersDiskInfo>]>([client.isRecording(), client.info.diskList()]);
+  isRecording.value = recRes;
+  diskAvailablePercentage.value = diskRes.pcent;
 };
 
 const record = async () => {
   try {
-    const api = createClient();
+    const client = createClient();
     if (isRecording.value) {
-      await api.recorder.pauseCreate();
-      store.commit(ChannelMutation.Stop);
+      await client.recorder.pauseCreate();
+      channelStore.stop();
       isRecording.value = false;
     } else {
-      await api.recorder.resumeCreate();
+      await client.recorder.resumeCreate();
       isRecording.value = true;
     }
   } catch (err) {
@@ -149,11 +153,29 @@ const record = async () => {
   }
 };
 
-const connector = async (isLoggedIn: boolean) => {
-  if (isLoggedIn) {
-    socket.connect();
+const initialLoad = async () => {
+  const client = createClient();
+  const res = await Promise.all<[Promise<boolean>, Promise<HelpersDiskInfo>]>([client.isRecording(), client.info.diskList()]);
+  const [recRes, diskRes] = res;
+  diskAvailablePercentage.value = diskRes.pcent;
+  isRecording.value = recRes;
+};
 
-    socket.on(MessageType.HeartBeat, nextUpdate => {
+// --------------------------------------------------------------------------------------
+// Watchers
+// --------------------------------------------------------------------------------------
+
+watch(route, () => (collapseNav.value = true));
+
+// --------------------------------------------------------------------------------------
+// Hooks
+// --------------------------------------------------------------------------------------
+
+onMounted(async () => {
+  await initialLoad();
+
+  connectSocket().then(async () => {
+    socketOn(MessageType.HeartBeat, (nextUpdate) => {
       heartBeatNextUpdate.value = nextUpdate as number;
       const id = setInterval(() => {
         heartBeatNextUpdate.value -= 1;
@@ -162,30 +184,13 @@ const connector = async (isLoggedIn: boolean) => {
         }
       }, 1000);
     });
+  });
 
-    await query();
-    // The catch stops the polling when the query is rejected because of 401 unauthorized.
-    thread = setInterval(async () => {
-      try {
-        await query();
-      } catch (e) {
-        clearInterval(thread);
-      }
-    }, 1000 * 10);
+  thread = setInterval(query, 1000 * 10);
+});
 
-  } else {
-    socket.close();
-  }
-};
-
-// --------------------------------------------------------------------------------------
-// Watchers
-// --------------------------------------------------------------------------------------
-
-watch(route, () => collapseNav.value = true);
-watch(loggedIn, connector);
-
-onMounted(() => {
-  connector(loggedIn.value);
+onUnmounted(() => {
+  closeSocket();
+  clearInterval(thread);
 });
 </script>

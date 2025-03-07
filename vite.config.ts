@@ -1,27 +1,20 @@
-/// <reference types="vitest" />
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
+import { fileURLToPath, URL } from 'node:url'
 
-// https://vitejs.dev/config/
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vueDevTools from 'vite-plugin-vue-devtools'
+import nightwatchPlugin from 'vite-plugin-nightwatch'
+
+// https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue()],
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    coverage: {
-      provider: 'istanbul',
-      reporter: ['html'],
-    }
+  plugins: [
+    vue(),
+    vueDevTools(),
+    nightwatchPlugin(),
+  ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    },
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-        }
-      }
-    }
-  }
-});
+})

@@ -1,4 +1,5 @@
 <template>
+  <LoadIndicator :busy="isLoading">
   <div class="row my-2">
     <div class="col">
       <div class="d-flex justify-content-end">
@@ -17,64 +18,57 @@
             </div>
           </div>
         </div>
-        <button class="btn btn-primary" @click="fetch" v-if="route.params.type==='random'">
-          Refresh
-        </button>
+        <button class="btn btn-primary" @click="fetch" v-if="route.params.type === 'random'">Refresh</button>
       </div>
-      <hr/>
+      <hr />
     </div>
   </div>
   <div class="row">
     <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-      <RecordingItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false"/>
+      <RecordingItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false" />
     </div>
   </div>
+  </LoadIndicator>
 </template>
 
 <script setup lang="ts">
-import { watch, ref, onBeforeMount, onMounted } from 'vue';
-import { createClient } from '../services/api/v1/ClientFactory';
-import RecordingItem from '../components/RecordingItem.vue';
-import { useRoute } from 'vue-router';
-import { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient.ts';
+import RecordingItem from "@/components/RecordingItem.vue";
+import type { DatabaseRecording as RecordingResponse } from "@/services/api/v1/StreamSinkClient";
+import { onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { createClient } from "@/services/api/v1/ClientFactory";
+import LoadIndicator from "@/components/LoadIndicator.vue";
 
 const route = useRoute();
+
+const isLoading = ref(true);
 
 watch(route, () => {
   fetch();
 });
 
-const filterLimit = route.params.limit as string || '25';
-const limits = ref([
-  25,
-  50,
-  100,
-  200,
-  500,
-  1000
-]);
+const filterLimit = (route.params.limit as string) || "25";
+const limits = ref([25, 50, 100, 200, 500, 1000]);
 
 const recordings = ref<RecordingResponse[]>([]);
 
 const fetch = async () => {
-  const api = createClient();
-  const res = await api.recordings.randomDetail(filterLimit);
-  recordings.value = res.data;
+  const client = createClient();
+  const data = await client.recordings.randomDetail(filterLimit);
+  recordings.value = data || [];
 };
 
 const destroyRecording = (recording: RecordingResponse) => {
   for (let i = 0; i < recordings.value.length; i += 1) {
-    if (recordings.value[i].filename === recording.filename) {
+    if (recordings.value[i]!.filename === recording.filename) {
       recordings.value.splice(i, 1);
       break;
     }
   }
 };
 
-onMounted(() => {
-  fetch();
+onMounted(async () => {
+  await fetch();
+  isLoading.value = false;
 });
 </script>
-
-<style scoped>
-</style>

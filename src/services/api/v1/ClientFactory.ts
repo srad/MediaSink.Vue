@@ -1,25 +1,45 @@
-import { StreamSinkClient, DatabaseRecording as RecordingResponse, ResponsesRecordingStatusResponse, HttpClient, Auth } from './StreamSinkClient';
-import axios, { AxiosResponse } from 'axios';
-import { CancelTokenSource } from 'axios';
-import AuthService, { AuthHeader } from "../../auth.service.ts";
+import { ContentType, type DatabaseRecording, type DatabaseRecording as RecordingResponse, HttpClient, StreamSinkClient } from "./StreamSinkClient";
+import { useAuthStore } from "@/stores/auth";
 
-const apiUrl = window.VUE_APP_APIURL;
-
-const unauthorizedInterceptor = (error: any) => {
-  if (error.config.url !== '/auth/login' && error.response && error.response.status === 401) {
-    AuthService.logout();
-    window.location.assign('/login');
+declare global {
+  interface Window {
+    APP_APIURL: string;
   }
-  return Promise.reject(error);
-};
+}
 
-export class MyClient extends StreamSinkClient<any> {
-  constructor(header: AuthHeader | null) {
+export class MyClient extends StreamSinkClient<unknown> {
+  constructor(token: string | null | undefined, apiUrl: string) {
+    const authStore = useAuthStore();
+    let auth = {};
+    if (token) {
+      auth = { Authorization: `Bearer ${token}` };
+    }
     const client = new HttpClient({
-      baseURL: apiUrl,
-      headers: { ...header },
+      baseUrl: apiUrl,
+      baseApiParams: {
+        headers: { ...auth },
+      },
+      /**
+       * Redirect
+       * @param input
+       * @param init
+       */
+      customFetch: (input, init) => {
+        return new Promise<Response>((resolve, reject) => {
+          fetch(input, init)
+            .then((response) => {
+              if (response.status === 401 && !["/login", "/register"].includes(window.location.pathname)) {
+                authStore.logout();
+                // Unauthorized: Redirect to login page
+                window.location.assign("/login");
+                throw new Error("Unauthorized access, redirecting to login...");
+              }
+              resolve(response);
+            })
+            .catch(reject);
+        });
+      },
     });
-    client.instance.interceptors.response.use(value => value, unauthorizedInterceptor);
     super(client);
   }
 
@@ -29,30 +49,31 @@ export class MyClient extends StreamSinkClient<any> {
    * @param file File object to upload
    * @param progress Returns the progress as number in range [0.0 ... 1.0]
    */
-  channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [ Promise<AxiosResponse<RecordingResponse>>, CancelTokenSource ] {
-    const header = AuthService.getAuthHeader();
-    const source = axios.CancelToken.source();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [Promise<RecordingResponse>, AbortController] {
+    const controller = new AbortController();
+    const signal = controller.signal;
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
-    return [ this.http.instance.post(`${apiUrl}/channels/${channelId}/upload`, formData, {
-      cancelToken: source.token,
-      headers: { 'Content-Type': 'multipart/form-data', ...header },
-      onUploadProgress: progressEvent => progressEvent.total ? progress(progressEvent.loaded / progressEvent.total) : 0
-    }), source ];
+    const req = this.http.request<DatabaseRecording>({
+      path: `/channels/${channelId}/upload`,
+      method: "POST",
+      body: formData,
+      type: ContentType.FormData,
+      signal,
+    });
+
+    return [req, controller];
   }
 
-  /**
-   * For unclear reasons the object is not correctly parsed from this route,
-   * although the returned data look fine in the browser.
-   */
   async isRecording(): Promise<boolean> {
-    const res = await this.http.instance.get<ResponsesRecordingStatusResponse>(`${apiUrl}/recorder`);
-    return res.data.isRecording;
+    const { isRecording } = await this.recorder.recorderList();
+    return isRecording;
   }
 }
 
-export const createClient = (): MyClient => {
-  const header = AuthService.getAuthHeader();
-  return new MyClient(header);
+export const createClient = (token?: string | null | undefined, apiUrl?: string): MyClient => {
+  const authStore = useAuthStore();
+  return new MyClient(token || authStore.getToken, apiUrl || window.APP_APIURL);
 };

@@ -1,2 +1,2 @@
-window.VUE_APP_BUILD = "";
-window.VUE_APP_VERSION = "";
+window.APP_BUILD = "";
+window.APP_VERSION = "";

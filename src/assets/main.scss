@@ -1,16 +1,10 @@
 @import "./custom-bootstrap";
 @import "bootstrap-icons/font/bootstrap-icons.css";
+@import "form";
 
-input:invalid {
-  border: 2px solid red;
-}
-
-input:invalid:required {
-  background-color: pink;
-}
-
-input:valid {
-  border: 1px solid limegreen;
+html,
+body {
+  overscroll-behavior-y: contain;
 }
 
 .navbar {
@@ -35,10 +29,6 @@ body, #app {
 
 html {
   padding-bottom: 2.7rem;
-}
-
-main[data-logged-in="true"] {
-  padding-top: 4rem;
 }
 
 #stripe {

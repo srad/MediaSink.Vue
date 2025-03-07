@@ -38,9 +38,9 @@ export interface DatabaseJob {
     completedAt: string;
     createdAt: string;
     filename: string;
+    filepath: string;
     info?: string;
     jobId: number;
-    pathRelative: string;
     /** Additional information */
     pid?: number;
     progress?: string;
@@ -65,13 +65,16 @@ export enum DatabaseJobStatus {
 
 export enum DatabaseJobTask {
     TaskConvert = "convert",
-    TaskPreview = "preview",
+    TaskPreviewCover = "preview-cover",
+    TaskPreviewStrip = "preview-stripe",
+    TaskPreviewVideo = "preview-video",
     TaskCut = "cut",
 }
 
 export interface DatabaseRecording {
     bitRate: number;
     bookmark: boolean;
+    /** @min 0 */
     channelId: number;
     channelName: string;
     createdAt: string;
@@ -80,10 +83,11 @@ export interface DatabaseRecording {
     height: number;
     /** Total number of video packets/frames. */
     packets: number;
-    pathRelative?: string;
+    pathRelative: string;
     previewCover?: string;
     previewStripe?: string;
     previewVideo?: string;
+    /** @min 0 */
     recordingId: number;
     size: number;
     videoType: string;
@@ -101,10 +105,10 @@ export interface HelpersCPULoad {
 }
 
 export interface HelpersDiskInfo {
-    availFormattedGb: string;
-    pcent: string;
-    sizeFormattedGb: string;
-    usedFormattedGb: string;
+    availFormattedGb: number;
+    pcent: number;
+    sizeFormattedGb: number;
+    usedFormattedGb: number;
 }
 
 export interface HelpersNetInfo {
@@ -171,13 +175,17 @@ export interface ResponsesJobsResponse {
     totalCount: number;
 }
 
+export interface ResponsesLoginResponse {
+    token: string;
+}
+
 export interface ResponsesRecordingStatusResponse {
     isRecording: boolean;
 }
 
 export interface ResponsesServerInfoResponse {
-    commit?: string;
-    version?: string;
+    commit: string;
+    version: string;
 }
 
 export interface ServicesChannelInfo {
@@ -210,6 +218,11 @@ export interface ServicesProcessInfo {
     output?: string;
     path?: string;
     pid?: number;
+}
+
+export interface UploadCreatePayload {
+    /** Uploaded file chunk */
+    file: number[];
 }
 
 export namespace Admin {
@@ -267,21 +280,21 @@ export namespace Admin {
 
 export namespace Auth {
     /**
-     * @description Create new user
+     * @description User login
      * @tags auth
      * @name LoginCreate
-     * @summary Create new user
+     * @summary User login
      * @request POST:/auth/login
-     * @response `200` `string` OK
-     * @response `400` `any` Bad Request
-     * @response `500` `any` Internal Server Error
+     * @response `200` `ResponsesLoginResponse` JWT token for authentication
+     * @response `400` `string` Error message
+     * @response `401` `string` Error message
      */
     export namespace LoginCreate {
         export type RequestParams = {};
         export type RequestQuery = {};
         export type RequestBody = RequestsAuthenticationRequest;
         export type RequestHeaders = {};
-        export type ResponseBody = string;
+        export type ResponseBody = ResponsesLoginResponse;
     }
 
     /**
@@ -290,16 +303,16 @@ export namespace Auth {
      * @name SignupCreate
      * @summary Create new user
      * @request POST:/auth/signup
-     * @response `200` `void` OK
-     * @response `400` `any` Bad Request
-     * @response `500` `any` Internal Server Error
+     * @response `200` `any` JWT token for authentication
+     * @response `400` `string` Error message
+     * @response `500` `string` Error message
      */
     export namespace SignupCreate {
         export type RequestParams = {};
         export type RequestQuery = {};
         export type RequestBody = RequestsAuthenticationRequest;
         export type RequestHeaders = {};
-        export type ResponseBody = void;
+        export type ResponseBody = any;
     }
 }
 
@@ -518,10 +531,7 @@ export namespace Channels {
             id: number;
         };
         export type RequestQuery = {};
-        export type RequestBody = {
-            /** Uploaded file chunk */
-            file: number[];
-        };
+        export type RequestBody = UploadCreatePayload;
         export type RequestHeaders = {};
         export type ResponseBody = DatabaseRecording;
     }
@@ -574,7 +584,8 @@ export namespace Jobs {
      * @summary Jobs pagination
      * @request POST:/jobs/list
      * @response `200` `ResponsesJobsResponse` OK
-     * @response `500` `any` Internal Server Error
+     * @response `400` `any` Error message
+     * @response `500` `any` Error message
      */
     export namespace ListCreate {
         export type RequestParams = {};
@@ -623,8 +634,8 @@ export namespace Jobs {
      * @summary Interrupt job gracefully
      * @request POST:/jobs/stop/{pid}
      * @response `200` `void` OK
-     * @response `400` `string` Bad Request
-     * @response `500` `string` Internal Server Error
+     * @response `400` `any` Error message
+     * @response `500` `any` Error message
      */
     export namespace StopCreate {
         export type RequestParams = {
@@ -659,9 +670,9 @@ export namespace Jobs {
      * @name JobsCreate
      * @summary Enqueue a preview job
      * @request POST:/jobs/{id}
-     * @response `200` `DatabaseJob` OK
-     * @response `400` `any` Bad Request
-     * @response `500` `any` Internal Server Error
+     * @response `200` `(DatabaseJob)[]` OK
+     * @response `400` `any` Error message
+     * @response `500` `any` Error message
      */
     export namespace JobsCreate {
         export type RequestParams = {
@@ -671,7 +682,7 @@ export namespace Jobs {
         export type RequestQuery = {};
         export type RequestBody = never;
         export type RequestHeaders = {};
-        export type ResponseBody = DatabaseJob;
+        export type ResponseBody = DatabaseJob[];
     }
 
     /**
@@ -681,8 +692,8 @@ export namespace Jobs {
      * @summary Interrupt and delete job gracefully
      * @request DELETE:/jobs/{id}
      * @response `200` `any` OK
-     * @response `400` `string` Bad Request
-     * @response `500` `string` Internal Server Error
+     * @response `400` `any` Error message
+     * @response `500` `any` Error message
      */
     export namespace JobsDelete {
         export type RequestParams = {
@@ -1009,7 +1020,7 @@ export namespace Recordings {
      * @name PreviewCreate
      * @summary Generate preview for a certain video in a channel
      * @request POST:/recordings/{id}/preview
-     * @response `200` `DatabaseJob` OK
+     * @response `200` `(DatabaseJob)[]` OK
      * @response `400` `any` Error message
      * @response `500` `any` Error message
      */
@@ -1021,7 +1032,7 @@ export namespace Recordings {
         export type RequestQuery = {};
         export type RequestBody = never;
         export type RequestHeaders = {};
-        export type ResponseBody = DatabaseJob;
+        export type ResponseBody = DatabaseJob[];
     }
 
     /**
@@ -1088,12 +1099,10 @@ export namespace User {
     }
 }
 
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
-import axios from "axios";
-
 export type QueryParamsType = Record<string | number, any>;
+export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
-export interface FullRequestParams extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
+export interface FullRequestParams extends Omit<RequestInit, "body"> {
     /** set parameter to `true` for call `securityWorker` for this request */
     secure?: boolean;
     /** request path */
@@ -1103,18 +1112,30 @@ export interface FullRequestParams extends Omit<AxiosRequestConfig, "data" | "pa
     /** query params */
     query?: QueryParamsType;
     /** format of response (i.e. response.json() -> format: "json") */
-    format?: ResponseType;
+    format?: ResponseFormat;
     /** request body */
     body?: unknown;
+    /** base url */
+    baseUrl?: string;
+    /** request cancellation token */
+    cancelToken?: CancelToken;
 }
 
 export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
 
-export interface ApiConfig<SecurityDataType = unknown> extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
-    securityWorker?: (securityData: SecurityDataType | null) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void;
-    secure?: boolean;
-    format?: ResponseType;
+export interface ApiConfig<SecurityDataType = unknown> {
+    baseUrl?: string;
+    baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
+    securityWorker?: (securityData: SecurityDataType | null) => Promise<RequestParams | void> | RequestParams | void;
+    customFetch?: typeof fetch;
 }
+
+export interface HttpResponse<D extends unknown, E extends unknown = unknown> extends Response {
+    data: D;
+    error: E;
+}
+
+type CancelToken = Symbol | string | number;
 
 export enum ContentType {
     Json = "application/json",
@@ -1124,86 +1145,142 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-    public instance: AxiosInstance;
+    public baseUrl: string = "/api/v1";
     private securityData: SecurityDataType | null = null;
     private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
-    private secure?: boolean;
-    private format?: ResponseType;
+    private abortControllers = new Map<CancelToken, AbortController>();
+    private customFetch = (...fetchParams: Parameters<typeof fetch>) => fetch(...fetchParams);
 
-    constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
-        this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "/api/v1" });
-        this.secure = secure;
-        this.format = format;
-        this.securityWorker = securityWorker;
+    private baseApiParams: RequestParams = {
+        credentials: "same-origin",
+        headers: {},
+        redirect: "follow",
+        referrerPolicy: "no-referrer",
+    };
+
+    constructor(apiConfig: ApiConfig<SecurityDataType> = {}) {
+        Object.assign(this, apiConfig);
     }
 
     public setSecurityData = (data: SecurityDataType | null) => {
         this.securityData = data;
     };
 
-    protected mergeRequestParams(params1: AxiosRequestConfig, params2?: AxiosRequestConfig): AxiosRequestConfig {
-        const method = params1.method || (params2 && params2.method);
+    protected encodeQueryParam(key: string, value: any) {
+        const encodedKey = encodeURIComponent(key);
+        return `${encodedKey}=${encodeURIComponent(typeof value === "number" ? value : `${value}`)}`;
+    }
 
+    protected addQueryParam(query: QueryParamsType, key: string) {
+        return this.encodeQueryParam(key, query[key]);
+    }
+
+    protected addArrayQueryParam(query: QueryParamsType, key: string) {
+        const value = query[key];
+        return value.map((v: any) => this.encodeQueryParam(key, v)).join("&");
+    }
+
+    protected toQueryString(rawQuery?: QueryParamsType): string {
+        const query = rawQuery || {};
+        const keys = Object.keys(query).filter((key) => "undefined" !== typeof query[key]);
+        return keys.map((key) => (Array.isArray(query[key]) ? this.addArrayQueryParam(query, key) : this.addQueryParam(query, key))).join("&");
+    }
+
+    protected addQueryParams(rawQuery?: QueryParamsType): string {
+        const queryString = this.toQueryString(rawQuery);
+        return queryString ? `?${queryString}` : "";
+    }
+
+    private contentFormatters: Record<ContentType, (input: any) => any> = {
+        [ContentType.Json]: (input: any) => (input !== null && (typeof input === "object" || typeof input === "string") ? JSON.stringify(input) : input),
+        [ContentType.Text]: (input: any) => (input !== null && typeof input !== "string" ? JSON.stringify(input) : input),
+        [ContentType.FormData]: (input: any) =>
+            Object.keys(input || {}).reduce((formData, key) => {
+                const property = input[key];
+                formData.append(key, property instanceof Blob ? property : typeof property === "object" && property !== null ? JSON.stringify(property) : `${property}`);
+                return formData;
+            }, new FormData()),
+        [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
+    };
+
+    protected mergeRequestParams(params1: RequestParams, params2?: RequestParams): RequestParams {
         return {
-            ...this.instance.defaults,
+            ...this.baseApiParams,
             ...params1,
             ...(params2 || {}),
             headers: {
-                ...((method && this.instance.defaults.headers[method.toLowerCase() as keyof HeadersDefaults]) || {}),
+                ...(this.baseApiParams.headers || {}),
                 ...(params1.headers || {}),
                 ...((params2 && params2.headers) || {}),
             },
         };
     }
 
-    protected stringifyFormItem(formItem: unknown) {
-        if (typeof formItem === "object" && formItem !== null) {
-            return JSON.stringify(formItem);
-        } else {
-            return `${formItem}`;
-        }
-    }
-
-    protected createFormData(input: Record<string, unknown>): FormData {
-        if (input instanceof FormData) {
-            return input;
-        }
-        return Object.keys(input || {}).reduce((formData, key) => {
-            const property = input[key];
-            const propertyContent: any[] = property instanceof Array ? property : [property];
-
-            for (const formItem of propertyContent) {
-                const isFileType = formItem instanceof Blob || formItem instanceof File;
-                formData.append(key, isFileType ? formItem : this.stringifyFormItem(formItem));
+    protected createAbortSignal = (cancelToken: CancelToken): AbortSignal | undefined => {
+        if (this.abortControllers.has(cancelToken)) {
+            const abortController = this.abortControllers.get(cancelToken);
+            if (abortController) {
+                return abortController.signal;
             }
+            return void 0;
+        }
 
-            return formData;
-        }, new FormData());
-    }
+        const abortController = new AbortController();
+        this.abortControllers.set(cancelToken, abortController);
+        return abortController.signal;
+    };
 
-    public request = async <T = any, _E = any>({ secure, path, type, query, format, body, ...params }: FullRequestParams): Promise<AxiosResponse<T>> => {
-        const secureParams = ((typeof secure === "boolean" ? secure : this.secure) && this.securityWorker && (await this.securityWorker(this.securityData))) || {};
+    public abortRequest = (cancelToken: CancelToken) => {
+        const abortController = this.abortControllers.get(cancelToken);
+
+        if (abortController) {
+            abortController.abort();
+            this.abortControllers.delete(cancelToken);
+        }
+    };
+
+    public request = async <T = any, E = any>({ body, secure, path, type, query, format, baseUrl, cancelToken, ...params }: FullRequestParams): Promise<T> => {
+        const secureParams = ((typeof secure === "boolean" ? secure : this.baseApiParams.secure) && this.securityWorker && (await this.securityWorker(this.securityData))) || {};
         const requestParams = this.mergeRequestParams(params, secureParams);
-        const responseFormat = format || this.format || undefined;
+        const queryString = query && this.toQueryString(query);
+        const payloadFormatter = this.contentFormatters[type || ContentType.Json];
+        const responseFormat = format || requestParams.format;
 
-        if (type === ContentType.FormData && body && body !== null && typeof body === "object") {
-            body = this.createFormData(body as Record<string, unknown>);
-        }
-
-        if (type === ContentType.Text && body && body !== null && typeof body !== "string") {
-            body = JSON.stringify(body);
-        }
-
-        return this.instance.request({
+        return this.customFetch(`${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`, {
             ...requestParams,
             headers: {
                 ...(requestParams.headers || {}),
-                ...(type ? { "Content-Type": type } : {}),
+                ...(type && type !== ContentType.FormData ? { "Content-Type": type } : {}),
             },
-            params: query,
-            responseType: responseFormat,
-            data: body,
-            url: path,
+            signal: (cancelToken ? this.createAbortSignal(cancelToken) : requestParams.signal) || null,
+            body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
+        }).then(async (response) => {
+            const r = response.clone() as HttpResponse<T, E>;
+            r.data = null as unknown as T;
+            r.error = null as unknown as E;
+
+            const data = !responseFormat
+                ? r
+                : await response[responseFormat]()
+                      .then((data) => {
+                          if (r.ok) {
+                              r.data = data;
+                          } else {
+                              r.error = data;
+                          }
+                          return r;
+                      })
+                      .catch((e) => {
+                          r.error = e;
+                          return r;
+                      });
+
+            if (cancelToken) {
+                this.abortControllers.delete(cancelToken);
+            }
+
+            if (!response.ok) throw data;
+            return data.data;
         });
     };
 }
@@ -1279,18 +1356,18 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
     };
     auth = {
         /**
-         * @description Create new user
+         * @description User login
          *
          * @tags auth
          * @name LoginCreate
-         * @summary Create new user
+         * @summary User login
          * @request POST:/auth/login
-         * @response `200` `string` OK
-         * @response `400` `any` Bad Request
-         * @response `500` `any` Internal Server Error
+         * @response `200` `ResponsesLoginResponse` JWT token for authentication
+         * @response `400` `string` Error message
+         * @response `401` `string` Error message
          */
         loginCreate: (AuthenticationRequest: RequestsAuthenticationRequest, params: RequestParams = {}) =>
-            this.http.request<string, any>({
+            this.http.request<ResponsesLoginResponse, string>({
                 path: `/auth/login`,
                 method: "POST",
                 body: AuthenticationRequest,
@@ -1306,16 +1383,17 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
          * @name SignupCreate
          * @summary Create new user
          * @request POST:/auth/signup
-         * @response `200` `void` OK
-         * @response `400` `any` Bad Request
-         * @response `500` `any` Internal Server Error
+         * @response `200` `any` JWT token for authentication
+         * @response `400` `string` Error message
+         * @response `500` `string` Error message
          */
         signupCreate: (AuthenticationRequest: RequestsAuthenticationRequest, params: RequestParams = {}) =>
-            this.http.request<void, any>({
+            this.http.request<any, string>({
                 path: `/auth/signup`,
                 method: "POST",
                 body: AuthenticationRequest,
                 type: ContentType.Json,
+                format: "json",
                 ...params,
             }),
     };
@@ -1526,14 +1604,7 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
          * @response `400` `any` Bad Request
          * @response `500` `any` Internal Server Error
          */
-        uploadCreate: (
-            id: number,
-            data: {
-                /** Uploaded file chunk */
-                file: number[];
-            },
-            params: RequestParams = {},
-        ) =>
+        uploadCreate: (id: number, data: UploadCreatePayload, params: RequestParams = {}) =>
             this.http.request<DatabaseRecording, any>({
                 path: `/channels/${id}/upload`,
                 method: "POST",
@@ -1591,7 +1662,8 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
          * @summary Jobs pagination
          * @request POST:/jobs/list
          * @response `200` `ResponsesJobsResponse` OK
-         * @response `500` `any` Internal Server Error
+         * @response `400` `any` Error message
+         * @response `500` `any` Error message
          */
         listCreate: (JobsRequest: RequestsJobsRequest, params: RequestParams = {}) =>
             this.http.request<ResponsesJobsResponse, any>({
@@ -1643,11 +1715,11 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
          * @summary Interrupt job gracefully
          * @request POST:/jobs/stop/{pid}
          * @response `200` `void` OK
-         * @response `400` `string` Bad Request
-         * @response `500` `string` Internal Server Error
+         * @response `400` `any` Error message
+         * @response `500` `any` Error message
          */
         stopCreate: (pid: number, params: RequestParams = {}) =>
-            this.http.request<void, string>({
+            this.http.request<void, any>({
                 path: `/jobs/stop/${pid}`,
                 method: "POST",
                 type: ContentType.Json,
@@ -1678,12 +1750,12 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
          * @name JobsCreate
          * @summary Enqueue a preview job
          * @request POST:/jobs/{id}
-         * @response `200` `DatabaseJob` OK
-         * @response `400` `any` Bad Request
-         * @response `500` `any` Internal Server Error
+         * @response `200` `(DatabaseJob)[]` OK
+         * @response `400` `any` Error message
+         * @response `500` `any` Error message
          */
         jobsCreate: (id: string, params: RequestParams = {}) =>
-            this.http.request<DatabaseJob, any>({
+            this.http.request<DatabaseJob[], any>({
                 path: `/jobs/${id}`,
                 method: "POST",
                 type: ContentType.Json,
@@ -1699,11 +1771,11 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
          * @summary Interrupt and delete job gracefully
          * @request DELETE:/jobs/{id}
          * @response `200` `any` OK
-         * @response `400` `string` Bad Request
-         * @response `500` `string` Internal Server Error
+         * @response `400` `any` Error message
+         * @response `500` `any` Error message
          */
         jobsDelete: (id: number, params: RequestParams = {}) =>
-            this.http.request<any, string>({
+            this.http.request<any, any>({
                 path: `/jobs/${id}`,
                 method: "DELETE",
                 type: ContentType.Json,
@@ -2020,12 +2092,12 @@ export class StreamSinkClient<SecurityDataType extends unknown> {
          * @name PreviewCreate
          * @summary Generate preview for a certain video in a channel
          * @request POST:/recordings/{id}/preview
-         * @response `200` `DatabaseJob` OK
+         * @response `200` `(DatabaseJob)[]` OK
          * @response `400` `any` Error message
          * @response `500` `any` Error message
          */
         previewCreate: (id: number, params: RequestParams = {}) =>
-            this.http.request<DatabaseJob, any>({
+            this.http.request<DatabaseJob[], any>({
                 path: `/recordings/${id}/preview`,
                 method: "POST",
                 type: ContentType.Json,

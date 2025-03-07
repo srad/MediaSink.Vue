@@ -1,25 +1,37 @@
 <template>
-  <div class="w-100 h-100" style="min-height: 200px;" ref="container"></div>
+  <div class="w-100 h-100" style="min-height: 200px" ref="container"></div>
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, onMounted, ref, watch } from 'vue';
-import { createChart, IChartApi, ISeriesApi } from 'lightweight-charts';
+import { computed, onMounted, onUnmounted, useTemplateRef, watch } from "vue";
+import type { IChartApi, ISeriesApi } from "lightweight-charts";
+import { createChart, LineSeries } from "lightweight-charts";
 
 const props = defineProps<{
-  series: { load: number, time: number }[]
+  series: { load: number; time: number }[];
 }>();
 
-const container = ref<HTMLDivElement | null>(null);
+const container = useTemplateRef<HTMLDivElement>("container");
 let chart: IChartApi | null = null;
-let cpuSeries: ISeriesApi<any> | null = null;
+let cpuSeries: ISeriesApi<"Line"> | null = null;
 
-const getIn = computed(() => (props.series || []).map(((x, i) => ({ time: i, value: x.load }))));
+const getIn = computed(() =>
+  (props.series || [])
+    .map((x, i) => ({
+      time: i,
+      value: x.load,
+    }))
+    .slice(-30),
+);
 
-watch(() => props.series, () => {
-  cpuSeries?.setData(getIn.value.sort((a, b) => a.time - b.time));
-  chart?.timeScale().fitContent();
-});
+watch(
+  () => props.series,
+  () => {
+    //@ts-expect-error just overkill
+    cpuSeries?.setData(getIn.value.sort((a, b) => a.time - b.time));
+    chart?.timeScale().fitContent();
+  },
+);
 
 onMounted(() => {
   chart = createChart(container.value!, {
@@ -27,18 +39,23 @@ onMounted(() => {
     layout: { attributionLogo: false, fontSize: 11 },
     localization: {
       priceFormatter: (value: number) => {
-        return value.toFixed(1) + '%';
+        return value.toFixed(1) + "%";
       },
     },
   });
-  cpuSeries = chart.addLineSeries({
+  cpuSeries = chart?.addSeries(LineSeries, {
     pointMarkersVisible: true,
     lineWidth: 2,
-    color: '#990d37',
-    title: 'Load  ',
+    title: "Load",
   });
+});
+
+onUnmounted(() => {
+  if (chart) {
+    chart.remove();
+    chart = null;
+  }
 });
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

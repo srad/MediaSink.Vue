@@ -2,46 +2,60 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item d-flex justify-content-between bg-info-light bg-gradient">
       <div>
-        <span class="badge me-2 user-select-none" :class="{'bg-danger text-white border border-danger blink': channel.isRecording, 'bg-light text-primary border-info border': !channel.isRecording}">Recording</span>
-        <span class="badge user-select-none" :class="{'bg-success text-white border border-success': channel.isOnline, 'bg-light text-primary border-info border': !channel.isOnline}">Online</span>
+        <span class="badge me-2 user-select-none" :class="{ 'bg-danger text-white border border-danger blink': channel.isRecording, 'bg-light text-primary border-info border': !channel.isRecording }">Recording</span>
+        <span class="badge user-select-none" :class="{ 'bg-success text-white border border-success': channel.isOnline, 'bg-light text-primary border-info border': !channel.isOnline }">Online</span>
       </div>
     </li>
-    <li class="list-group-item d-flex justify-content-between bg-info-light-2">
+
+    <li class="list-group-item d-flex justify-content-between py-1">
       <span v-if="channel.isRecording">
         <i class="bi bi-stopwatch me-1"></i>
         <span>{{ minutes }}:{{ seconds }}min</span>
       </span>
       <span v-else>&nbsp;</span>
       <div>
-        <span><i class="bi bi-device-hdd"></i> {{
-            (channel.recordingsSize / 1000 / 1000 / 1000).toFixed(1)
-          }}GB ({{ channel.recordingsCount }})</span>
+        <span><i class="bi bi-device-hdd"></i> {{ (channel.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ channel.recordingsCount }})</span>
       </div>
     </li>
-    <li class="list-group-item bg-info-light-2">
-      <template v-if="!showTagInput && tagArray">
-        <span v-for="tag in tagArray" @click="router.push({query: {tag}})" class="badge bg-secondary text-dark me-1 user-select-none" :key="tag">{{
-            tag
-          }}
-          <span @click="destroyTag(tag)" class="bi bi-x" style="z-index: 1"></span>
-        </span>
-      </template>
-      <div v-show="showTagInput" class="input-group input-group-sm">
-        <input class="form-control form-control-sm" ref="tagInput" v-model.lazy="tagVal" type="text" :name="`${channel.channelId}_tag`" autocapitalize="off" autocomplete="off">
-        <button class="btn btn-sm btn-success" @click="addTag">save</button>
-      </div>
-      <span v-show="!showTagInput" class="badge bg-success" @click="showTagInput=true">
-          <span class="bi bi-plus"></span>
-      </span>
-    </li>
-    <li class="list-group-item bg-info-light d-flex justify-content-between fs-6">
 
+    <!-- tags -->
+    <li class="list-group-item py-1">
+      <div class="d-flex">
+        <template v-if="!showTagInput && tagArray">
+          <div v-for="tag in tagArray" class="d-flex badge bg-secondary text-dark me-1 user-select-none" :key="tag">
+            <span @click="router.push({ query: { tag } })">{{ tag }}</span>
+            <i @click="destroyTag(tag)" class="bi bi-x ms-1" style="z-index: 1"></i>
+          </div>
+        </template>
+        <span
+          v-show="!showTagInput"
+          class="badge bg-primary"
+          @click="
+            showTagInput = true;
+            tagInput?.focus();
+          ">
+          Tag<span class="bi bi-plus"></span>
+        </span>
+      </div>
+
+      <div v-show="showTagInput" class="input-group input-group-sm">
+        <form @submit.prevent="addTag">
+          <div class="input-group">
+            <input :disabled="processingTag" ref="tagInput" class="form-control form-control-sm border-primary" v-model.lazy="tagVal" type="text" :name="`${channel.channelId}_tag`" autocapitalize="off" autocomplete="off" />
+            <button type="submit" class="btn btn-sm btn-primary" :disabled="processingTag">save</button>
+          </div>
+        </form>
+      </div>
+    </li>
+    <!-- /tags -->
+
+    <li class="list-group-item bg-info-light d-flex justify-content-between fs-6">
       <div class="d-flex w-75">
         <span class="form-check form-switch me-2">
-          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`">
+          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`" />
           <label class="form-check-label" :for="`${channel.channelId}_isPaused`">Record</label>
         </span>
-        <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)"/>
+        <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)" />
       </div>
 
       <div class="d-flex justify-content-evenly w-25">
@@ -52,26 +66,25 @@
           <i class="bi bi-trash3-fill"></i>
         </a>
       </div>
-
     </li>
   </ul>
 </template>
 
 <script setup lang="ts">
-import { watch, defineEmits, ref, computed, onMounted, onUnmounted } from 'vue';
-import { ServicesChannelInfo as ChannelResponse } from '../services/api/v1/StreamSinkClient';
-import { createClient } from '../services/api/v1/ClientFactory';
-import { validTag } from '../utils/parser';
-import FavButton from "./controls/FavButton.vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import type { ServicesChannelInfo as ChannelResponse } from "../services/api/v1/StreamSinkClient";
+import { validTag } from "../utils/parser";
+import FavButton from "./controls/FavButton.vue";
+import { createClient } from "../services/api/v1/ClientFactory";
 
 // --------------------------------------------------------------------------------------
 // Props
 // --------------------------------------------------------------------------------------
 
 const props = defineProps<{
-  fav: boolean,
-  channel: ChannelResponse,
+  fav: boolean;
+  channel: ChannelResponse;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -79,11 +92,11 @@ const props = defineProps<{
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: 'unfav', value: ChannelResponse): void
-  (e: 'fav', value: ChannelResponse): void
-  (e: 'edit', value: ChannelResponse): void
-  (e: 'destroy', value: ChannelResponse): void
-  (e: 'pause', value: ChannelResponse): void
+  (e: "unfav", value: ChannelResponse): void;
+  (e: "fav", value: ChannelResponse): void;
+  (e: "edit", value: ChannelResponse): void;
+  (e: "destroy", value: ChannelResponse): void;
+  (e: "pause", value: ChannelResponse): void;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -91,12 +104,12 @@ const emit = defineEmits<{
 // --------------------------------------------------------------------------------------
 
 const tagArray = ref<string[]>(props.channel.tags || []);
-const tagVal = ref('');
+const tagVal = ref("");
 const showTagInput = ref(false);
-const thread = ref<NodeJS.Timeout | number | null>(null);
+const thread = ref<null | ReturnType<typeof setTimeout>>(null);
 const secRecording = ref(props.channel.minRecording * 60);
 const tagInput = ref<HTMLInputElement | null>(null);
-
+const processingTag = ref(false);
 const router = useRouter();
 
 // --------------------------------------------------------------------------------------
@@ -111,8 +124,8 @@ watch(showTagInput, (val) => {
 
 const minutes = computed(() => (secRecording.value / 60).toFixed(0));
 const seconds = computed(() => {
-  let x = (secRecording.value % 60).toFixed(0);
-  return (x.length < 2 ? '0' + String(x) : x);
+  const x = (secRecording.value % 60).toFixed(0);
+  return x.length < 2 ? "0" + String(x) : x;
 });
 
 // --------------------------------------------------------------------------------------
@@ -120,40 +133,39 @@ const seconds = computed(() => {
 // --------------------------------------------------------------------------------------
 
 const destroyTag = async (tag: string) => {
-  const removeTag = tagArray.value?.filter(t => t !== tag);
-  const api = createClient();
-  await api.channels.tagsPartialUpdate(props.channel.channelId!, { tags: removeTag });
+  const removeTag = tagArray.value?.filter((t) => t !== tag);
+  const client = createClient();
+  await client.channels.tagsPartialUpdate(props.channel.channelId!, { tags: removeTag });
   tagArray.value = removeTag;
 };
 
-const addTag = () => {
-  const tag = tagVal.value.trim().toLowerCase();
+const addTag = async () => {
+  try {
+    const tag = tagVal.value.trim().toLowerCase();
 
-  // No value, cancel
-  if (tag === '') {
+    // No value, cancel
+    if (tag.trim() === "") {
+      showTagInput.value = false;
+      return;
+    }
+
+    if (!validTag(tag)) {
+      throw new Error(`Illegal tag: ${tag}`);
+    }
+
+    processingTag.value = true;
+
+    const client = createClient();
+    await client.channels.tagsPartialUpdate(props.channel.channelId!, { tags: tagArray.value.concat(tag) });
+    tagArray.value.push(tag);
     showTagInput.value = false;
-    return;
+    tagVal.value = "";
+  } catch (e: unknown) {
+    alert(e);
+  } finally {
+    processingTag.value = false;
+    tagVal.value = "";
   }
-
-  if (!validTag(tag)) {
-    alert("Illegal tag: " + tag);
-  }
-
-  // Optimistic add.
-  tagArray.value.push(tag);
-
-  const api = createClient();
-  api.channels.tagsPartialUpdate(props.channel.channelId!, { tags: tagArray.value })
-      .then(() => {
-        showTagInput.value = false;
-        tagVal.value = '';
-      })
-      .catch(e => {
-        alert(e.message);
-        // Fail, remove again.
-        tagArray.value.pop();
-      })
-      .finally(() => tagVal.value = '');
 };
 
 // --------------------------------------------------------------------------------------
@@ -176,6 +188,4 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

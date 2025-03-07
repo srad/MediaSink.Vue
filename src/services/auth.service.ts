@@ -1,5 +1,5 @@
-import { createClient } from "./api/v1/ClientFactory.ts";
-import { RequestsAuthenticationRequest } from "./api/v1/StreamSinkClient.ts";
+import { createClient } from "./api/v1/ClientFactory";
+import { type RequestsAuthenticationRequest } from "./api/v1/StreamSinkClient";
 
 export interface AuthInfo {
   token: string;
@@ -11,20 +11,25 @@ export interface AuthHeader {
 
 const TOKEN_NAME = "jwt";
 
+const clientBuilder = () => createClient(AuthService.getToken(), window.APP_APIURL);
+
 export default class AuthService {
   static login(user: RequestsAuthenticationRequest) {
     return new Promise<string>((resolve, reject) => {
-      const client = createClient();
-      client.auth.loginCreate(user).then(response => {
-        const r = response.data as unknown as AuthInfo;
-        if (r.token) {
-          localStorage.removeItem(TOKEN_NAME);
-          localStorage.setItem(TOKEN_NAME, r.token);
-          return resolve(r.token);
-        } else {
-          return reject("token not found");
-        }
-      }).catch(reject);
+      const client = clientBuilder();
+      client.auth
+        .loginCreate(user)
+        .then((response) => {
+          const r = response as unknown as AuthInfo;
+          if (r.token) {
+            localStorage.removeItem(TOKEN_NAME);
+            localStorage.setItem(TOKEN_NAME, r.token);
+            return resolve(r.token);
+          } else {
+            return reject("token not found");
+          }
+        })
+        .catch(reject);
     });
   }
 
@@ -41,7 +46,7 @@ export default class AuthService {
   }
 
   static signup(user: RequestsAuthenticationRequest) {
-    const client = createClient();
+    const client = clientBuilder();
     return client.auth.signupCreate(user);
   }
 
@@ -51,6 +56,6 @@ export default class AuthService {
       return null;
     }
 
-    return { Authorization: 'Bearer ' + token };
+    return { Authorization: "Bearer " + token };
   }
 }

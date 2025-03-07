@@ -2,11 +2,11 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item d-flex justify-content-center">
       <span>
-        {{ t('recording.durationMinutes', [ durationFormatted ]) }}
+        {{ t('recording.durationMinutes', [durationFormatted]) }}
       </span>
       <span class="text-secondary px-2">/</span>
       <span>
-        {{ (size / 1000 / 1000 / 1000).toFixed(1) }}GB
+        {{ (size / 1024 / 1024 / 1024).toFixed(1) }}GB
       </span>
       <span class="text-secondary px-2">/</span>
       <span class="text-cut">{{ ago }}</span>
@@ -64,10 +64,10 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import type { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient.ts';
+import { fromNow } from '../utils/datetime';
 import FavButton from './controls/FavButton.vue';
-import { useI18n } from "vue-i18n";
-import { DatabaseRecording as RecordingResponse } from "../services/api/v1/StreamSinkClient.ts";
-import { fromNow } from "../utils/datetime.ts";
 
 const { t } = useI18n();
 
