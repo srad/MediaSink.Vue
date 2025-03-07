@@ -11,7 +11,7 @@ export type SettingsState = {
 export const useSettingsStore = defineStore("settings", {
   persist: true,
   state: (): SettingsState => ({
-    channelsView: "list",
+    channelsView: "grid",
     videoVolume: 1.0,
     videoMuted: true,
   }),

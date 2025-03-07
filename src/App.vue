@@ -1,16 +1,21 @@
 <template>
-  <component :is="layoutComponent">
-    <RouterView v-slot="{ Component }">
-      <component :is="Component"></component>
-    </RouterView>
-  </component>
+  <Suspense>
+    <template #default>
+      <component :is="layoutComponent">
+        <RouterView/>
+      </component>
+    </template>
+    <template #fallback>
+      <p>Loading...</p>
+    </template>
+  </Suspense>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import AuthLayout from "@/layouts/AuthLayout.vue";
-import { useRoute } from 'vue-router'
+import { computed } from 'vue';
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import AuthLayout from '@/layouts/AuthLayout.vue';
+import { useRoute } from 'vue-router';
 
 const route = useRoute();
 

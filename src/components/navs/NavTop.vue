@@ -13,16 +13,16 @@
 
     <nav class="navbar navbar-dark navbar-expand-lg fixed-top shadow-sm border-bottom border-primary-subtle m-0 d-flex bg-primary">
       <div class="container-fluid">
-        <AppBrand class="mr-auto" :title="title" />
+        <AppBrand class="mr-auto" :title="title"/>
 
         <span class="text-danger fw-bold d-none d-sm-inline">
-          <i v-if="heartBeatNextUpdate >= 0" class="bi blink bi-heart-pulse-fill" />
+          <i v-if="heartBeatNextUpdate >= 0" class="bi blink bi-heart-pulse-fill"/>
           <i v-else class="bi bi-heart-pulse"></i>
         </span>
 
         <div class="offcanvas offcanvas-end bg-dark" :class="{ show: showNav }" data-bs-backdrop="static" tabindex="-1" aria-labelledby="collapsibleNavbarLabel" id="collapsibleNavbar">
           <div class="offcanvas-header bg-primary text-white">
-            <AppBrand class="mr-auto" :title="title" />
+            <AppBrand class="mr-auto" :title="title"/>
             <button type="button" class="btn-close btn-close-white" @click="showNav = !showNav"></button>
           </div>
           <div class="offcanvas-body">
@@ -39,21 +39,23 @@
                   }
                 ">
                 <a :class="{ active: route.path === link.url }" @click="collapseNav = true" class="nav-link">
-                  <span data-bs-dismiss="offcanvas" data-bs-target="#collapsibleNavbar">{{ link.title }}</span>
+                  <span data-bs-dismiss="offcanvas" data-bs-target="#collapsibleNavbar">{{
+                      link.title
+                    }}</span>
                 </a>
               </li>
               <li class="nav-item d-flex align-items-center">
-                <DiskStatus :pcent="diskAvailablePercentage" />
+                <DiskStatus :pcent="diskAvailablePercentage"/>
               </li>
               <li class="nav-item d-none d-lg-block">
-                <RecordingControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')" />
+                <RecordingControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')"/>
               </li>
             </ul>
           </div>
         </div>
 
         <div class="d-lg-none">
-          <RecordingControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')" />
+          <RecordingControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')"/>
         </div>
 
         <button class="navbar-toggler d-l-none" type="button" @click="showNav = !showNav">
@@ -65,17 +67,18 @@
 </template>
 
 <script setup lang="ts">
-import { closeSocket, connectSocket, MessageType, socketOn } from "../../utils/socket";
-import { useChannelStore } from "../../stores/channel";
-import { useJobStore } from "../../stores/job";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import DiskStatus from "../DiskStatus.vue";
-import RecordingControls from "../RecordingControls.vue";
-import AppBrand from "../AppBrand.vue";
-import ModalConfirmDialog from "../modals/ModalConfirmDialog.vue";
-import type { HelpersDiskInfo } from "../../services/api/v1/StreamSinkClient";
-import { createClient } from "../../services/api/v1/ClientFactory";
+import { closeSocket, connectSocket, MessageType, socketOn } from '../../utils/socket';
+import { useChannelStore } from '../../stores/channel';
+import { useJobStore } from '../../stores/job';
+import { computed, onActivated, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import DiskStatus from '../DiskStatus.vue';
+import RecordingControls from '../RecordingControls.vue';
+import AppBrand from '../AppBrand.vue';
+import ModalConfirmDialog from '../modals/ModalConfirmDialog.vue';
+import type { HelpersDiskInfo } from '../../services/api/v1/StreamSinkClient';
+import { createClient } from '../../services/api/v1/ClientFactory';
+import { useAuthStore } from '../../stores/auth';
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -92,8 +95,8 @@ const props = defineProps<{
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: "add"): void;
-  (e: "logout"): void;
+  (e: 'add'): void;
+  (e: 'logout'): void;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -114,6 +117,8 @@ const showNav = ref(false);
 const showConfirmRecording = ref(false);
 
 const router = useRouter();
+
+const authStore = useAuthStore();
 
 let thread: undefined | ReturnType<typeof setInterval> = undefined;
 
@@ -172,6 +177,10 @@ watch(route, () => (collapseNav.value = true));
 // --------------------------------------------------------------------------------------
 
 onMounted(async () => {
+  if (!authStore.isLoggedIn) {
+    return;
+  }
+
   await initialLoad();
 
   connectSocket().then(async () => {
