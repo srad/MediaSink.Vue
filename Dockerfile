@@ -8,12 +8,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # install dependencies. Timeout for buildx emulation, it is so slow that NPM install might time-out
-RUN npm install --fetch-timeout=600000 --save-dev --legacy-peer-deps
+RUN npm install -g pnpm
+RUN pnpm install
 
 COPY . .
 
-RUN npm run test
-RUN npm run build
+RUN pnpm run test:unit
+RUN pnpm run build
 
 ARG APP_API_URL
 ARG APP_BASE

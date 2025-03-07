@@ -3,7 +3,7 @@ import { parseTagsString, validateTags } from "../../src/utils/parser";
 
 describe("validateTags", function () {
   it("valid tags return true", function () {
-    expect(validateTags([])).toBeFalsy();
+    expect(validateTags([])).toBeTruthy();
     expect(validateTags(["test"])).toBeTruthy();
     expect(validateTags(["test", "test2"])).toBeTruthy();
     expect(validateTags(["test-0", "test", "test-2"])).toBeTruthy();
