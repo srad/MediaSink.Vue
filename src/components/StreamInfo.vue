@@ -97,7 +97,6 @@ const emit = defineEmits<{
 const tagArray = ref<string[]>(props.channel.tags || []);
 const tagVal = ref('');
 const showTagInput = ref(false);
-const thread = ref<null | ReturnType<typeof setTimeout>>(null);
 const tagInput = ref<HTMLInputElement | null>(null);
 const processingTag = ref(false);
 const router = useRouter();
@@ -151,25 +150,6 @@ const addTag = async () => {
     tagVal.value = '';
   }
 };
-
-// --------------------------------------------------------------------------------------
-// Hooks
-// --------------------------------------------------------------------------------------
-
-onMounted(() => {
-  if (props.channel.isRecording) {
-    // Increase the seconds to indicate liveness.
-    thread.value = setInterval(() => {
-      secRecording.value += 1;
-    }, 1000);
-  }
-});
-
-onUnmounted(() => {
-  if (props.channel.isRecording && thread.value) {
-    clearInterval(thread.value);
-  }
-});
 </script>
 
 <style scoped></style>
