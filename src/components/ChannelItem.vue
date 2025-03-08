@@ -5,37 +5,37 @@
     </div>
 
     <RouterLink class="text-decoration-none" :to="`/channel/${props.channel.channelId}/${props.channel.channelName}`">
-      <Preview :data="props.channel.channelId!" :preview-image="previewImage" class="card-img-top" @selected="viewFolder(props.channel.channelId!, props.channel.channelName)" />
+      <Preview :is-recording="props.channel.isRecording" :data="props.channel.channelId" :preview-image="previewImage" class="card-img-top" @selected="viewFolder(props.channel.channelId!, props.channel.channelName)"/>
     </RouterLink>
     <div class="card-body">
-      <div class="card-title p-1 m-0" :class="{ 'bg-primary': !props.channel.isRecording && !props.channel.isOnline, 'bg-danger': props.channel.isRecording, 'bg-success': props.channel.isOnline && !props.channel.isRecording }">
-        <h6 class="p-2 m-0 text-white">
+      <div class="card-title py-2 px-3 m-0" :class="{ 'bg-primary': !props.channel.isRecording && !props.channel.isOnline, 'bg-danger': props.channel.isRecording, 'bg-success': props.channel.isOnline && !props.channel.isRecording }">
+        <h6 class="p-0 m-0 text-white">
           <a class="text-white" target="_blank" :href="props.channel.url">
             {{ props.channel.displayName }}
-            <i class="bi bi-link" />
+            <i class="bi bi-link"/>
           </a>
         </h6>
       </div>
     </div>
-    <StreamInfo :channel="props.channel" :fav="props.channel.fav" @edit="(data) => emit('edit', data)" @fav="fav" @unfav="unfav" @pause="pause" @destroy="destroyChannel" />
+    <StreamInfo :channel="props.channel" :fav="props.channel.fav" @edit="(data) => emit('edit', data)" @fav="fav" @unfav="unfav" @pause="pause" @destroy="destroyChannel"/>
   </div>
 </template>
 
 <script setup lang="ts">
-import StreamInfo from "./StreamInfo.vue";
-import Preview from "./RecordingPreview.vue";
-import type { ServicesChannelInfo as ChannelInfo } from "../services/api/v1/StreamSinkClient";
-import { computed, inject, ref } from "vue";
-import { useRouter } from "vue-router";
-import { useChannelStore } from "../stores/channel";
-import { useI18n } from "vue-i18n";
-import { createClient } from "../services/api/v1/ClientFactory";
+import StreamInfo from './StreamInfo.vue';
+import Preview from './RecordingPreview.vue';
+import type { ServicesChannelInfo as ChannelInfo } from '../services/api/v1/StreamSinkClient';
+import { computed, inject, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useChannelStore } from '../stores/channel';
+import { useI18n } from 'vue-i18n';
+import { createClient } from '../services/api/v1/ClientFactory';
 
 // --------------------------------------------------------------------------------------
 // Emits
 // --------------------------------------------------------------------------------------
 
-const emit = defineEmits<{ (e: "edit", value: ChannelInfo): void }>();
+const emit = defineEmits<{ (e: 'edit', value: ChannelInfo): void }>();
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -57,7 +57,7 @@ const fileUrl = inject('fileUrl') as string;
 const destroyed = ref(false);
 const busy = ref(false);
 
-const previewImage = computed(() => fileUrl + "/" + props.channel.preview);
+const previewImage = computed(() => fileUrl + '/' + props.channel.preview);
 
 // --------------------------------------------------------------------------------------
 // Methods
@@ -76,7 +76,7 @@ const unfav = async (channel: ChannelInfo) => {
 };
 
 const destroyChannel = async (channel: ChannelInfo) => {
-  if (window.confirm(t("crud.destroy", [channel.channelName]))) {
+  if (window.confirm(t('crud.destroy', [channel.channelName]))) {
     try {
       const client = createClient();
       busy.value = true;
@@ -101,7 +101,7 @@ const pause = async (channel: ChannelInfo) => {
     await method(channel.channelId!);
 
     // Invert current paused mode.
-    channelStore[channel.isPaused ? "resume" : "pause"](channel.channelId);
+    channelStore[channel.isPaused ? 'resume' : 'pause'](channel.channelId);
   } catch (err) {
     console.log(err);
   } finally {

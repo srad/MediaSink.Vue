@@ -1,35 +1,36 @@
 <template>
   <ul class="list-group list-group-flush">
-    <li class="list-group-item d-flex justify-content-between bg-info-light bg-gradient">
+    <!--
+    <li v-if="false" class="list-group-item d-flex justify-content-between bg-info-light bg-gradient">
       <div>
         <span class="badge me-2 user-select-none" :class="{ 'bg-danger text-white border border-danger blink': channel.isRecording, 'bg-light text-primary border-info border': !channel.isRecording }">Recording</span>
         <span class="badge user-select-none" :class="{ 'bg-success text-white border border-success': channel.isOnline, 'bg-light text-primary border-info border': !channel.isOnline }">Online</span>
       </div>
     </li>
+    -->
 
-    <li class="list-group-item d-flex justify-content-between py-1">
+    <li class="list-group-item d-flex justify-content-between px-3 py-1" style="font-size: 95%">
       <span v-if="channel.isRecording">
-        <i class="bi bi-stopwatch me-1"></i>
         <span>{{ minutes }}:{{ seconds }}min</span>
       </span>
       <span v-else>&nbsp;</span>
-      <div>
-        <span><i class="bi bi-device-hdd"></i> {{ (channel.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ channel.recordingsCount }})</span>
-      </div>
+      <span>
+        {{ (channel.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ channel.recordingsCount }})
+      </span>
     </li>
 
     <!-- tags -->
-    <li class="list-group-item py-1">
+    <li class="list-group-item px-3 py-1">
       <div class="d-flex">
         <template v-if="!showTagInput && tagArray">
-          <div v-for="tag in tagArray" class="d-flex badge bg-secondary text-dark me-1 user-select-none" :key="tag">
+          <div v-for="tag in tagArray" class="d-flex badge bg-secondary text-dark rounded-1 me-1 user-select-none" :key="tag">
             <span @click="router.push({ query: { tag } })">{{ tag }}</span>
             <i @click="destroyTag(tag)" class="bi bi-x ms-1" style="z-index: 1"></i>
           </div>
         </template>
         <span
           v-show="!showTagInput"
-          class="badge bg-primary"
+          class="badge bg-primary rounded-1"
           @click="
             showTagInput = true;
             tagInput?.focus();

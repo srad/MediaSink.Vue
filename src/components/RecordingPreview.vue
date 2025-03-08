@@ -1,18 +1,21 @@
 <template>
-  <img class="w-100 h-auto" alt="preview" :src="props.previewImage" v-if="!props.previewVideo"/>
-  <video v-else ref="video" loop muted playsinline
-         class="w-100 h-auto"
-         style="user-select: none; z-index: 0;"
-         :poster="props.previewImage"
-         @click="emit('selected', props.data)"
-         @contextmenu="context($event)"
-         @error="errorLoadImage"
-         @mouseleave="leaveVideo()"
-         @mouseover="hoverVideo()"
-         @touchend="leaveVideo()"
-         @touchstart="hoverVideo()">
-    <source :src="previewVideo">
-  </video>
+  <div>
+    <i class="bi fs-4 text-danger blink bi-record-fill pulse recording-indicator" v-if="props.isRecording"></i>
+    <img class="w-100 h-auto" alt="preview" :src="props.previewImage" v-if="!props.previewVideo"/>
+    <video v-else ref="video" loop muted playsinline
+           class="w-100 h-auto"
+           style="user-select: none; z-index: 0;"
+           :poster="props.previewImage"
+           @click="emit('selected', props.data)"
+           @contextmenu="context($event)"
+           @error="errorLoadImage"
+           @mouseleave="leaveVideo()"
+           @mouseover="hoverVideo()"
+           @touchend="leaveVideo()"
+           @touchstart="hoverVideo()">
+      <source :src="previewVideo">
+    </video>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -25,6 +28,7 @@ const video = useTemplateRef<HTMLVideoElement>('video');
 const errorLoad = ref(false);
 
 const props = defineProps<{
+  isRecording?: boolean;
   data: string | number
   previewImage?: string
   previewVideo?: string
@@ -56,5 +60,11 @@ const errorLoadImage = () => errorLoad.value = true;
 video.missing {
   filter: blur(4px);
   clip-path: inset(0);
+}
+
+.recording-indicator {
+  position: absolute;
+  top: 1%;
+  left: 5%;
 }
 </style>
