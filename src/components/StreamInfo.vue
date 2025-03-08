@@ -9,18 +9,8 @@
     </li>
     -->
 
-    <li class="list-group-item d-flex justify-content-between px-3 py-1" style="font-size: 95%">
-      <span v-if="channel.isRecording">
-        <span>{{ minutes }}:{{ seconds }}min</span>
-      </span>
-      <span v-else>&nbsp;</span>
-      <span>
-        {{ (channel.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ channel.recordingsCount }})
-      </span>
-    </li>
-
     <!-- tags -->
-    <li class="list-group-item px-3 py-1">
+    <li class="list-group-item px-2 py-1">
       <div class="d-flex">
         <template v-if="!showTagInput && tagArray">
           <div v-for="tag in tagArray" class="d-flex badge bg-secondary text-dark rounded-1 me-1 user-select-none" :key="tag">
@@ -42,7 +32,7 @@
       <div v-show="showTagInput" class="input-group input-group-sm">
         <form @submit.prevent="addTag">
           <div class="input-group">
-            <input :disabled="processingTag" ref="tagInput" class="form-control form-control-sm border-primary" v-model.lazy="tagVal" type="text" :name="`${channel.channelId}_tag`" autocapitalize="off" autocomplete="off" />
+            <input :disabled="processingTag" ref="tagInput" class="form-control form-control-sm border-primary" v-model.lazy="tagVal" type="text" :name="`${channel.channelId}_tag`" autocapitalize="off" autocomplete="off"/>
             <button type="submit" class="btn btn-sm btn-primary" :disabled="processingTag">save</button>
           </div>
         </form>
@@ -53,10 +43,10 @@
     <li class="list-group-item bg-info-light d-flex justify-content-between fs-6">
       <div class="d-flex w-75">
         <span class="form-check form-switch me-2">
-          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`" />
+          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`"/>
           <label class="form-check-label" :for="`${channel.channelId}_isPaused`">Record</label>
         </span>
-        <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)" />
+        <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)"/>
       </div>
 
       <div class="d-flex justify-content-evenly w-25">
@@ -72,12 +62,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { useRouter } from "vue-router";
-import type { ServicesChannelInfo as ChannelResponse } from "../services/api/v1/StreamSinkClient";
-import { validTag } from "../utils/parser";
-import FavButton from "./controls/FavButton.vue";
-import { createClient } from "../services/api/v1/ClientFactory";
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import type { ServicesChannelInfo as ChannelResponse } from '../services/api/v1/StreamSinkClient';
+import { validTag } from '../utils/parser';
+import FavButton from './controls/FavButton.vue';
+import { createClient } from '../services/api/v1/ClientFactory';
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -93,11 +83,11 @@ const props = defineProps<{
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: "unfav", value: ChannelResponse): void;
-  (e: "fav", value: ChannelResponse): void;
-  (e: "edit", value: ChannelResponse): void;
-  (e: "destroy", value: ChannelResponse): void;
-  (e: "pause", value: ChannelResponse): void;
+  (e: 'unfav', value: ChannelResponse): void;
+  (e: 'fav', value: ChannelResponse): void;
+  (e: 'edit', value: ChannelResponse): void;
+  (e: 'destroy', value: ChannelResponse): void;
+  (e: 'pause', value: ChannelResponse): void;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -105,10 +95,9 @@ const emit = defineEmits<{
 // --------------------------------------------------------------------------------------
 
 const tagArray = ref<string[]>(props.channel.tags || []);
-const tagVal = ref("");
+const tagVal = ref('');
 const showTagInput = ref(false);
 const thread = ref<null | ReturnType<typeof setTimeout>>(null);
-const secRecording = ref(props.channel.minRecording * 60);
 const tagInput = ref<HTMLInputElement | null>(null);
 const processingTag = ref(false);
 const router = useRouter();
@@ -121,12 +110,6 @@ watch(showTagInput, (val) => {
   if (val) {
     tagInput.value!.focus();
   }
-});
-
-const minutes = computed(() => (secRecording.value / 60).toFixed(0));
-const seconds = computed(() => {
-  const x = (secRecording.value % 60).toFixed(0);
-  return x.length < 2 ? "0" + String(x) : x;
 });
 
 // --------------------------------------------------------------------------------------
@@ -145,7 +128,7 @@ const addTag = async () => {
     const tag = tagVal.value.trim().toLowerCase();
 
     // No value, cancel
-    if (tag.trim() === "") {
+    if (tag.trim() === '') {
       showTagInput.value = false;
       return;
     }
@@ -160,12 +143,12 @@ const addTag = async () => {
     await client.channels.tagsPartialUpdate(props.channel.channelId!, { tags: tagArray.value.concat(tag) });
     tagArray.value.push(tag);
     showTagInput.value = false;
-    tagVal.value = "";
+    tagVal.value = '';
   } catch (e: unknown) {
     alert(e);
   } finally {
     processingTag.value = false;
-    tagVal.value = "";
+    tagVal.value = '';
   }
 };
 

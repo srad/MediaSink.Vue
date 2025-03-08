@@ -1,7 +1,9 @@
 <template>
-  <div>
-    <i class="bi fs-4 text-danger blink bi-record-fill pulse recording-indicator" v-if="props.isRecording"></i>
-    <img class="w-100 h-auto" alt="preview" :src="props.previewImage" v-if="!props.previewVideo"/>
+  <div class="position-relative">
+    <span class="recording-indicator position-absolute">
+      <i class="bi fs-4 text-danger blink bi-record-fill pulse" v-if="props.isRecording"></i>
+    </span>
+    <img class="w-100 h-auto" alt="preview" :src="props.previewImage" v-if="!props.previewVideo || props.previewVideo?.endsWith('null')"/>
     <video v-else ref="video" loop muted playsinline
            class="w-100 h-auto"
            style="user-select: none; z-index: 0;"
@@ -14,12 +16,18 @@
            @touchend="leaveVideo()"
            @touchstart="hoverVideo()">
       <source :src="previewVideo">
-    </video>
+    </video v-else>
+    <span v-if="isRecording" class="recording-time-overlay bg-danger position-absolute badge rounded-2 opacity-75 text-white">
+      {{ minutes }}:{{ seconds }}min
+    </span>
+    <span class="channel-info-overlay bg-dark position-absolute badge rounded-2 opacity-75 text-white" v-if="props.recordingsSize && props.recordingsCount">
+    {{ (props.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ props.recordingsCount }})
+  </span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef, ref } from 'vue';
+import { useTemplateRef, ref, computed } from 'vue';
 
 const emit = defineEmits<{ (e: 'selected', value: string | number): void }>();
 
@@ -28,11 +36,22 @@ const video = useTemplateRef<HTMLVideoElement>('video');
 const errorLoad = ref(false);
 
 const props = defineProps<{
+  minRecording?: number;
+  recordingsSize?: number;
+  recordingsCount?: number;
   isRecording?: boolean;
   data: string | number
   previewImage?: string
   previewVideo?: string
 }>();
+
+const secRecording = ref((props.minRecording || 0) * 60);
+
+const minutes = computed(() => (secRecording.value / 60).toFixed(0));
+const seconds = computed(() => {
+  const x = (secRecording.value % 60).toFixed(0);
+  return x.length < 2 ? '0' + String(x) : x;
+});
 
 const context = (e: Event) => e.preventDefault();
 
@@ -63,8 +82,19 @@ video.missing {
 }
 
 .recording-indicator {
-  position: absolute;
   top: 1%;
   left: 5%;
+}
+
+.channel-info-overlay {
+  bottom: 5%;
+  right: 5%;
+  z-index: 1;
+}
+
+.recording-time-overlay {
+  bottom: 5%;
+  left: 5%;
+  zindex: 1;
 }
 </style>

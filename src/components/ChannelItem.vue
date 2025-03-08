@@ -5,10 +5,18 @@
     </div>
 
     <RouterLink class="text-decoration-none" :to="`/channel/${props.channel.channelId}/${props.channel.channelName}`">
-      <Preview :is-recording="props.channel.isRecording" :data="props.channel.channelId" :preview-image="previewImage" class="card-img-top" @selected="viewFolder(props.channel.channelId!, props.channel.channelName)"/>
+      <Preview
+        :min-recording="props.channel.minRecording"
+        :recordings-count="props.channel.recordingsCount"
+        :recordings-size="props.channel.recordingsSize"
+        :is-recording="props.channel.isRecording"
+        :data="props.channel.channelId"
+        :preview-image="previewImage"
+        class="card-img-top"
+        @selected="viewFolder(props.channel.channelId!, props.channel.channelName)"/>
     </RouterLink>
     <div class="card-body">
-      <div class="card-title py-2 px-3 m-0" :class="{ 'bg-primary': !props.channel.isRecording && !props.channel.isOnline, 'bg-danger': props.channel.isRecording, 'bg-success': props.channel.isOnline && !props.channel.isRecording }">
+      <div class="card-title py-2 px-3 m-0 bg-primary">
         <h6 class="p-0 m-0 text-white">
           <a class="text-white" target="_blank" :href="props.channel.url">
             {{ props.channel.displayName }}
