@@ -25,7 +25,7 @@
             <div class="modal-body bg-light p-0 m-0" style="overflow: hidden">
               <div class="d-flex flex-row" style="height: 90%">
                 <div class="d-flex flex-column m-0" :class="{ 'w-80': markings.length > 0, 'w-100': markings.length === 0 }">
-                  <video class="view h-100" controls ref="video" @volumechange="volumeChanged($event)" @loadeddata="loadData" @timeupdate="timeupdate" :muted="isMuted" @seeked="() => seeked = video!.currentTime" autoplay>
+                  <video class="view h-100" style="outline: none" controls ref="video" @volumechange="volumeChanged($event)" @loadeddata="loadData" @timeupdate="timeupdate" :muted="isMuted" @seeked="() => seeked = video!.currentTime" autoplay>
                     <source :src="videoUrl" type="video/mp4"/>
                     Your browser does not support the video tag.
                   </video>
