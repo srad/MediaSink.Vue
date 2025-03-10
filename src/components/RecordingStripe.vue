@@ -1,19 +1,21 @@
 <template>
-  <div class="position-relative user-select-none h-100" ref="stripe" @click="seek($event)" draggable="false">
-    <img draggable="false" alt="stripe" class="stripe position-absolute" ref="stripeImage" :src="src" style="height: 100%" @mousedown="down($event)" />
+  <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative overflow-y-scroll" style="height: 10%">
+    <div class="position-relative user-select-none h-100" ref="stripe" @click="seek($event)" draggable="false">
+      <img draggable="false" alt="stripe" class="stripe position-absolute" ref="stripeImage" :src="src" style="height: 100%" @mousedown="down($event)"/>
 
-    <div :key="marking.start" @click="markingSelect(i)" :class="{ selected: marking.selected, unselected: !marking.selected }" class="marking position-absolute" draggable="false" v-for="(marking, i) in markings" :style="{ left: marking.start + 'px', width: marking.end - marking.start + 'px' }">
-      <span class="bar bar-start position-absolute" draggable="false" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'start')"> </span>
-      <span class="bar bar-end position-absolute" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'end')" draggable="false"></span>
-      <i @click="destroyMarking(i)" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" class="text-white bg-danger p-1 bi bi-trash marking-destroy position-absolute" style="opacity: 1"></i>
+      <div :key="marking.start" @click="markingSelect(i)" :class="{ selected: marking.selected, unselected: !marking.selected }" class="marking position-absolute" draggable="false" v-for="(marking, i) in markings" :style="{ left: marking.start + 'px', width: marking.end - marking.start + 'px' }">
+        <span class="bar bar-start position-absolute" draggable="false" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'start')"> </span>
+        <span class="bar bar-end position-absolute" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'end')" draggable="false"></span>
+        <i @click="destroyMarking(i)" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" class="text-white bg-danger p-1 bi bi-trash marking-destroy position-absolute" style="opacity: 1"></i>
+      </div>
+
+      <div v-if="showBar" class="timecode position-absolute" :style="{ left: `${clientX}px` }"></div>
     </div>
-
-    <div v-if="showBar" class="timecode position-absolute" :style="{ left: `${clientX}px` }"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, useTemplateRef } from "vue";
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import type { Marking } from "../types/appTypes";
 
 // --------------------------------------------------------------------------------------
@@ -26,6 +28,7 @@ const props = defineProps<{
   duration: number;
   paused: boolean;
   disabled: boolean;
+  seeked: number;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -33,7 +36,7 @@ const props = defineProps<{
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: "seek", value: { clientX: number; width: number }): void;
+  (e: "seek", timeIndex: number): void;
   (e: "selecting"): void;
   (e: "marking", value: Marking[]): void;
 }>();
@@ -46,6 +49,7 @@ const markings = ref<Marking[]>([]);
 const showBar = ref(true);
 const stripeImage = useTemplateRef<HTMLImageElement>("stripeImage");
 const stripe = ref<HTMLElement | null>(null);
+const stripeContainer = ref<HTMLElement | null>(null);
 
 let markerPos = "";
 let markerDownIndex = 0;
@@ -55,6 +59,29 @@ let mouseMoved = false;
 let currentMarkerIndex = -1;
 const width = ref(0);
 const clientX = ref(0);
+
+let seekedThroughStripeClick = false;
+
+// --------------------------------------------------------------------------------------
+// Watchers
+// --------------------------------------------------------------------------------------
+
+watch(() => props.seeked, (timeIndex: number) => {
+  if (props.disabled) {
+    return;
+  }
+
+  // The problem is that seeked is also triggered
+  if (seekedThroughStripeClick) {
+    seekedThroughStripeClick = false;
+    return;
+  }
+
+  const offset = timeIndex / props.duration;
+  clientX.value = offset * stripeImage.value.width;
+  stripeContainer.value.scrollLeft = clientX.value - (stripeContainer.value.getBoundingClientRect().width / 2);
+  showBar.value = true;
+});
 
 // --------------------------------------------------------------------------------------
 // Hooks
@@ -77,9 +104,12 @@ const seek = (event: MouseEvent) => {
   if (props.disabled) {
     return;
   }
+  seekedThroughStripeClick = true; // Prevents twice handling seek event.
   clientX.value = getX(event);
   showBar.value = true;
-  emit("seek", { clientX: getMouseX(event), width: width.value });
+  const offset = getX(event) / stripeImage.value.width;
+  const timeOffset = offset * props.duration;
+  emit("seek", timeOffset);
 };
 
 const moveMarker = (event: MouseEvent) => {
@@ -156,6 +186,8 @@ const getX = (event: MouseEvent) => {
   const bounds = stripe.value!.getBoundingClientRect();
   return event.clientX - bounds.left;
 };
+
+const getBounds: DOMRect = () => stripe.value.getBoundingClientRect();
 
 const down = (event: MouseEvent) => {
   event.stopPropagation();
@@ -243,37 +275,37 @@ const mouseUp = (event: MouseEvent) => {
  */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const overlaps = (selectionStart: number, selectionEnd: number) => {
-  // No markings yet.
-  if (markings.value.length === 0 || currentMarkerIndex === markings.value.length) {
-    return false;
-  }
-
-  const sorted = markings.value.sort((a, b) => a.start - b.start).sort((a, b) => a.end - b.end);
-
-  // Smaller than first marking.
-  if (selectionStart < sorted[0]!.start && selectionEnd < sorted[0]!.end) {
-    return false;
-  }
-
-  // Traverse all markings and make sure there is no overlap.
-  for (let i = 0; i < sorted.length; i++) {
-    const start = sorted[i]!.start;
-    const end = sorted[i]!.end;
-
-    // Multiple cases:
-    // |----******----| -> start >= selectionStart && selectionEnd <= end
-    // ****|****------| -> selectionStart <= start && end >= selectionStart && end <= selectionEnd
-    //|-------***|****  -> selectionStart >= start && selectionStart <= end && selectionEnd >= end
-    //****|*****|*****  -> selectionStart => start && selectionEnd <= end
-
-    const overlaps = (start >= selectionStart && selectionEnd <= end) || (selectionStart <= start && end >= selectionStart && end <= selectionEnd) || (start && selectionStart <= end && selectionEnd >= end) || (selectionStart <= start && selectionEnd >= end);
-
-    if (overlaps) {
-      return true;
+    // No markings yet.
+    if (markings.value.length === 0 || currentMarkerIndex === markings.value.length) {
+      return false;
     }
-  }
-  return false;
-};
+
+    const sorted = markings.value.sort((a, b) => a.start - b.start).sort((a, b) => a.end - b.end);
+
+    // Smaller than first marking.
+    if (selectionStart < sorted[0]!.start && selectionEnd < sorted[0]!.end) {
+      return false;
+    }
+
+    // Traverse all markings and make sure there is no overlap.
+    for (let i = 0; i < sorted.length; i++) {
+      const start = sorted[i]!.start;
+      const end = sorted[i]!.end;
+
+      // Multiple cases:
+      // |----******----| -> start >= selectionStart && selectionEnd <= end
+      // ****|****------| -> selectionStart <= start && end >= selectionStart && end <= selectionEnd
+      //|-------***|****  -> selectionStart >= start && selectionStart <= end && selectionEnd >= end
+      //****|*****|*****  -> selectionStart => start && selectionEnd <= end
+
+      const overlaps = (start >= selectionStart && selectionEnd <= end) || (selectionStart <= start && end >= selectionStart && end <= selectionEnd) || (start && selectionStart <= end && selectionEnd >= end) || (selectionStart <= start && selectionEnd >= end);
+
+      if (overlaps) {
+        return true;
+      }
+    }
+    return false;
+  };
 
 const markingSelect = (index: number) => {
   // catch event order from stripe before the delete button
