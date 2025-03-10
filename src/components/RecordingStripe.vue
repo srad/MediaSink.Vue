@@ -47,9 +47,9 @@ const emit = defineEmits<{
 
 const markings = ref<Marking[]>([]);
 const showBar = ref(true);
-const stripeImage = useTemplateRef<HTMLImageElement>("stripeImage");
-const stripe = ref<HTMLElement | null>(null);
-const stripeContainer = ref<HTMLElement | null>(null);
+const stripeImage = ref<HTMLImageElement>();
+const stripe = ref<HTMLElement>();
+const stripeContainer = ref<HTMLElement>();
 
 let markerPos = "";
 let markerDownIndex = 0;
@@ -67,7 +67,7 @@ let seekedThroughStripeClick = false;
 // --------------------------------------------------------------------------------------
 
 watch(() => props.seeked, (timeIndex: number) => {
-  if (props.disabled) {
+  if (props.disabled || !stripeImage.value || !stripeContainer.value) {
     return;
   }
 
@@ -77,8 +77,9 @@ watch(() => props.seeked, (timeIndex: number) => {
     return;
   }
 
-  const offset = timeIndex / props.duration;
-  clientX.value = offset * stripeImage.value.width;
+  const timeOffset = timeIndex / props.duration;
+  clientX.value = timeOffset * stripeImage.value.width;
+
   stripeContainer.value.scrollLeft = clientX.value - (stripeContainer.value.getBoundingClientRect().width / 2);
   showBar.value = true;
 });
@@ -101,7 +102,7 @@ onMounted(() => {
 // --------------------------------------------------------------------------------------
 
 const seek = (event: MouseEvent) => {
-  if (props.disabled) {
+  if (props.disabled || !stripeImage.value) {
     return;
   }
   seekedThroughStripeClick = true; // Prevents twice handling seek event.
@@ -186,8 +187,6 @@ const getX = (event: MouseEvent) => {
   const bounds = stripe.value!.getBoundingClientRect();
   return event.clientX - bounds.left;
 };
-
-const getBounds: DOMRect = () => stripe.value.getBoundingClientRect();
 
 const down = (event: MouseEvent) => {
   event.stopPropagation();

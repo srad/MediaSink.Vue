@@ -25,7 +25,7 @@
             <div class="modal-body bg-light p-0 m-0" style="overflow: hidden">
               <div class="d-flex flex-row" style="height: 90%">
                 <div class="d-flex flex-column m-0" :class="{ 'w-80': markings.length > 0, 'w-100': markings.length === 0 }">
-                  <video class="view h-100" controls ref="video" @volumechange="volumeChanged($event)" @loadeddata="loadData" @timeupdate="timeupdate" :muted="isMuted" @seeked="() => seeked = video.currentTime" autoplay>
+                  <video class="view h-100" controls ref="video" @volumechange="volumeChanged($event)" @loadeddata="loadData" @timeupdate="timeupdate" :muted="isMuted" @seeked="() => seeked = video!.currentTime" autoplay>
                     <source :src="videoUrl" type="video/mp4"/>
                     Your browser does not support the video tag.
                   </video>
@@ -110,7 +110,7 @@ import type { DatabaseRecording } from "@/services/api/v1/StreamSinkClient";
 import RecordingStripe from "@/components/RecordingStripe.vue";
 import RecordingFavButton from "@/components/controls/RecordingFavButton.vue";
 import BusyOverlay from "@/components/BusyOverlay.vue";
-import { inject, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
@@ -132,7 +132,7 @@ const jobStore = useJobStore();
 const toastStore = useToastStore();
 const settingsStore = useSettingsStore();
 
-const video = useTemplateRef<HTMLVideoElement>("video");
+const video = ref<HTMLVideoElement>();
 
 const fileUrl = inject("fileUrl") as string;
 const stripeUrl = ref("");
@@ -309,7 +309,9 @@ const cutVideo = () => {
 };
 
 const seek = (timeIndex: number) => {
-  video.value.currentTime = timeIndex;
+  if (video.value) {
+    video.value.currentTime = timeIndex;
+  }
 };
 
 const loadData = () => {
@@ -317,6 +319,7 @@ const loadData = () => {
     duration.value = video.value.duration;
     isLoaded.value = true;
     video.value.volume = settingsStore.getVolume;
+    video.value.focus(); // Allows using key controls for the video immediately. Including forward+rewind with the left/right keys.
     play();
   }
 };
