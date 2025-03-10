@@ -1,22 +1,21 @@
 <template>
-  <div ref="stripeContainer" class="d-flex flex-row w-100 position-relative overflow-y-scroll" style="height: 10%">
-    <div class="position-relative user-select-none h-100" ref="stripe" @click="seek($event)" draggable="false">
-      <img draggable="false" alt="stripe" class="stripe position-absolute" ref="stripeImage" :src="src" style="height: 100%" @mousedown="down($event)"/>
+  <div ref="stripeContainer" class="position-relative h-100 whitespace-nowrap overflow-x-scroll" @click="seek($event)" draggable="false">
+    <img draggable="false" alt="stripe" class="stripe position-absolute" ref="stripeImage" :src="src" style="height: 100%" @mousedown="down($event)"/>
 
-      <div :key="marking.start" @click="markingSelect(i)" :class="{ selected: marking.selected, unselected: !marking.selected }" class="marking position-absolute" draggable="false" v-for="(marking, i) in markings" :style="{ left: marking.start + 'px', width: marking.end - marking.start + 'px' }">
-        <span class="bar bar-start position-absolute" draggable="false" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'start')"> </span>
-        <span class="bar bar-end position-absolute" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'end')" draggable="false"></span>
-        <i @click="destroyMarking(i)" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" class="text-white bg-danger p-1 bi bi-trash marking-destroy position-absolute" style="opacity: 1"></i>
-      </div>
-
-      <div v-if="showBar" class="timecode position-absolute" :style="{ left: `${clientX}px` }"></div>
+    <div :key="marking.start" @click="markingSelect(i)" :class="{ selected: marking.selected, unselected: !marking.selected }" class="marking position-absolute" draggable="false" v-for="(marking, i) in markings" :style="{ left: marking.start + 'px', width: marking.end - marking.start + 'px' }">
+      <span class="bar bar-start position-absolute" draggable="false" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'start')"> </span>
+      <span class="bar bar-end position-absolute" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'end')" draggable="false"></span>
+      <i @click="destroyMarking(i)" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" class="text-white bg-danger p-1 bi bi-trash op-100 marking-destroy position-absolute" style="opacity: 1"></i>
     </div>
+
+    <span v-if="showBar" class="timecode position-absolute" :style="{ left: `${barLeft}px` }"></span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import type { Marking } from "../types/appTypes";
+import { BigNumber } from "bignumber.js";
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -48,7 +47,6 @@ const emit = defineEmits<{
 const markings = ref<Marking[]>([]);
 const showBar = ref(true);
 const stripeImage = ref<HTMLImageElement>();
-const stripe = ref<HTMLElement>();
 const stripeContainer = ref<HTMLElement>();
 
 let markerPos = "";
@@ -58,7 +56,7 @@ let mouseDown = false;
 let mouseMoved = false;
 let currentMarkerIndex = -1;
 const width = ref(0);
-const clientX = ref(0);
+const barLeft = ref(0);
 
 let seekedThroughStripeClick = false;
 
@@ -66,6 +64,7 @@ let seekedThroughStripeClick = false;
 // Watchers
 // --------------------------------------------------------------------------------------
 
+// The user clicked on the seek-bar in the video element.
 watch(() => props.seeked, (timeIndex: number) => {
   if (props.disabled || !stripeImage.value || !stripeContainer.value) {
     return;
@@ -78,61 +77,75 @@ watch(() => props.seeked, (timeIndex: number) => {
   }
 
   const timeOffset = timeIndex / props.duration;
-  clientX.value = timeOffset * stripeImage.value.width;
+  barLeft.value = new BigNumber(timeOffset).multipliedBy(stripeImage.value.width).toNumber();
 
-  stripeContainer.value.scrollLeft = clientX.value - (stripeContainer.value.getBoundingClientRect().width / 2);
-  showBar.value = true;
+  stripeContainer.value.scrollLeft = barLeft.value - (stripeContainer.value.getBoundingClientRect().width / 2);
 });
 
 // --------------------------------------------------------------------------------------
 // Hooks
 // --------------------------------------------------------------------------------------
 
-onUnmounted(() => stripe.value?.removeEventListener("wheel", resizePreview, true));
-
 onMounted(() => {
-  stripe.value?.addEventListener("wheel", resizePreview, true);
+  stripeContainer.value?.addEventListener("wheel", resizePreview, true);
   if (stripeImage.value) {
     stripeImage.value.onload = load;
   }
 });
 
+onUnmounted(() => stripeContainer.value?.removeEventListener("wheel", resizePreview, true));
+
 // --------------------------------------------------------------------------------------
 // Methods
 // --------------------------------------------------------------------------------------
 
-const seek = (event: MouseEvent) => {
-  if (props.disabled || !stripeImage.value) {
+const getCurrentTimeIndex = (): BigNumber => {
+  const offset = new BigNumber(barLeft.value).dividedBy(stripeImage.value!.width);
+  const timeOffset = offset.multipliedBy(props.duration);
+
+  return timeOffset;
+};
+
+const emitCurrentTimeIndex = (): void => {
+  emit("seek", getCurrentTimeIndex().toNumber());
+};
+
+const seek = (event: MouseEvent): void => {
+  if (props.disabled || !stripeImage.value || !stripeContainer.value) {
     return;
   }
   seekedThroughStripeClick = true; // Prevents twice handling seek event.
-  clientX.value = getX(event);
+
+  barLeft.value = stripeContainer.value.scrollLeft + getX(event);
   showBar.value = true;
-  const offset = getX(event) / stripeImage.value.width;
-  const timeOffset = offset * props.duration;
-  emit("seek", timeOffset);
+
+  emitCurrentTimeIndex();
 };
 
-const moveMarker = (event: MouseEvent) => {
-  const x = getMouseX(event);
+const moveMarker = (event: MouseEvent): void => {
   const i = markerDownIndex;
+  if (!markings.value[i]) {
+    return;
+  }
+
+  const x = getMouseX(event);
 
   if (markerPos === "start") {
-    if (x > markings.value[i]!.end - 50) {
+    if (x > markings.value[i].end - 50) {
       return;
     }
-    markings.value[i]!.start = x;
-    markings.value[i]!.timestart = (markings.value[i]!.start / width.value) * props.duration;
+    markings.value[i].start = x;
+    markings.value[i].timestart = (markings.value[i].start / width.value) * props.duration;
   } else {
-    if (x < markings.value[i]!.start + 50) {
+    if (x < markings.value[i].start + 50) {
       return;
     }
-    markings.value[i]!.end = x;
-    markings.value[i]!.timeend = (markings.value[i]!.end / width.value) * props.duration;
+    markings.value[i].end = x;
+    markings.value[i].timeend = (markings.value[i].end / width.value) * props.duration;
   }
 };
 
-const markerUp = () => {
+const markerUp = (): void => {
   if (!props.paused) {
     return;
   }
@@ -143,9 +156,10 @@ const markerUp = () => {
   window.removeEventListener("mousemove", moveMarker);
   window.removeEventListener("mouseup", markerUp);
   emit("marking", markings.value);
+  emitCurrentTimeIndex();
 };
 
-const markerDown = (event: MouseEvent, marker: object, i: number, pos: string) => {
+const markerDown = (event: MouseEvent, marker: object, i: number, pos: string): void => {
   event.preventDefault();
   event.stopPropagation();
 
@@ -165,7 +179,7 @@ const markerDown = (event: MouseEvent, marker: object, i: number, pos: string) =
 
 const load = () => (width.value = stripeImage.value!.clientWidth);
 
-const destroyMarking = (index: number) => {
+const destroyMarking = (index: number): void => {
   if (props.disabled) {
     return;
   }
@@ -174,21 +188,18 @@ const destroyMarking = (index: number) => {
 };
 
 const getMouseX = (event: MouseEvent): number => {
-  const el = stripe;
-  if (!el.value) {
+  if (!stripeContainer.value) {
     return 0;
   }
-
-  const bounds = el.value.getBoundingClientRect();
-  return el.value!.scrollLeft + event.clientX - bounds.left;
+  return event.clientX - stripeContainer.value.getBoundingClientRect().left + stripeContainer.value.scrollLeft;
 };
 
-const getX = (event: MouseEvent) => {
-  const bounds = stripe.value!.getBoundingClientRect();
+const getX = (event: MouseEvent): number => {
+  const bounds = stripeContainer.value!.getBoundingClientRect();
   return event.clientX - bounds.left;
 };
 
-const down = (event: MouseEvent) => {
+const down = (event: MouseEvent): void => {
   event.stopPropagation();
   event.preventDefault();
 
@@ -209,7 +220,7 @@ const down = (event: MouseEvent) => {
   window.addEventListener("mouseup", mouseUp);
 };
 
-const mouseMove = (event: MouseEvent) => {
+const mouseMove = (event: MouseEvent): void => {
   event.stopPropagation();
   event.preventDefault();
 
@@ -222,7 +233,7 @@ const mouseMove = (event: MouseEvent) => {
   }
 };
 
-const mouseUp = (event: MouseEvent) => {
+const mouseUp = (event: MouseEvent): void => {
   event.stopPropagation();
   event.preventDefault();
 
@@ -306,7 +317,7 @@ const overlaps = (selectionStart: number, selectionEnd: number) => {
     return false;
   };
 
-const markingSelect = (index: number) => {
+const markingSelect = (index: number): void => {
   // catch event order from stripe before the delete button
   if (props.disabled || !markings.value[index]) {
     return;
@@ -317,7 +328,7 @@ const markingSelect = (index: number) => {
   markings.value[index]!.selected = !markings.value[index]!.selected;
 };
 
-const resizePreview = (event: WheelEvent) => {
+const resizePreview = (event: WheelEvent): void => {
   const el = stripeImage.value!;
 
   const resizeBy = event.deltaY * 3;
@@ -369,7 +380,7 @@ const resizePreview = (event: WheelEvent) => {
 
 .bar {
   height: 100%;
-  width: 2px;
+  width: 3px;
   background: red;
   opacity: 1;
   cursor: ew-resize;
@@ -379,7 +390,7 @@ const resizePreview = (event: WheelEvent) => {
 .timecode {
   width: 3px;
   height: 100%;
-  background: red;
+  background: limegreen;
   user-select: none;
 }
 

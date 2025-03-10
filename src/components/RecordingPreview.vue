@@ -115,6 +115,6 @@ video.missing {
 .recording-time-overlay {
   bottom: 5%;
   left: 5%;
-  zindex: 1;
+  z-index: 1;
 }
 </style>

@@ -40,17 +40,19 @@
                 </div>
               </div>
 
-              <RecordingStripe
-                :src="stripeUrl"
-                :disabled="cutInterval != undefined"
-                :seeked="seeked"
-                :paused="isPaused"
-                :timecode="timeCode"
-                :duration="duration"
-                :markings="markings" @selecting="() => pause()"
-                @marking="(m) => (markings = m)"
-                @seek="seek"
-              />
+              <div class="w-100" style="height: 10%">
+                <RecordingStripe
+                  :src="stripeUrl"
+                  :disabled="cutInterval != undefined"
+                  :seeked="seeked"
+                  :paused="isPaused"
+                  :timecode="timeCode"
+                  :duration="duration"
+                  :markings="markings" @selecting="() => pause()"
+                  @marking="(m) => (markings = m)"
+                  @seek="seek"
+                />
+              </div>
             </div>
 
             <div class="modal-footer p-1 d-flex justify-content-between" v-if="stripeUrl">
