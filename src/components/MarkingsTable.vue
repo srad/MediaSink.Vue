@@ -1,39 +1,41 @@
 <template>
-  <table class="table table-sm bg-white table-bordered">
-    <thead>
-    <tr>
-      <th class="bg-light px-3">{{ t('videoView.segment.start') }}</th>
-      <th class="bg-light px-3">{{ t('videoView.segment.end') }}</th>
-      <th class="bg-light px-3">{{ t('videoView.segment.duration') }}</th>
-      <th class="bg-light px-3 text-center" v-if="showDestroy">
-        <i class="bi bi-trash text-danger px-3"></i>
-      </th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="align-middle" :class="{'bg-secondary': overview.marking.selected}" @click="emit('selected', overview.marking)" :key="String(overview.marking.timestart)+String(overview.marking.timeend)" v-for="overview in markingsOverview">
-      <td class="px-3">{{ overview.start }}min</td>
-      <td class=" px-3">{{ overview.end }}min</td>
-      <td class=" px-3">{{ overview.duration }}min</td>
-      <td class="px-3 text-center" v-if="showDestroy">
-        <button @click="emit('destroy', overview.marking)" class="btn btn-sm bg-transparent">
+  <div class="table-responsive">
+    <table class="table table-sm bg-white table-bordered">
+      <thead>
+      <tr>
+        <th class="bg-light text-center px-2">{{ t("videoView.segment.start") }}</th>
+        <th class="bg-light text-center px-2">{{ t("videoView.segment.end") }}</th>
+        <th class="bg-light text-center px-2">{{ t("videoView.segment.duration") }}</th>
+        <th class="bg-light text-center px-2" v-if="showDestroy">
           <i class="bi bi-trash text-danger"></i>
-        </button>
-      </td>
-    </tr>
-    <tr>
-      <td colspan="2" class="px-3 fw-bold bg-warning-subtle">Total</td>
-      <td class="px-3 fw-bold bg-warning-subtle">{{ markingsDuration }}min</td>
-      <td class="px-3 fw-bold bg-warning-subtle" v-if="showDestroy"></td>
-    </tr>
-    </tbody>
-  </table>
+        </th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr class="align-middle" :class="{'bg-secondary': overview.marking.selected}" @click="emit('selected', overview.marking)" :key="String(overview.marking.timestart)+String(overview.marking.timeend)" v-for="overview in markingsOverview">
+        <td class="px-2 text-center">{{ overview.start }}</td>
+        <td class=" px-2 text-center">{{ overview.end }}</td>
+        <td class=" px-2 text-center">{{ overview.duration }}min</td>
+        <td class="px-2 text-center" v-if="showDestroy">
+          <button @click="emit('destroy', overview.marking)" class="btn btn-sm bg-transparent">
+            <i class="bi bi-trash text-danger"></i>
+          </button>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" class="px-2 fw-bold bg-warning-subtle">Total</td>
+        <td class="px-2 fw-bold bg-warning-subtle">{{ markingsDuration }}min</td>
+        <td class="px-2 fw-bold bg-warning-subtle text-center" v-if="showDestroy"></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, computed } from 'vue';
-import type { Marking } from '../types/appTypes.ts';
-import { useI18n } from 'vue-i18n';
+import { computed, defineEmits, defineProps } from "vue";
+import type { Marking } from "../types/appTypes.ts";
+import { useI18n } from "vue-i18n";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -42,8 +44,8 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
 const emit = defineEmits<{
-  (e: 'selected', value: Marking): void
-  (e: 'destroy', value: Marking): void
+  (e: "selected", value: Marking): void
+  (e: "destroy", value: Marking): void
 }>();
 
 const props = defineProps<{ markings: Marking[], showDestroy: boolean }>();
@@ -58,11 +60,11 @@ const secondsToTimeCode = (seconds: number) => {
 
   const s = date.toISOString().substring(11, 19);
 
-  if (s.startsWith('00:0')) {
+  if (s.startsWith("00:0")) {
     return s.substring(4);
   }
 
-  if (s.startsWith('00:')) {
+  if (s.startsWith("00:")) {
     return s.substring(3);
   }
 

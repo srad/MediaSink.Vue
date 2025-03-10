@@ -31,7 +31,7 @@
                   </video>
                 </div>
 
-                <div v-if="markings.length > 0" class="d-flex flex-column m-0 p-2" :class="{ 'w-20': markings.length > 0 }">
+                <div v-if="markings.length > 0" class="d-flex flex-column m-0 border-start border-primary ps-2 ms-2 py-2" :class="{ 'w-20': markings.length > 0 }">
                   <MarkingsTable :show-destroy="true" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)"/>
 
                   <button class="btn btn-primary" @click="playCut" v-if="!cutInterval">Play Cut <i class="bi bi-play-fill"></i></button>
