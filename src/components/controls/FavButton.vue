@@ -1,8 +1,8 @@
 <template>
-  <a>
-    <i class="bi bi-star-fill text-warning" @click="emit('fav', props.data, $event)" v-if="faved" @click.stop></i>
-    <i v-else class="bi bi-star text-warning" @click="emit('unfav', props.data, $event)" @click.stop></i>
-  </a>
+  <div>
+    <i class="bi bi-heart-fill heart" @click="emit('fav', props.data, $event)" v-if="faved" @click.stop></i>
+    <i v-else class="bi bi-heart heart" @click="emit('unfav', props.data, $event)" @click.stop></i>
+  </div>
 </template>
 
 <script setup lang="ts" generic="T">
@@ -18,4 +18,7 @@ const props = defineProps<{
 </script>
 
 <style scoped>
+.heart {
+  color: deeppink;
+}
 </style>

@@ -51,10 +51,10 @@
 
       <div class="d-flex justify-content-evenly w-25">
         <a @click="emit('edit', channel)" class="me-2">
-          <i class="bi bi-pencil-square"></i>
+          <i class="bi bi-update"></i>
         </a>
         <a class="text-danger" @click="emit('destroy', channel)">
-          <i class="bi bi-trash3-fill"></i>
+          <i class="bi bi-trash-fill"></i>
         </a>
       </div>
     </li>

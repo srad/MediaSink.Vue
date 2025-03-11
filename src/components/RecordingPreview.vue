@@ -16,7 +16,7 @@
            @touchend="leaveVideo()"
            @touchstart="hoverVideo()">
       <source :src="previewVideo">
-    </video v-else>
+    </video>
     <span v-if="isRecording" class="recording-time-overlay bg-danger position-absolute badge rounded-2 opacity-75 text-white">
       {{ minutes }}:{{ seconds }}min
     </span>
