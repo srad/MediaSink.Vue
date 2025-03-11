@@ -11,9 +11,9 @@
           <span class="input-group-text bg-danger-subtle" v-if="searchVal != ''">
             <i class="bi bi-x-lg text-danger fs-4" @click="searchVal = ''" />
           </span>
-          <span class="input-group-text">
-            <i v-if="favs" class="bi bi-star-fill text-warning fs-4" @click="favs = false" />
-            <i v-else class="bi bi-star text-warning fs-4" @click="favs = true" />
+          <span class="input-group-text" style="color: deeppink">
+            <i v-if="favs" class="bi bi-heart-fill fs-4" @click="favs = false" />
+            <i v-else class="bi bi-heart fs-4" @click="favs = true" />
           </span>
         </div>
       </div>

@@ -5,7 +5,7 @@
     </div>
     <div class="position-relative">
       <div class="position-absolute" style="padding: 10px; right: 0; top: 0; z-index: 10">
-        <input v-if="props.showSelection" v-model="checked" type="checkbox" :checked="checked" style="width: 20px; height: 20px" />
+        <input v-if="props.showSelection" v-model="checked" type="checkbox" :checked="checked" style="width: 20px; height: 20px"/>
       </div>
       <span class="badge bg-success position-absolute" style="user-select: none; z-index: 10; top: 10px; left: 10px">
         <span v-if="props.recording.width === 1920">1080p</span>
@@ -16,7 +16,7 @@
       </span>
       <span v-if="props.recording.videoType === 'cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
       <RouterLink class="d-flex" :to="link">
-        <Preview class="card-img-top" :data="recording.recordingId" :preview-video="previewVideoUrl" :preview-image="previewCoverUrl" />
+        <Preview class="card-img-top" :data="recording.recordingId" :preview-video="previewVideoUrl" :preview-image="previewCoverUrl"/>
       </RouterLink>
     </div>
     <div v-if="props.showTitle" class="card-body">
@@ -28,27 +28,27 @@
         </h6>
       </div>
     </div>
-    <RecordInfo :url="recordingUrl" :duration="props.recording.duration" :size="props.recording.size" :bit-rate="props.recording.bitRate" :bookmark="props.recording.bookmark" :created-at="props.recording.createdAt" :data="recording" :width="props.recording.width" :height="props.recording.height" @convert="convert" @bookmarked="bookmark" @preview="generatePreview" @destroy="destroyRecording" />
+    <RecordInfo :url="recordingUrl" :duration="props.recording.duration" :size="props.recording.size" :bit-rate="props.recording.bitRate" :bookmark="props.recording.bookmark" :created-at="props.recording.createdAt" :data="recording" :width="props.recording.width" :height="props.recording.height" @convert="convert" @bookmarked="bookmark" @preview="generatePreview" @destroy="destroyRecording"/>
   </div>
 </template>
 
 <script setup lang="ts">
-import RecordInfo from "./RecordInfo.vue";
-import Preview from "./RecordingPreview.vue";
-import type { DatabaseRecording as RecordingResponse } from "../services/api/v1/StreamSinkClient";
-import { watch, ref, inject } from "vue";
-import { useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
-import { createClient } from "../services/api/v1/ClientFactory";
+import RecordInfo from './RecordInfo.vue';
+import Preview from './RecordingPreview.vue';
+import type { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
+import { watch, ref, inject } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { createClient } from '../services/api/v1/ClientFactory';
 
 // --------------------------------------------------------------------------------------
 // Emits
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: "destroyed", value: RecordingResponse): void;
-  (e: "checked", value: { checked: boolean; recording: RecordingResponse }): void;
-  (e: "bookmark", value: RecordingResponse): void;
+  (e: 'destroyed', value: RecordingResponse): void;
+  (e: 'checked', value: { checked: boolean; recording: RecordingResponse }): void;
+  (e: 'bookmark', value: RecordingResponse): void;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -59,6 +59,7 @@ const props = defineProps<{
   select?: boolean;
   showSelection: boolean;
   showTitle: boolean;
+  check: boolean;
   recording: RecordingResponse;
 }>();
 
@@ -66,7 +67,7 @@ const props = defineProps<{
 // Declarations
 // --------------------------------------------------------------------------------------
 
-const checked = ref(false);
+const checked = ref(props.check);
 const busy = ref(false);
 const destroyed = ref(false);
 
@@ -75,7 +76,7 @@ const fileUrl = inject('fileUrl') as string;
 
 const previewVideoUrl = `${fileUrl}/${props.recording.previewVideo}`;
 // TODO: Pass a default image from the server, if the preview image is missing.
-const previewCoverUrl = `${fileUrl}/${props.recording.previewCover || props.recording.channelName + "/.previews/live.jpg"}`;
+const previewCoverUrl = `${fileUrl}/${props.recording.previewCover || props.recording.channelName + '/.previews/live.jpg'}`;
 const recordingUrl = `${apiUrl + props.recording.channelName}/${props.recording.filename}`;
 
 const { t } = useI18n();
@@ -88,8 +89,12 @@ const router = useRouter();
 // Watchers
 // --------------------------------------------------------------------------------------
 
+watch(() => props.check, (isChecked: boolean) => {
+  checked.value = isChecked;
+});
+
 watch(checked, (val) => {
-  emit("checked", { checked: val, recording: props.recording });
+  emit('checked', { checked: val, recording: props.recording });
 });
 
 // --------------------------------------------------------------------------------------
@@ -103,7 +108,7 @@ const bookmark = async (recording: RecordingResponse, yesNo: boolean) => {
     const method = yesNo ? client.recordings.favPartialUpdate : client.recordings.unfavPartialUpdate;
     await method(recording.recordingId);
     recording.bookmark = yesNo;
-    emit("bookmark", recording);
+    emit('bookmark', recording);
   } catch (ex) {
     alert(ex);
   } finally {
@@ -112,7 +117,7 @@ const bookmark = async (recording: RecordingResponse, yesNo: boolean) => {
 };
 
 const generatePreview = async (recording: RecordingResponse) => {
-  if (window.confirm("Generate new preview?")) {
+  if (window.confirm('Generate new preview?')) {
     try {
       busy.value = true;
       const client = createClient();
@@ -142,7 +147,7 @@ const convert = async ({ recording, mediaType }: { recording: RecordingResponse;
 };
 
 const destroyRecording = async (recording: RecordingResponse) => {
-  if (!window.confirm(t("crud.destroy", [recording.filename]))) {
+  if (!window.confirm(t('crud.destroy', [recording.filename]))) {
     return;
   }
 
@@ -151,7 +156,7 @@ const destroyRecording = async (recording: RecordingResponse) => {
     const client = createClient();
     await client.recordings.recordingsDelete(recording.recordingId);
     destroyed.value = true;
-    setTimeout(() => emit("destroyed", recording), 1000);
+    setTimeout(() => emit('destroyed', recording), 1000);
   } catch (ex) {
     alert(ex);
   } finally {

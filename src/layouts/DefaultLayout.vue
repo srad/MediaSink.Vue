@@ -56,7 +56,7 @@ const routes = [
   { icon: 'bi-list', url: '/channels', title: t('menu.channels') },
   { icon: 'bi-stopwatch', url: '/filter', title: t('menu.latest') },
   { icon: 'bi-hypnotize', url: '/random', title: t('menu.random') },
-  { icon: 'bi-star-fill', url: '/bookmarks', title: t('menu.favs') },
+  { icon: 'bi-heart-fill', url: '/bookmarks', title: t('menu.favs') },
   { icon: 'bi-eye-fill', url: '/admin', title: t('menu.admin') },
 ];
 

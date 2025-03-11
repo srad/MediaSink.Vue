@@ -1,15 +1,15 @@
 <template>
   <div>
-    <BusyOverlay :visible="busyOverlay" />
+    <BusyOverlay :visible="busyOverlay"/>
 
-    <JsConfirmDialog :show="showConfirm" @cancel="showConfirm = false" @confirm="deleteChannel" text="Are you sure you want to delete this channel?" />
+    <JsConfirmDialog :show="showConfirm" @cancel="showConfirm = false" @confirm="deleteChannel" text="Are you sure you want to delete this channel?"/>
 
     <ModalConfirmDialog :show="showDeleteSelectedRecordings" @cancel="showDeleteSelectedRecordings = false" @confirm="destroySelection">
       <template v-slot:header> Confirm selection</template>
       <template v-slot:body>
         <ul class="list-unstyled">
           <li :key="recording.recordingId" v-for="recording in selectedRecordings" class="list-group-item d-flex justify-content-between mb-2">
-            <img class="img-thumbnail w-20 me-2" :alt="recording.filename" :src="`${fileUrl}/${recording.previewCover || recording.channelName + '/.previews/live.jpg'}`" />
+            <img class="img-thumbnail w-20 me-2" :alt="recording.filename" :src="`${fileUrl}/${recording.previewCover || recording.channelName + '/.previews/live.jpg'}`"/>
             <div class="w-80">
               <div>{{ recording.filename }}</div>
               <div>{{ (recording.duration / 60).toFixed(1) }}min - {{ Math.fround(recording.size / 1024 / 1024 / 1024).toFixed(1) }}GB</div>
@@ -42,20 +42,24 @@
 
       <nav class="navbar fixed-bottom navbar-light bg-light border-info border-top">
         <div class="container-fluid justify-content-between">
-          <OptionsMenu v-if="!areItemsSelected" :channel-paused="channel!.isPaused" :multi-select="selectedRecordings.length === 0" @file="fileSelected" @pause="pauseChannel" @delete="showConfirm = true" />
+          <OptionsMenu v-if="!areItemsSelected" :channel-paused="channel!.isPaused" :multi-select="selectedRecordings.length === 0" @file="fileSelected" @pause="pauseChannel" @delete="showConfirm = true"/>
 
           <div class="btn-group">
-            <button type="button" v-if="areItemsSelected" class="btn btn-danger justify-content-between me-2" @click="showDeleteSelectedRecordings = true">
+            <button v-if="areItemsSelected" type="button" class="btn btn-danger justify-content-between me-2" @click="showDeleteSelectedRecordings = true">
               <span class="me-2">Delete selection</span>
-              <i class="bi bi-trash3-fill" />
+              <i class="bi bi-trash3-fill"/>
             </button>
-            <button type="button" v-if="areItemsSelected" class="btn btn-primary justify-content-between me-2" @click="cancelSelection">
+            <button v-if="selectedRecordings.length > 1" type="button" class="btn btn-primary justify-content-between me-2" @click="mergeVideos">
+              <span class="me-2">Merge</span>
+              <i class="bi bi-sign-merge-left"/>
+            </button>
+            <button v-if="areItemsSelected" type="button" class="btn btn-primary justify-content-between me-2" @click="cancelSelection">
               <span class="me-2">Cancel</span>
-              <i class="bi bi-stop-fill" />
+              <i class="bi bi-stop-fill"/>
             </button>
-            <button v-if="selectedRecordings.length === 0" type="button" class="btn d-flex justify-content-between" :class="{ 'btn-warning': channel!.fav, 'btn-secondary': channel!.fav }" @click="bookmark">
-              <span class="me-2">Bookmark</span>
-              <i style="color: black" class="bi" :class="{ 'bi-star-fill': channel!.fav, 'bi-star': !channel!.fav }" />
+            <button v-if="!areItemsSelected" type="button" class="btn d-flex justify-content-between" :style="{'background' : channel!.fav ? 'deeppink' : 'lightgrey'}" @click="bookmark">
+              <span class="me-2">Fav</span>
+              <i class="bi" :class="{ 'bi-heart-fill': channel!.fav, 'bi-heart': !channel!.fav }"/>
             </button>
           </div>
         </div>
@@ -74,7 +78,7 @@
 
       <div class="row mb-5">
         <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-6 col-xl-4 col-xxl-4 col-md-6">
-          <RecordingItem @destroyed="destroyRecording" @checked="selectRecording" :show-selection="true" :recording="recording" :show-title="false" />
+          <RecordingItem @destroyed="destroyRecording" :check="selectedRecordings.some((x: RecordingResponse) => x.recordingId === recording.recordingId)" @checked="selectRecording" :show-selection="true" :recording="recording" :show-title="false"/>
         </div>
       </div>
     </LoadIndicator>
@@ -82,20 +86,20 @@
 </template>
 
 <script setup lang="ts">
-import RecordingItem from "../components/RecordingItem.vue";
-import type { DatabaseRecording, DatabaseRecording as RecordingResponse, ServicesChannelInfo } from "../services/api/v1/StreamSinkClient";
-import { computed, inject, onMounted, ref, useTemplateRef } from "vue";
-import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
-import { closeSocket, connectSocket, MessageType, socketOn } from "../utils/socket";
-import BusyOverlay from "../components/BusyOverlay.vue";
-import { useToastStore } from "../stores/toast";
-import { useChannelStore } from "../stores/channel";
-import { useJobStore } from "../stores/job";
-import OptionsMenu from "@/components/controls/OptionsMenu.vue";
-import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
-import { createClient } from "@/services/api/v1/ClientFactory";
-import LoadIndicator from "@/components/LoadIndicator.vue";
-import JsConfirmDialog from "@/components/modals/JsConfirmDialog.vue";
+import RecordingItem from '../components/RecordingItem.vue';
+import type { DatabaseRecording, DatabaseRecording as RecordingResponse, ServicesChannelInfo } from '../services/api/v1/StreamSinkClient';
+import { computed, inject, onMounted, ref, useTemplateRef } from 'vue';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
+import { closeSocket, connectSocket, MessageType, socketOn } from '../utils/socket';
+import BusyOverlay from '../components/BusyOverlay.vue';
+import { useToastStore } from '../stores/toast';
+import { useChannelStore } from '../stores/channel';
+import { useJobStore } from '../stores/job';
+import OptionsMenu from '@/components/controls/OptionsMenu.vue';
+import ModalConfirmDialog from '@/components/modals/ModalConfirmDialog.vue';
+import { createClient } from '@/services/api/v1/ClientFactory';
+import LoadIndicator from '@/components/LoadIndicator.vue';
+import JsConfirmDialog from '@/components/modals/JsConfirmDialog.vue';
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -109,7 +113,7 @@ const toastStore = useToastStore();
 const channelStore = useChannelStore();
 
 // Elements
-const upload = useTemplateRef<HTMLDivElement>("upload");
+const upload = useTemplateRef<HTMLDivElement>('upload');
 
 const channelId = +route.params.id as number;
 
@@ -124,7 +128,7 @@ const showModal = ref(false);
 const showConfirm = ref(false);
 const showDeleteSelectedRecordings = ref(false);
 
-const fileUrl = inject("fileUrl");
+const fileUrl = inject('fileUrl');
 
 // --------------------------------------------------------------------------------------
 // Computes
@@ -154,14 +158,14 @@ const pauseChannel = (element: HTMLInputElement): void => {
         channelStore.pause(channel.value!.channelId);
       }
       toastStore.info({
-        title: element.checked ? "Channel resume" : "Channel pause",
+        title: element.checked ? 'Channel resume' : 'Channel pause',
         message: `Channel ${channel.value?.displayName}`,
       });
     })
     .catch((res) => alert((<{ error: string }>res).error));
 };
 
-const cancelSelection = () => (selectedRecordings.value = []);
+const cancelSelection = () => selectedRecordings.value = [];
 
 const destroySelection = async () => {
   try {
@@ -177,12 +181,12 @@ const destroySelection = async () => {
     }
     // Clear selection.
     toastStore.success({
-      title: "Deleted recordings",
+      title: 'Deleted recordings',
       message: `Deleted ${selectedRecordings.value.length} files.`,
     });
     selectedRecordings.value = [];
   } catch (e) {
-    toastStore.error({ title: "Deletion failed", message: (<{ message: string }>e).message });
+    toastStore.error({ title: 'Deletion failed', message: (<{ message: string }>e).message });
   } finally {
     showDeleteSelectedRecordings.value = false;
   }
@@ -203,10 +207,10 @@ const deleteChannel = async () => {
     await client.channels.channelsDelete(channelId);
     channelStore.destroy(channelId);
     toastStore.success({
-      title: "Channel deleted",
+      title: 'Channel deleted',
       message: `Channel ${channel.value?.displayName}`,
     });
-    await router.replace("/");
+    await router.replace('/');
   } catch (e) {
     alert(e);
   } finally {
@@ -260,6 +264,11 @@ const bookmark = () => {
     .catch((err) => alert(err));
 };
 
+const mergeVideos = async () => {
+  // TODO: call merge videos api.
+  alert(selectedRecordings.value.map((x) => x.filename).join(', '));
+};
+
 // --------------------------------------------------------------------------------------
 // Hooks
 // --------------------------------------------------------------------------------------
@@ -274,7 +283,7 @@ onMounted(async () => {
     const data = await client.channels.channelsDetail(channelId);
 
     if (!data) {
-      await router.replace("/streams/live");
+      await router.replace('/streams/live');
       return;
     }
 

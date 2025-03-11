@@ -16,6 +16,7 @@
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import type { Marking } from "../types/appTypes";
 import { BigNumber } from "bignumber.js";
+import { animateScrollLeft } from '../utils/animations';
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -79,7 +80,8 @@ watch(() => props.seeked, (timeIndex: number) => {
   const timeOffset = timeIndex / props.duration;
   barLeft.value = new BigNumber(timeOffset).multipliedBy(stripeImage.value.width).toNumber();
 
-  stripeContainer.value.scrollLeft = barLeft.value - (stripeContainer.value.getBoundingClientRect().width / 2);
+  const scrollLeft = barLeft.value - (stripeContainer.value.getBoundingClientRect().width / 2);
+  animateScrollLeft(stripeContainer.value, scrollLeft, 1000);
 });
 
 // --------------------------------------------------------------------------------------
@@ -381,7 +383,7 @@ const resizePreview = (event: WheelEvent): void => {
 .bar {
   height: 100%;
   width: 3px;
-  background: red;
+  background: deeppink;
   opacity: 1;
   cursor: ew-resize;
   user-select: none;
@@ -390,7 +392,7 @@ const resizePreview = (event: WheelEvent): void => {
 .timecode {
   width: 3px;
   height: 100%;
-  background: limegreen;
+  background: red;
   user-select: none;
 }
 

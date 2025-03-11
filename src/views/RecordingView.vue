@@ -24,7 +24,16 @@
           <template v-if="recording">
             <div class="modal-body bg-light p-0 m-0" style="overflow: hidden">
               <div class="d-flex flex-row" style="height: 90%">
-                <div class="d-flex flex-column m-0" :class="{ 'w-80': markings.length > 0, 'w-100': markings.length === 0 }">
+                <div class="d-flex flex-column m-0 position-relative" :class="{ 'w-80': markings.length > 0, 'w-100': markings.length === 0 }">
+
+                  <button style="top: 5px; left: 5px;" type="button" class="btn btn-sm btn-outline-info position-absolute" @click="router.push(`/channel/${recording.channelId}/${recording.channelName}`)">
+                    {{ recording.channelName }}
+                  </button>
+
+                  <div class="fs-4 position-absolute" style="top: 10px; right: 20px;">
+                    <RecordingFavButton :bookmarked="recording.bookmark" :recording-id="recording.recordingId"/>
+                  </div>
+
                   <video class="view h-100" style="outline: none" controls ref="video" @volumechange="volumeChanged($event)" @loadeddata="loadData" @timeupdate="timeupdate" :muted="isMuted" @seeked="() => seeked = video!.currentTime" autoplay>
                     <source :src="videoUrl" type="video/mp4"/>
                     Your browser does not support the video tag.
@@ -36,7 +45,7 @@
 
                   <button class="btn btn-primary" @click="playCut" v-if="!cutInterval">Play Cut <i class="bi bi-play-fill"></i></button>
                   <button v-else class="btn btn-primary" @click="stopCut"><span>Stop cut</span> <i class="bi bi-stop-fill"></i></button>
-                  <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="showConfirmDialog = true">{{ t("videoView.button.cut") }} <i class="bi bi-scissors"></i></button>
+                  <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="showConfirmDialog = true">{{ t('videoView.button.cut') }} <i class="bi bi-scissors"></i></button>
                 </div>
               </div>
 
@@ -56,18 +65,12 @@
             </div>
 
             <div class="modal-footer p-1 d-flex justify-content-between" v-if="stripeUrl">
-              <button style="max-width: 35%; text-overflow: ellipsis; text-wrap: nowrap" type="button" class="overflow-hidden btn btn-sm btn-secondary" @click="router.push(`/channel/${recording.channelId}/${recording.channelName}`)">
-                {{ recording.channelName }}
-              </button>
-              <div class="d-flex justify-content-end overflow-y-scroll" style="max-width: 50%">
+              <div>
                 <button class="btn btn-danger btn-sm me-2" @click="destroy">
                   <i class="bi bi-trash3-fill"/>
                 </button>
-
-                <button class="btn btn-sm border-warning">
-                  <RecordingFavButton :bookmarked="recording.bookmark" :recording-id="recording.recordingId"/>
-                </button>
-
+              </div>
+              <div class="d-flex justify-content-end overflow-y-scroll" style="max-width: 50%">
                 <span class="mx-2 text-secondary">|</span>
 
                 <button class="btn btn-primary btn-sm me-2" @click="back">
@@ -108,20 +111,20 @@
 </template>
 
 <script setup lang="ts">
-import type { DatabaseRecording } from "@/services/api/v1/StreamSinkClient";
-import RecordingStripe from "@/components/RecordingStripe.vue";
-import RecordingFavButton from "@/components/controls/RecordingFavButton.vue";
-import BusyOverlay from "@/components/BusyOverlay.vue";
-import { inject, onMounted, onUnmounted, ref, watch } from "vue";
-import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
-import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
-import MarkingsTable from "@/components/MarkingsTable.vue";
-import { useToastStore } from "@/stores/toast";
-import { useJobStore } from "@/stores/job";
-import type { Marking } from "@/types/appTypes";
-import { createClient } from "@/services/api/v1/ClientFactory";
-import { useSettingsStore } from "@/stores/settings.ts";
+import type { DatabaseRecording } from '@/services/api/v1/StreamSinkClient';
+import RecordingStripe from '@/components/RecordingStripe.vue';
+import RecordingFavButton from '@/components/controls/RecordingFavButton.vue';
+import BusyOverlay from '@/components/BusyOverlay.vue';
+import { inject, onMounted, onUnmounted, ref, watch } from 'vue';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import ModalConfirmDialog from '@/components/modals/ModalConfirmDialog.vue';
+import MarkingsTable from '@/components/MarkingsTable.vue';
+import { useToastStore } from '@/stores/toast';
+import { useJobStore } from '@/stores/job';
+import type { Marking } from '@/types/appTypes';
+import { createClient } from '@/services/api/v1/ClientFactory';
+import { useSettingsStore } from '@/stores/settings.ts';
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -136,9 +139,9 @@ const settingsStore = useSettingsStore();
 
 const video = ref<HTMLVideoElement>();
 
-const fileUrl = inject("fileUrl") as string;
-const stripeUrl = ref("");
-const videoUrl = ref("");
+const fileUrl = inject('fileUrl') as string;
+const stripeUrl = ref('');
+const videoUrl = ref('');
 
 const seeked = ref(0);
 const isMuted = ref(settingsStore.isMuted);
@@ -272,7 +275,7 @@ const destroy = () => {
     return;
   }
 
-  if (!window.confirm(t("videoView.destroy", [ recording.value.filename ]))) {
+  if (!window.confirm(t('videoView.destroy', [recording.value.filename]))) {
     return;
   }
 
@@ -286,7 +289,7 @@ const destroy = () => {
     .then(() => {
       // Remove from Job list if existent.
       jobStore.deleteRecording(recording.value!.recordingId);
-      toastStore.success({ title: "Video deleted", message: recording.value!.filename });
+      toastStore.success({ title: 'Video deleted', message: recording.value!.filename });
       router.back();
     })
     .catch((err) => {
@@ -335,7 +338,7 @@ const timeupdate = () => {
 const unloadVideo = () => {
   if (isMounted.value && video.value) {
     video.value.pause();
-    video.value.firstElementChild!.removeAttribute("src");
+    video.value.firstElementChild!.removeAttribute('src');
     video.value.load();
   }
 };
@@ -348,14 +351,14 @@ onBeforeRouteLeave(() => {
   if (video.value) {
     const el = video.value;
     el.pause();
-    el.removeAttribute("src");
+    el.removeAttribute('src');
     el.load();
   }
   isShown.value = false;
 });
 
 const rotate = () => {
-  const mql = window.matchMedia("(orientation: portrait)");
+  const mql = window.matchMedia('(orientation: portrait)');
 
   if (mql.matches) {
     video.value!.requestFullscreen();
@@ -365,7 +368,7 @@ const rotate = () => {
 };
 
 onUnmounted(() => {
-  window.removeEventListener("orientationchange", rotate);
+  window.removeEventListener('orientationchange', rotate);
 });
 
 onMounted(async () => {
@@ -373,10 +376,10 @@ onMounted(async () => {
   id.value = Number(route.params.id);
   const data = await client.recordings.recordingsDetail(id.value);
   recording.value = data;
-  stripeUrl.value = fileUrl + "/" + recording.value?.previewStripe;
-  videoUrl.value = fileUrl + "/" + recording.value?.pathRelative;
+  stripeUrl.value = fileUrl + '/' + recording.value?.previewStripe;
+  videoUrl.value = fileUrl + '/' + recording.value?.pathRelative;
 
-  window.addEventListener("orientationchange", rotate);
+  window.addEventListener('orientationchange', rotate);
   isMounted.value = true;
   isShown.value = true;
 });
