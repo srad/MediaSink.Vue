@@ -59,7 +59,7 @@ const props = defineProps<{
   select?: boolean;
   showSelection: boolean;
   showTitle: boolean;
-  check: boolean;
+  check?: boolean;
   recording: RecordingResponse;
 }>();
 
