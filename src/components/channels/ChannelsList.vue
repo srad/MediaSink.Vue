@@ -9,6 +9,7 @@
       <th rowspan="2" style="width: 5%" class="bg-light p-2">Recording?</th>
       <th style="width: 5%" class="bg-light text-center p-2">Count ({{ totalCount }})</th>
       <th style="width: 5%" class="bg-light text-center p-2">Size ({{ totalSize.toFixed(1) }}GB)</th>
+      <th style="width: 10%" class="bg-light text-center p-2">Added</th>
     </tr>
     </thead>
     <tbody>
@@ -32,6 +33,7 @@
       </td>
       <td class="px-2 text-center">{{ channel.recordingsCount }}</td>
       <td class="px-2 text-center">{{ (channel.recordingsSize / 1024 / 1024 / 1024).toFixed(2) }} GB</td>
+      <td class="px-2 text-start">{{ new Date(channel.createdAt).toDateString()}}</td>
     </tr>
     </tbody>
   </table>

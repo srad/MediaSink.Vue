@@ -1,14 +1,7 @@
 <template>
-  <Suspense>
-    <template #default>
-      <component :is="layoutComponent">
-        <RouterView/>
-      </component>
-    </template>
-    <template #fallback>
-      <p>Loading...</p>
-    </template>
-  </Suspense>
+  <component :is="layoutComponent">
+    <RouterView :key="$route.fullPath"/>
+  </component>
 </template>
 
 <script setup lang="ts">

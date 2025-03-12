@@ -1,9 +1,9 @@
-import type { DatabaseJob as Job } from "../services/api/v1/StreamSinkClient";
-import { DatabaseJobStatus } from "../services/api/v1/StreamSinkClient";
-import { defineStore } from "pinia";
-import type { JobMessage, JobState, TaskComplete, TaskInfo, TaskProgress } from "../types/appTypes.ts";
+import type { DatabaseJob as Job } from '../services/api/v1/StreamSinkClient';
+import { DatabaseJobStatus } from '../services/api/v1/StreamSinkClient';
+import { defineStore } from 'pinia';
+import type { JobMessage, JobState, TaskComplete, TaskInfo, TaskProgress } from '../types/appTypes.ts';
 
-export const useJobStore = defineStore("job", {
+export const useJobStore = defineStore('job', {
   state(): JobState {
     return {
       jobs: [],
@@ -72,5 +72,12 @@ export const useJobStore = defineStore("job", {
       this.jobs[i]!.pid = message.data.pid;
       this.jobs[i]!.command = message.data.command;
     },
+    isProcessing(recordingId: number): string | null {
+      const job = this.jobs.find((job) => job.recordingId === recordingId);
+      if (job) {
+        return job.task;
+      }
+      return null;
+    }
   },
 });

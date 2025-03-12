@@ -1,5 +1,5 @@
 <template>
-  <div class="position-relative time-index-container" :style="{width: props.width + 'px'}">
+  <div class="position-relative time-index-container user-select-none" :style="{width: props.width + 'px'}">
     <div class="position-absolute time-index" v-for="marker in timeMarkers" :style="{left: marker.left + 'px' }">
       <div class="position-relative">
         <div class="position-relative">

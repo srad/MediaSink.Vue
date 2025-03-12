@@ -16,7 +16,7 @@
         @selected="viewFolder(props.channel.channelId!, props.channel.channelName)"/>
     </RouterLink>
     <div class="card-body">
-      <div class="card-title py-2 px-3 m-0 bg-primary">
+      <div class="card-title py-2 px-3 m-0" :class="{'bg-primary': !props.channel.isRecording, 'bg-danger': props.channel.isRecording}">
         <h6 class="p-0 m-0 text-white">
           <a class="text-white" target="_blank" :href="props.channel.url">
             {{ props.channel.displayName }}

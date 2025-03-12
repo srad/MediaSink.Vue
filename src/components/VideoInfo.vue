@@ -38,23 +38,23 @@
       <i v-if="!expand" class="text-info bi bi-caret-down-fill"></i>
       <i v-else class="text-info bi bi-caret-up-fill"></i>
     </li>
-    <li class="list-group-item bg-info-light fs-6">
+    <li class="list-group-item bg-info-light fs-6" :style="{cursor: props.disableButtons ? 'not-allowed': '' }">
       <div class="justify-content-between d-flex">
 
-        <div class="d-flex justify-content-evenly w-25">
-          <a :href="url + '/download'">
+        <div class="d-flex">
+          <button type="button" class="btn btn-sm p-0 px-2" :href="url + '/download'" :disabled="props.disableButtons">
             <i class="bi bi-download text-dark"></i>
-          </a>
-          <FavButton :data="data" :faved="bookmark" @fav="emit('bookmarked', props.data, false)" @unfav="emit('bookmarked', props.data, true)"/>
+          </button>
+          <FavButton :data="data" :faved="bookmark" :disabled="props.disableButtons" @fav="emit('bookmarked', props.data, false)" @unfav="emit('bookmarked', props.data, true)"/>
         </div>
 
-        <div class="d-flex justify-content-evenly w-25">
-          <a @click="emit('preview', data)">
+        <div class="d-flex">
+          <button type="button" class="btn btn-sm p-0 px-2" @click="emit('preview', data)" :disabled="props.disableButtons">
             <i class="bi bi-film"></i>
-          </a>
-          <a class="text-danger" @click="emit('destroy', data)">
-            <i class="bi bi-trash3-fill px-2"/>
-          </a>
+          </button>
+          <button type="button" class="btn btn-sm p-0 px-2" @click="emit('destroy', data)" :disabled="props.disableButtons">
+            <i class="bi bi-trash3-fill text-danger"/>
+          </button>
         </div>
 
       </div>
@@ -80,15 +80,16 @@ const emit = defineEmits<{
 
 const props = defineProps<{
   //index: number
-  url: string
-  bookmark: boolean
-  data: RecordingResponse
-  duration: number
-  size: number
-  bitRate: number
-  width: number
-  height: number
-  createdAt: string
+  url: string;
+  bookmark: boolean;
+  data: RecordingResponse;
+  duration: number;
+  size: number;
+  bitRate: number;
+  width: number;
+  height: number;
+  createdAt: string;
+  disableButtons?: boolean;
 }>();
 
 const durationFormatted = computed(() => (props.duration / 60).toFixed(2));
@@ -110,5 +111,9 @@ const expand = ref(false);
 
 .expand:hover {
   background: darken(ghostwhite, 1%);
+}
+
+.btn:disabled {
+  border: none;
 }
 </style>

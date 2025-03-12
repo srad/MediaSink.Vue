@@ -60,7 +60,7 @@ const props = defineProps<{
   background-color: rgba(0, 0, 0, 0.5);
   border: none;
   border-radius: 50%;
-  padding: 5px 10px;
+  padding: 5px;
   cursor: pointer;
   transition: all 0.3s ease;
 }

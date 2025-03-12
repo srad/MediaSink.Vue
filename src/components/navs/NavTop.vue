@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="user-select-none">
     <ModalConfirmDialog :show="showConfirmRecording" @cancel="showConfirmRecording = false" @confirm="record">
       <template v-slot:header>
         <span v-if="isRecording">Stop Recording</span>
