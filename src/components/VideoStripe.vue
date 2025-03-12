@@ -1,12 +1,7 @@
 <template>
   <div ref="stripeContainer" class="position-relative h-100 whitespace-nowrap overflow-x-scroll" @click="seek($event)" draggable="false">
-    <div class="position-absolute bottom-0 overflow-hidden whitespace-nowrap text-center align-middle" style="height: 17px;background: lightgrey; z-index: 1; opacity: 0.5;" :style="{width: stripeImage?.width + 'px'}">
-      <div class="align-top position-absolute" v-for="marker in timeMarkers" :style="{left: marker.left + 'px' }" style="font-size: 0.7rem">
-        <div class="position-relative">
-          <div class="position-absolute">{{ marker.time }}</div>
-          <div class="tick"></div>
-        </div>
-      </div>
+    <div class="position-absolute bottom-0">
+      <VideoTimeIndex v-if="imageLoaded" :duration="props.duration" :width="stripeImage!.width"/>
     </div>
 
     <img draggable="false" alt="stripe" class="stripe position-absolute" ref="stripeImage" :src="src" style="height: 100%;" @mousedown="down($event)"/>
@@ -22,11 +17,11 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, onUnmounted, ref, watch, computed } from 'vue';
-import type { Marking } from '../types/appTypes';
-import { BigNumber } from 'bignumber.js';
-import { animateScrollLeft } from '../utils/animations';
-import { durationToHHMM, formatDurationToMMSS } from '../utils/time';
+import { onMounted, onUnmounted, ref, watch } from "vue";
+import type { Marking } from "../types/appTypes";
+import { BigNumber } from "bignumber.js";
+import { animateScrollLeft } from "../utils/animations";
+import VideoTimeIndex from "./VideoTimeIndex.vue";
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -46,9 +41,9 @@ const props = defineProps<{
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: 'seek', timeIndex: number): void;
-  (e: 'selecting'): void;
-  (e: 'marking', value: Marking[]): void;
+  (e: "seek", timeIndex: number): void;
+  (e: "selecting"): void;
+  (e: "marking", value: Marking[]): void;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -60,7 +55,7 @@ const showBar = ref(true);
 const stripeImage = ref<HTMLImageElement>();
 const stripeContainer = ref<HTMLElement>();
 
-let markerPos = '';
+let markerPos = "";
 let markerDownIndex = 0;
 let mouseOffsetX = 0;
 let mouseDown = false;
@@ -68,6 +63,7 @@ let mouseMoved = false;
 let currentMarkerIndex = -1;
 const width = ref(0);
 const barLeft = ref(0);
+const imageLoaded = ref(false);
 
 let seekedThroughStripeClick = false;
 
@@ -103,13 +99,13 @@ watch(() => props.seeked, (timeIndex: number) => {
 // --------------------------------------------------------------------------------------
 
 onMounted(() => {
-  stripeContainer.value?.addEventListener('wheel', resizePreview, true);
+  stripeContainer.value?.addEventListener("wheel", resizePreview, true);
   if (stripeImage.value) {
     stripeImage.value.onload = load;
   }
 });
 
-onUnmounted(() => stripeContainer.value?.removeEventListener('wheel', resizePreview, true));
+onUnmounted(() => stripeContainer.value?.removeEventListener("wheel", resizePreview, true));
 
 // --------------------------------------------------------------------------------------
 // Methods
@@ -123,7 +119,7 @@ const getCurrentTimeIndex = (): BigNumber => {
 };
 
 const emitCurrentTimeIndex = (): void => {
-  emit('seek', getCurrentTimeIndex().toNumber());
+  emit("seek", getCurrentTimeIndex().toNumber());
 };
 
 const seek = (event: MouseEvent): void => {
@@ -146,7 +142,7 @@ const moveMarker = (event: MouseEvent): void => {
 
   const x = getMouseX(event);
 
-  if (markerPos === 'start') {
+  if (markerPos === "start") {
     if (x > markings.value[i].end - 50) {
       return;
     }
@@ -167,11 +163,11 @@ const markerUp = (): void => {
   }
 
   markerDownIndex = 0;
-  markerPos = '';
-  document.body.style.cursor = 'default';
-  window.removeEventListener('mousemove', moveMarker);
-  window.removeEventListener('mouseup', markerUp);
-  emit('marking', markings.value);
+  markerPos = "";
+  document.body.style.cursor = "default";
+  window.removeEventListener("mousemove", moveMarker);
+  window.removeEventListener("mouseup", markerUp);
+  emit("marking", markings.value);
   emitCurrentTimeIndex();
 };
 
@@ -188,31 +184,14 @@ const markerDown = (event: MouseEvent, marker: object, i: number, pos: string): 
   }
   markerDownIndex = i;
   markerPos = pos;
-  document.body.style.cursor = 'col-resize';
-  window.addEventListener('mousemove', moveMarker);
-  window.addEventListener('mouseup', markerUp);
+  document.body.style.cursor = "col-resize";
+  window.addEventListener("mousemove", moveMarker);
+  window.addEventListener("mouseup", markerUp);
 };
-
-const timeMarkers = computed(() => {
-  if (!stripeImage.value) {
-    return [];
-  }
-
-  const markerDistance = width.value / 64;
-  const timeDistance = props.duration / 64;
-
-  // Skip start and end marker.
-  const result = new Array(64)
-    .fill(0)
-    .map((_, i) => ({ left: i * markerDistance, time: formatDurationToMMSS(timeDistance * i) }));
-
-  result.push({ left: stripeImage.value.width - 30, time: formatDurationToMMSS(props.duration) });
-
-  return result;
-});
 
 const load = () => {
   width.value = stripeImage.value!.clientWidth;
+  imageLoaded.value = true;
 };
 
 const destroyMarking = (index: number): void => {
@@ -220,7 +199,7 @@ const destroyMarking = (index: number): void => {
     return;
   }
   markings.value.splice(index, 1);
-  emit('marking', markings.value);
+  emit("marking", markings.value);
 };
 
 const getMouseX = (event: MouseEvent): number => {
@@ -252,8 +231,8 @@ const down = (event: MouseEvent): void => {
     timeend: (posX / width.value) * props.duration,
   });
 
-  window.addEventListener('mousemove', mouseMove);
-  window.addEventListener('mouseup', mouseUp);
+  window.addEventListener("mousemove", mouseMove);
+  window.addEventListener("mouseup", mouseUp);
 };
 
 const mouseMove = (event: MouseEvent): void => {
@@ -262,7 +241,7 @@ const mouseMove = (event: MouseEvent): void => {
 
   mouseMoved = true;
   if (currentMarkerIndex !== -1) {
-    emit('selecting');
+    emit("selecting");
     mouseOffsetX = getMouseX(event);
     markings.value[currentMarkerIndex - 1]!.end = mouseOffsetX;
     markings.value[currentMarkerIndex - 1]!.timeend = (mouseOffsetX / width.value) * props.duration;
@@ -284,8 +263,8 @@ const mouseUp = (event: MouseEvent): void => {
     mouseMoved = false;
     showBar.value = true;
     currentMarkerIndex = -1;
-    window.removeEventListener('mousemove', mouseMove);
-    window.removeEventListener('mouseup', mouseUp);
+    window.removeEventListener("mousemove", mouseMove);
+    window.removeEventListener("mouseup", mouseUp);
     return;
   }
   mouseMoved = false;
@@ -302,14 +281,14 @@ const mouseUp = (event: MouseEvent): void => {
   }
 
   currentMarkerIndex = -1;
-  window.removeEventListener('mousemove', mouseMove);
-  window.removeEventListener('mouseup', mouseUp);
+  window.removeEventListener("mousemove", mouseMove);
+  window.removeEventListener("mouseup", mouseUp);
 
   // Reset
   showBar.value = true;
   mouseOffsetX = 0;
   mouseMoved = false;
-  emit('marking', markings.value);
+  emit("marking", markings.value);
 };
 
 /**
@@ -396,7 +375,7 @@ const resizePreview = (event: WheelEvent): void => {
 }
 
 .unselected {
-  background: blueviolet;
+  background: #42b983;
   user-select: none;
 }
 
@@ -417,7 +396,7 @@ const resizePreview = (event: WheelEvent): void => {
 .bar {
   height: 100%;
   width: 3px;
-  background: deeppink;
+  background: magenta;
   opacity: 1;
   cursor: ew-resize;
   user-select: none;
@@ -426,7 +405,7 @@ const resizePreview = (event: WheelEvent): void => {
 .timecode {
   width: 3px;
   height: 100%;
-  background: red;
+  background: greenyellow;
   user-select: none;
 }
 
