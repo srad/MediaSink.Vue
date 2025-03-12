@@ -1,14 +1,14 @@
 <template>
   <div class="row my-2">
     <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-      <RecordingItem :recording="recording" @destroyed="destroyRecording" @bookmark="bookmark" :show-selection="false" :show-title="false" />
+      <VideoItem :recording="recording" @destroyed="destroyRecording" @bookmark="bookmark" :show-selection="false" :show-title="false" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { DatabaseRecording } from "@/services/api/v1/StreamSinkClient";
-import RecordingItem from "../components/RecordingItem.vue";
+import VideoItem from "../components/VideoItem.vue";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { createClient } from "@/services/api/v1/ClientFactory";

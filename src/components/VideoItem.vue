@@ -16,7 +16,7 @@
       </span>
       <span v-if="props.recording.videoType === 'cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
       <RouterLink class="d-flex" :to="link">
-        <Preview class="card-img-top" :data="recording.recordingId" :preview-video="previewVideoUrl" :preview-image="previewCoverUrl"/>
+        <VideoPreview class="card-img-top" :data="recording.recordingId" :preview-video="previewVideoUrl" :preview-image="previewCoverUrl"/>
       </RouterLink>
     </div>
     <div v-if="props.showTitle" class="card-body">
@@ -28,13 +28,13 @@
         </h6>
       </div>
     </div>
-    <RecordInfo :url="recordingUrl" :duration="props.recording.duration" :size="props.recording.size" :bit-rate="props.recording.bitRate" :bookmark="props.recording.bookmark" :created-at="props.recording.createdAt" :data="recording" :width="props.recording.width" :height="props.recording.height" @convert="convert" @bookmarked="bookmark" @preview="generatePreview" @destroy="destroyRecording"/>
+    <VideoInfo :url="recordingUrl" :duration="props.recording.duration" :size="props.recording.size" :bit-rate="props.recording.bitRate" :bookmark="props.recording.bookmark" :created-at="props.recording.createdAt" :data="recording" :width="props.recording.width" :height="props.recording.height" @convert="convert" @bookmarked="bookmark" @preview="generatePreview" @destroy="destroyRecording"/>
   </div>
 </template>
 
 <script setup lang="ts">
-import RecordInfo from './RecordInfo.vue';
-import Preview from './RecordingPreview.vue';
+import VideoInfo from './VideoInfo.vue';
+import VideoPreview from './VideoPreview.vue';
 import type { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
 import { watch, ref, inject } from 'vue';
 import { useRouter } from 'vue-router';

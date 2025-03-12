@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import StreamView from "../views/StreamsView.vue";
 import FilterView from "../views/FilterView.vue";
 import BookmarkView from "../views/BookmarksView.vue";
-import VideoView from "../views/RecordingView.vue";
+import VideoView from "../views/VideoView.vue";
 import LogView from "../views/LogsView.vue";
 import JobView from "../views/JobView.vue";
 import AdminView from "../views/AdminView.vue";

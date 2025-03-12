@@ -50,7 +50,7 @@
               </div>
 
               <div class="w-100" style="height: 10%">
-                <RecordingStripe
+                <VideoStripe
                   :src="stripeUrl"
                   :disabled="cutInterval != undefined"
                   :seeked="seeked"
@@ -112,7 +112,7 @@
 
 <script setup lang="ts">
 import type { DatabaseRecording } from '@/services/api/v1/StreamSinkClient';
-import RecordingStripe from '@/components/RecordingStripe.vue';
+import VideoStripe from '@/components/VideoStripe.vue';
 import RecordingFavButton from '@/components/controls/RecordingFavButton.vue';
 import BusyOverlay from '@/components/BusyOverlay.vue';
 import { inject, onMounted, onUnmounted, ref, watch } from 'vue';

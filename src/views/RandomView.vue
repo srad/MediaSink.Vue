@@ -25,14 +25,14 @@
   </div>
   <div class="row">
     <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-      <RecordingItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false" />
+      <VideoItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false" />
     </div>
   </div>
   </LoadIndicator>
 </template>
 
 <script setup lang="ts">
-import RecordingItem from "@/components/RecordingItem.vue";
+import VideoItem from "@/components/VideoItem.vue";
 import type { DatabaseRecording as RecordingResponse } from "@/services/api/v1/StreamSinkClient";
 import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";

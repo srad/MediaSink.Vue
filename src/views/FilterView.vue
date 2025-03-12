@@ -41,7 +41,7 @@
     </div>
     <div class="row">
       <div v-for="recording in recordings" :key="recording.recordingId" class="mb-3 col-lg-6 col-xl-4 col-xxl-4 col-md-8 col-sm-8">
-        <RecordingItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false" />
+        <VideoItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false" />
       </div>
     </div>
   </LoadIndicator>
@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import type { DatabaseRecording as RecordingResponse } from "@/services/api/v1/StreamSinkClient";
-import RecordingItem from "../components/RecordingItem.vue";
+import VideoItem from "../components/VideoItem.vue";
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
@@ -121,7 +121,7 @@ const fetch = async () => {
   const client = createClient();
   const data = await client.recordings.filterDetail((route.query.column as string) || "created_at", (route.query.order as string) || "desc", (route.query.limit as string) || "25");
   recordings.value = data || [];
-  isLoading.value = false;  
+  isLoading.value = false;
 };
 
 onMounted(fetch);

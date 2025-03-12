@@ -5,7 +5,7 @@
     </div>
 
     <RouterLink class="text-decoration-none" :to="`/channel/${props.channel.channelId}/${props.channel.channelName}`">
-      <Preview
+      <VideoPreview
         :min-recording="props.channel.minRecording"
         :recordings-count="props.channel.recordingsCount"
         :recordings-size="props.channel.recordingsSize"
@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import StreamInfo from './StreamInfo.vue';
-import Preview from './RecordingPreview.vue';
+import VideoPreview from './VideoPreview.vue';
 import type { ServicesChannelInfo as ChannelInfo } from '../services/api/v1/StreamSinkClient';
 import { computed, inject, ref } from 'vue';
 import { useRouter } from 'vue-router';

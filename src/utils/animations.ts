@@ -1,11 +1,22 @@
+/**
+ * This is a quadratic function which starts slowly and slows down slowly.
+ * @param t
+ */
 export function easeInOutQuad(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
-export function animateScrollLeft(element: Element, target: number, duration: number) {
+/**
+ * Scroll smoothly to the specified left pixel distance for any given element.
+ * Notice that the element must also be scrollable (overflow).
+ * @param element Element reference.
+ * @param left Pixel to scroll to left.
+ * @param duration In which timespan shall the animation be completed.
+ */
+export function animateScrollLeft(element: Element, left: number, duration: number) {
   let start = element.scrollLeft;
   let startTime = performance.now();
-  let distance = target - start;
+  let distance = left - start;
 
   function scrollStep(currentTime: number) {
     let elapsed = currentTime - startTime;

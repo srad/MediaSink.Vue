@@ -78,7 +78,7 @@
 
       <div class="row mb-5">
         <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-6 col-xl-4 col-xxl-4 col-md-6">
-          <RecordingItem @destroyed="destroyRecording" :check="selectedRecordings.some((x: RecordingResponse) => x.recordingId === recording.recordingId)" @checked="selectRecording" :show-selection="true" :recording="recording" :show-title="false"/>
+          <VideoItem @destroyed="destroyRecording" :check="selectedRecordings.some((x: RecordingResponse) => x.recordingId === recording.recordingId)" @checked="selectRecording" :show-selection="true" :recording="recording" :show-title="false"/>
         </div>
       </div>
     </LoadIndicator>
@@ -86,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import RecordingItem from '../components/RecordingItem.vue';
+import VideoItem from '../components/VideoItem.vue';
 import type { DatabaseRecording, DatabaseRecording as RecordingResponse, ServicesChannelInfo } from '../services/api/v1/StreamSinkClient';
 import { computed, inject, onMounted, ref, useTemplateRef } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';

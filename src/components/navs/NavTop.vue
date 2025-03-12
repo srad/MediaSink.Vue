@@ -48,14 +48,14 @@
                 <DiskStatus :pcent="diskAvailablePercentage"/>
               </li>
               <li class="nav-item d-none d-lg-block">
-                <RecordingControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')"/>
+                <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')"/>
               </li>
             </ul>
           </div>
         </div>
 
         <div class="d-lg-none">
-          <RecordingControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')"/>
+          <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')"/>
         </div>
 
         <button class="navbar-toggler d-l-none" type="button" @click="showNav = !showNav">
@@ -73,7 +73,7 @@ import { useJobStore } from '../../stores/job';
 import { computed, onActivated, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import DiskStatus from '../DiskStatus.vue';
-import RecordingControls from '../RecordingControls.vue';
+import VideoControls from '../VideoControls.vue';
 import AppBrand from '../AppBrand.vue';
 import ModalConfirmDialog from '../modals/ModalConfirmDialog.vue';
 import type { HelpersDiskInfo } from '../../services/api/v1/StreamSinkClient';
