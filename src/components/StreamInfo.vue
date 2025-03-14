@@ -62,12 +62,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import type { ServicesChannelInfo as ChannelResponse } from '../services/api/v1/StreamSinkClient';
-import { validTag } from '../utils/parser';
-import FavButton from './controls/FavButton.vue';
-import { createClient } from '../services/api/v1/ClientFactory';
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import type { ServicesChannelInfo as ChannelResponse } from "../services/api/v1/StreamSinkClient";
+import { validTag } from "../utils/parser";
+import FavButton from "./controls/FavButton.vue";
+import { createClient } from "../services/api/v1/ClientFactory";
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -83,11 +83,11 @@ const props = defineProps<{
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: 'unfav', value: ChannelResponse): void;
-  (e: 'fav', value: ChannelResponse): void;
-  (e: 'edit', value: ChannelResponse): void;
-  (e: 'destroy', value: ChannelResponse): void;
-  (e: 'pause', value: ChannelResponse): void;
+  (e: "unfav", value: ChannelResponse): void;
+  (e: "fav", value: ChannelResponse): void;
+  (e: "edit", value: ChannelResponse): void;
+  (e: "destroy", value: ChannelResponse): void;
+  (e: "pause", value: ChannelResponse): void;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ const emit = defineEmits<{
 // --------------------------------------------------------------------------------------
 
 const tagArray = ref<string[]>(props.channel.tags || []);
-const tagVal = ref('');
+const tagVal = ref("");
 const showTagInput = ref(false);
 const tagInput = ref<HTMLInputElement | null>(null);
 const processingTag = ref(false);
@@ -127,7 +127,7 @@ const addTag = async () => {
     const tag = tagVal.value.trim().toLowerCase();
 
     // No value, cancel
-    if (tag.trim() === '') {
+    if (tag.trim() === "") {
       showTagInput.value = false;
       return;
     }
@@ -142,12 +142,12 @@ const addTag = async () => {
     await client.channels.tagsPartialUpdate(props.channel.channelId!, { tags: tagArray.value.concat(tag) });
     tagArray.value.push(tag);
     showTagInput.value = false;
-    tagVal.value = '';
+    tagVal.value = "";
   } catch (e: unknown) {
     alert(e);
   } finally {
     processingTag.value = false;
-    tagVal.value = '';
+    tagVal.value = "";
   }
 };
 </script>

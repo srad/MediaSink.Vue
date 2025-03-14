@@ -15,7 +15,7 @@
     <tbody>
     <tr :key="channel.channelId" v-for="channel in channels" class="align-middle">
       <td class="text-center p-0">
-        <img alt="preview" :src="`${fileUrl}/${channel.preview}`" class="rounded" style="height: 50px; width: auto" />
+        <img alt="preview" :src="`${fileUrl}/${channel.preview}`" class="rounded" style="height: 50px; width: auto"/>
       </td>
       <td class="px-2">
         <RouterLink class="text-decoration-none" :to="`/channel/${channel.channelId}/${channel.channelName}`">
@@ -26,14 +26,14 @@
         <a :href="channel.url" target="_blank">{{ channel.url }}</a>
       </td>
       <td class="px-2 text-center">
-        <ChannelFavButton :bookmarked="channel.fav" :channel-id="channel.channelId" />
+        <ChannelFavButton :bookmarked="channel.fav" :channel-id="channel.channelId"/>
       </td>
       <td class="px-2 text-center">
         <div v-if="channel.isRecording"><i class="bi text-danger blink bi-record-fill pulse"></i> Recording</div>
       </td>
       <td class="px-2 text-center">{{ channel.recordingsCount }}</td>
       <td class="px-2 text-center">{{ (channel.recordingsSize / 1024 / 1024 / 1024).toFixed(2) }} GB</td>
-      <td class="px-2 text-start">{{ new Date(channel.createdAt).toDateString()}}</td>
+      <td class="px-2 text-start">{{ new Date(channel.createdAt).toDateString() }}</td>
     </tr>
     </tbody>
   </table>

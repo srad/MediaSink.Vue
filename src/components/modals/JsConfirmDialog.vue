@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue';
+import { watch } from "vue";
 // --------------------------------------------------------------------------------------
 // Props
 // --------------------------------------------------------------------------------------
@@ -13,8 +13,8 @@ const props = defineProps<{
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: 'confirm'): void
-  (e: 'cancel'): void
+  (e: "confirm"): void
+  (e: "cancel"): void
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -24,9 +24,9 @@ const emit = defineEmits<{
 watch(() => props.show, (val) => {
   if (val === true) {
     if (window.confirm(props.text)) {
-      emit('confirm');
+      emit("confirm");
     } else {
-      emit('cancel');
+      emit("cancel");
     }
   }
 });

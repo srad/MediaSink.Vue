@@ -11,8 +11,8 @@
 const props = defineProps<{
   caption: string;
   busy: boolean;
-  buttonType: 'button' | 'submit';
-  position: 'left' | 'right';
+  buttonType: "button" | "submit";
+  position: "left" | "right";
   icon?: string;
 }>();
 

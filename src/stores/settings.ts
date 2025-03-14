@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia';
+import { defineStore } from "pinia";
 
-export type ChannelsViewLayout = 'grid' | 'list';
+export type ChannelsViewLayout = "grid" | "list";
 
 export type SettingsState = {
   videoVolume: number;
@@ -9,10 +9,10 @@ export type SettingsState = {
   filterViewPageSize: number;
 };
 
-export const useSettingsStore = defineStore('settings', {
+export const useSettingsStore = defineStore("settings", {
   persist: true,
   state: (): SettingsState => ({
-    channelsView: 'grid',
+    channelsView: "grid",
     videoVolume: 1.0,
     videoMuted: true,
     filterViewPageSize: 100,
@@ -42,10 +42,10 @@ export const useSettingsStore = defineStore('settings', {
       return state.videoVolume;
     },
     isChannelsGridLayout(state: SettingsState): boolean {
-      return state.channelsView === 'grid';
+      return state.channelsView === "grid";
     },
     isChannelsListLayout(state: SettingsState): boolean {
-      return state.channelsView === 'list';
+      return state.channelsView === "list";
     },
     filterPageSize(state: SettingsState): number {
       return state.filterViewPageSize;

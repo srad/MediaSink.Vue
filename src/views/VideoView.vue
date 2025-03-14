@@ -45,7 +45,7 @@
 
                   <button class="btn btn-primary" @click="playCut" v-if="!cutInterval">Play Cut <i class="bi bi-play-fill"></i></button>
                   <button v-else class="btn btn-primary" @click="stopCut"><span>Stop cut</span> <i class="bi bi-stop-fill"></i></button>
-                  <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="showConfirmDialog = true">{{ t('videoView.button.cut') }} <i class="bi bi-scissors"></i></button>
+                  <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="showConfirmDialog = true">{{ t("videoView.button.cut") }} <i class="bi bi-scissors"></i></button>
                 </div>
               </div>
 
@@ -111,20 +111,20 @@
 </template>
 
 <script setup lang="ts">
-import type { DatabaseRecording } from '@/services/api/v1/StreamSinkClient';
-import VideoStripe from '@/components/VideoStripe.vue';
-import RecordingFavButton from '@/components/controls/RecordingFavButton.vue';
-import BusyOverlay from '@/components/BusyOverlay.vue';
-import { inject, onMounted, onUnmounted, ref, watch } from 'vue';
-import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import ModalConfirmDialog from '@/components/modals/ModalConfirmDialog.vue';
-import MarkingsTable from '@/components/MarkingsTable.vue';
-import { useToastStore } from '@/stores/toast';
-import { useJobStore } from '@/stores/job';
-import type { Marking } from '@/types/appTypes';
-import { createClient } from '@/services/api/v1/ClientFactory';
-import { useSettingsStore } from '@/stores/settings.ts';
+import type { DatabaseRecording } from "@/services/api/v1/StreamSinkClient";
+import VideoStripe from "@/components/VideoStripe.vue";
+import RecordingFavButton from "@/components/controls/RecordingFavButton.vue";
+import BusyOverlay from "@/components/BusyOverlay.vue";
+import { inject, onMounted, onUnmounted, ref, watch } from "vue";
+import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
+import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
+import MarkingsTable from "@/components/MarkingsTable.vue";
+import { useToastStore } from "@/stores/toast";
+import { useJobStore } from "@/stores/job";
+import type { Marking } from "@/types/appTypes";
+import { createClient } from "@/services/api/v1/ClientFactory";
+import { useSettingsStore } from "@/stores/settings.ts";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -139,9 +139,9 @@ const settingsStore = useSettingsStore();
 
 const video = ref<HTMLVideoElement>();
 
-const fileUrl = inject('fileUrl') as string;
-const stripeUrl = ref('');
-const videoUrl = ref('');
+const fileUrl = inject("fileUrl") as string;
+const stripeUrl = ref("");
+const videoUrl = ref("");
 
 const seeked = ref(0);
 const isMuted = ref(settingsStore.isMuted);
@@ -275,7 +275,7 @@ const destroy = () => {
     return;
   }
 
-  if (!window.confirm(t('videoView.destroy', [recording.value.filename]))) {
+  if (!window.confirm(t("videoView.destroy", [recording.value.filename]))) {
     return;
   }
 
@@ -289,7 +289,7 @@ const destroy = () => {
     .then(() => {
       // Remove from Job list if existent.
       jobStore.deleteRecording(recording.value!.recordingId);
-      toastStore.success({ title: 'Video deleted', message: recording.value!.filename });
+      toastStore.success({ title: "Video deleted", message: recording.value!.filename });
       router.back();
     })
     .catch((err) => {
@@ -338,7 +338,7 @@ const timeupdate = () => {
 const unloadVideo = () => {
   if (isMounted.value && video.value) {
     video.value.pause();
-    video.value.firstElementChild!.removeAttribute('src');
+    video.value.firstElementChild!.removeAttribute("src");
     video.value.load();
   }
 };
@@ -351,14 +351,14 @@ onBeforeRouteLeave(() => {
   if (video.value) {
     const el = video.value;
     el.pause();
-    el.removeAttribute('src');
+    el.removeAttribute("src");
     el.load();
   }
   isShown.value = false;
 });
 
 const rotate = () => {
-  const mql = window.matchMedia('(orientation: portrait)');
+  const mql = window.matchMedia("(orientation: portrait)");
 
   if (mql.matches) {
     video.value!.requestFullscreen();
@@ -368,7 +368,7 @@ const rotate = () => {
 };
 
 onUnmounted(() => {
-  window.removeEventListener('orientationchange', rotate);
+  window.removeEventListener("orientationchange", rotate);
 });
 
 onMounted(async () => {
@@ -376,10 +376,10 @@ onMounted(async () => {
   id.value = Number(route.params.id);
   const data = await client.recordings.recordingsDetail(id.value);
   recording.value = data;
-  stripeUrl.value = fileUrl + '/' + recording.value?.previewStripe;
-  videoUrl.value = fileUrl + '/' + recording.value?.pathRelative;
+  stripeUrl.value = fileUrl + "/" + recording.value?.previewStripe;
+  videoUrl.value = fileUrl + "/" + recording.value?.pathRelative;
 
-  window.addEventListener('orientationchange', rotate);
+  window.addEventListener("orientationchange", rotate);
   isMounted.value = true;
   isShown.value = true;
 });

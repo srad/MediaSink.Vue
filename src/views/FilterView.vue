@@ -9,26 +9,26 @@
               <div class="row align-items-center">
                 <div class="col-auto">
                   <select ref="filterColumnSelect" class="form-select form-select-sm" v-model="filterColumn" @change="filterChanged">
-                    <option value="" style="font-weight: bold" disabled>{{ t('filter.orderBy') }}</option>
+                    <option value="" style="font-weight: bold" disabled>{{ t("filter.orderBy") }}</option>
                     <option v-for="col in columns" :key="col[1]" :value="col[1]">{{ col[0] }}</option>
                   </select>
                 </div>
                 <div class="col-auto">
                   <select ref="sortOrderSelect" class="form-select form-select-sm text-capitalize" v-model="filterOrder" @input="filterChanged">
-                    <option value="" style="font-weight: bold" disabled>{{ t('filter.order') }}</option>
+                    <option value="" style="font-weight: bold" disabled>{{ t("filter.order") }}</option>
                     <option v-for="o in order" :key="o" :value="o">{{ o }}</option>
                   </select>
                 </div>
                 <div class="col-auto">
                   <select ref="filterLimitSelect" id="limit" class="form-select form-select-sm" v-model="filterLimit" @change="filterChanged">
-                    <option value="" style="font-weight: bold" disabled>{{ t('filter.limit') }}</option>
+                    <option value="" style="font-weight: bold" disabled>{{ t("filter.limit") }}</option>
                     <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
                   </select>
                 </div>
 
                 <div class="col-auto">
                   <button type="button" class="btn btn-primary" @click="resetFilters">
-                    {{ t('filter.reset') }}
+                    {{ t("filter.reset") }}
                   </button>
                 </div>
               </div>
@@ -48,15 +48,15 @@
 </template>
 
 <script setup lang="ts">
-import type { DatabaseRecording as RecordingResponse } from '@/services/api/v1/StreamSinkClient';
-import VideoItem from '../components/VideoItem.vue';
-import { onMounted, ref, useTemplateRef, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import { createClient } from '@/services/api/v1/ClientFactory';
-import LoadIndicator from '@/components/LoadIndicator.vue';
-import { useJobStore } from '@/stores/job.ts';
-import { useSettingsStore } from '@/stores/settings.ts';
+import type { DatabaseRecording as RecordingResponse } from "@/services/api/v1/StreamSinkClient";
+import VideoItem from "../components/VideoItem.vue";
+import { onMounted, ref, useTemplateRef, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
+import { createClient } from "@/services/api/v1/ClientFactory";
+import LoadIndicator from "@/components/LoadIndicator.vue";
+import { useJobStore } from "@/stores/job.ts";
+import { useSettingsStore } from "@/stores/settings.ts";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -71,23 +71,23 @@ watch(
   () => fetch(),
 );
 
-const sortOrderSelect = useTemplateRef<HTMLSelectElement>('sortOrderSelect');
-const filterColumnSelect = useTemplateRef<HTMLSelectElement>('filterColumnSelect');
-const filterLimitSelect = useTemplateRef<HTMLSelectElement>('filterLimitSelect');
+const sortOrderSelect = useTemplateRef<HTMLSelectElement>("sortOrderSelect");
+const filterColumnSelect = useTemplateRef<HTMLSelectElement>("filterColumnSelect");
+const filterLimitSelect = useTemplateRef<HTMLSelectElement>("filterLimitSelect");
 
-let filterOrder: string = (route.query.order as string) || 'desc';
-let filterColumn: string = (route.query.column as string) || 'created_at';
+let filterOrder: string = (route.query.order as string) || "desc";
+let filterColumn: string = (route.query.column as string) || "created_at";
 let filterLimit: string = (route.query.limit as string) || settingsStore.filterPageSize.toString();
 
 const limits = [25, 50, 100, 200, 500, 1000];
 
 const columns = [
-  ['Created at', 'created_at'],
-  ['Filesize', 'size'],
-  ['Video duration', 'duration'],
+  ["Created at", "created_at"],
+  ["Filesize", "size"],
+  ["Video duration", "duration"],
 ];
 
-const order: string[] = ['asc', 'desc'];
+const order: string[] = ["asc", "desc"];
 
 interface VideoResult {
   video: RecordingResponse;
@@ -133,7 +133,7 @@ const destroyRecording = (recording: RecordingResponse) => {
 const fetch = async () => {
   isLoading.value = true;
   const client = createClient();
-  const data = await client.recordings.filterDetail((route.query.column as string) || 'created_at', (route.query.order as string) || 'desc', (route.query.limit as string) || settingsStore.filterPageSize.toString());
+  const data = await client.recordings.filterDetail((route.query.column as string) || "created_at", (route.query.order as string) || "desc", (route.query.limit as string) || settingsStore.filterPageSize.toString());
   videos.value = data.map((rec: RecordingResponse) => ({ video: rec, jobTask: jobStore.isProcessing(rec.recordingId) })) || [];
   isLoading.value = false;
 };

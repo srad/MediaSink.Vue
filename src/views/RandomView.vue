@@ -1,33 +1,33 @@
 <template>
   <LoadIndicator :busy="isLoading">
-  <div class="row my-2">
-    <div class="col">
-      <div class="d-flex justify-content-end">
-        <div class="d-flex justify-content-center me-3">
-          <div class="row g-3 align-items-center">
-            <div class="col-auto">
-              <label for="limit" class="col-form-label fw-bold">Limit</label>
-            </div>
-            <div class="col-auto">
-              <select id="limit" class="form-select" v-model="filterLimit" @change="fetch">
-                <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
-              </select>
-            </div>
-            <div class="col-auto">
-              <button class="btn btn-primary" @click="fetch">Refresh</button>
+    <div class="row my-2">
+      <div class="col">
+        <div class="d-flex justify-content-end">
+          <div class="d-flex justify-content-center me-3">
+            <div class="row g-3 align-items-center">
+              <div class="col-auto">
+                <label for="limit" class="col-form-label fw-bold">Limit</label>
+              </div>
+              <div class="col-auto">
+                <select id="limit" class="form-select" v-model="filterLimit" @change="fetch">
+                  <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <button class="btn btn-primary" @click="fetch">Refresh</button>
+              </div>
             </div>
           </div>
+          <button class="btn btn-primary" @click="fetch" v-if="route.params.type === 'random'">Refresh</button>
         </div>
-        <button class="btn btn-primary" @click="fetch" v-if="route.params.type === 'random'">Refresh</button>
+        <hr/>
       </div>
-      <hr />
     </div>
-  </div>
-  <div class="row">
-    <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-      <VideoItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false" />
+    <div class="row">
+      <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
+        <VideoItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false"/>
+      </div>
     </div>
-  </div>
   </LoadIndicator>
 </template>
 

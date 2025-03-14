@@ -30,20 +30,20 @@
 </template>
 
 <script setup lang="ts">
-import StreamInfo from './StreamInfo.vue';
-import VideoPreview from './VideoPreview.vue';
-import type { ServicesChannelInfo as ChannelInfo } from '../services/api/v1/StreamSinkClient';
-import { computed, inject, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useChannelStore } from '../stores/channel';
-import { useI18n } from 'vue-i18n';
-import { createClient } from '../services/api/v1/ClientFactory';
+import StreamInfo from "./StreamInfo.vue";
+import VideoPreview from "./VideoPreview.vue";
+import type { ServicesChannelInfo as ChannelInfo } from "../services/api/v1/StreamSinkClient";
+import { computed, inject, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useChannelStore } from "../stores/channel";
+import { useI18n } from "vue-i18n";
+import { createClient } from "../services/api/v1/ClientFactory";
 
 // --------------------------------------------------------------------------------------
 // Emits
 // --------------------------------------------------------------------------------------
 
-const emit = defineEmits<{ (e: 'edit', value: ChannelInfo): void }>();
+const emit = defineEmits<{ (e: "edit", value: ChannelInfo): void }>();
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -60,12 +60,12 @@ const { t } = useI18n();
 
 const router = useRouter();
 
-const fileUrl = inject('fileUrl') as string;
+const fileUrl = inject("fileUrl") as string;
 
 const destroyed = ref(false);
 const busy = ref(false);
 
-const previewImage = computed(() => fileUrl + '/' + props.channel.preview);
+const previewImage = computed(() => fileUrl + "/" + props.channel.preview);
 
 // --------------------------------------------------------------------------------------
 // Methods
@@ -84,7 +84,7 @@ const unfav = async (channel: ChannelInfo) => {
 };
 
 const destroyChannel = async (channel: ChannelInfo) => {
-  if (window.confirm(t('crud.destroy', [channel.channelName]))) {
+  if (window.confirm(t("crud.destroy", [channel.channelName]))) {
     try {
       const client = createClient();
       busy.value = true;
@@ -109,7 +109,7 @@ const pause = async (channel: ChannelInfo) => {
     await method(channel.channelId!);
 
     // Invert current paused mode.
-    channelStore[channel.isPaused ? 'resume' : 'pause'](channel.channelId);
+    channelStore[channel.isPaused ? "resume" : "pause"](channel.channelId);
   } catch (err) {
     console.log(err);
   } finally {

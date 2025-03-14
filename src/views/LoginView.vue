@@ -11,16 +11,16 @@
           </div>
           <div class="mb-3">
             <label for="staticEmail" class="form-label">Email</label>
-            <input type="email" name="email" required class="form-control" id="staticEmail" placeholder="email@example.com" v-model="email" />
+            <input type="email" name="email" required class="form-control" id="staticEmail" placeholder="email@example.com" v-model="email"/>
           </div>
           <div class="mb-3">
             <label for="inputPassword" class="form-label">Password</label>
-            <input type="password" name="password" required class="form-control" id="inputPassword" v-model="password" />
+            <input type="password" name="password" required class="form-control" id="inputPassword" v-model="password"/>
           </div>
 
           <div class="d-flex justify-content-between">
             <RouterLink to="/register">Register</RouterLink>
-            <BusyButton caption="Login" :busy="loading" icon="check" button-type="submit" position="right" />
+            <BusyButton caption="Login" :busy="loading" icon="check" button-type="submit" position="right"/>
           </div>
         </form>
       </div>

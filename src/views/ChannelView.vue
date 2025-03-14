@@ -78,7 +78,7 @@
 
       <div class="row mb-5">
         <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-6 col-xl-4 col-xxl-4 col-md-6">
-          <VideoItem @destroyed="destroyRecording" :check="selectedRecordings.some((x: RecordingResponse) => x.recordingId === recording.recordingId)" @checked="selectRecording" :show-selection="true" :recording="recording" :show-title="false"/>
+          <VideoItem :job="jobStore.isProcessing(recording.recordingId)" @destroyed="destroyRecording" :check="selectedRecordings.some((x: RecordingResponse) => x.recordingId === recording.recordingId)" @checked="selectRecording" :show-selection="true" :recording="recording" :show-title="false"/>
         </div>
       </div>
     </LoadIndicator>
@@ -86,20 +86,20 @@
 </template>
 
 <script setup lang="ts">
-import VideoItem from '../components/VideoItem.vue';
-import type { DatabaseRecording, DatabaseRecording as RecordingResponse, ServicesChannelInfo } from '../services/api/v1/StreamSinkClient';
-import { computed, inject, onMounted, ref, useTemplateRef } from 'vue';
-import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
-import { closeSocket, connectSocket, MessageType, socketOn } from '../utils/socket';
-import BusyOverlay from '../components/BusyOverlay.vue';
-import { useToastStore } from '../stores/toast';
-import { useChannelStore } from '../stores/channel';
-import { useJobStore } from '../stores/job';
-import OptionsMenu from '@/components/controls/OptionsMenu.vue';
-import ModalConfirmDialog from '@/components/modals/ModalConfirmDialog.vue';
-import { createClient } from '@/services/api/v1/ClientFactory';
-import LoadIndicator from '@/components/LoadIndicator.vue';
-import JsConfirmDialog from '@/components/modals/JsConfirmDialog.vue';
+import VideoItem from "../components/VideoItem.vue";
+import type { DatabaseRecording, DatabaseRecording as RecordingResponse, ServicesChannelInfo } from "../services/api/v1/StreamSinkClient";
+import { computed, inject, onMounted, ref, useTemplateRef } from "vue";
+import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
+import { closeSocket, connectSocket, MessageType, socketOn } from "../utils/socket";
+import BusyOverlay from "../components/BusyOverlay.vue";
+import { useToastStore } from "../stores/toast";
+import { useChannelStore } from "../stores/channel";
+import { useJobStore } from "../stores/job";
+import OptionsMenu from "@/components/controls/OptionsMenu.vue";
+import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
+import { createClient } from "@/services/api/v1/ClientFactory";
+import LoadIndicator from "@/components/LoadIndicator.vue";
+import JsConfirmDialog from "@/components/modals/JsConfirmDialog.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -113,7 +113,7 @@ const toastStore = useToastStore();
 const channelStore = useChannelStore();
 
 // Elements
-const upload = useTemplateRef<HTMLDivElement>('upload');
+const upload = useTemplateRef<HTMLDivElement>("upload");
 
 const channelId = +route.params.id as number;
 
@@ -128,7 +128,7 @@ const showModal = ref(false);
 const showConfirm = ref(false);
 const showDeleteSelectedRecordings = ref(false);
 
-const fileUrl = inject('fileUrl');
+const fileUrl = inject("fileUrl");
 
 // --------------------------------------------------------------------------------------
 // Computes
@@ -158,7 +158,7 @@ const pauseChannel = (element: HTMLInputElement): void => {
         channelStore.pause(channel.value!.channelId);
       }
       toastStore.info({
-        title: element.checked ? 'Channel resume' : 'Channel pause',
+        title: element.checked ? "Channel resume" : "Channel pause",
         message: `Channel ${channel.value?.displayName}`,
       });
     })
@@ -181,12 +181,12 @@ const destroySelection = async () => {
     }
     // Clear selection.
     toastStore.success({
-      title: 'Deleted recordings',
+      title: "Deleted recordings",
       message: `Deleted ${selectedRecordings.value.length} files.`,
     });
     selectedRecordings.value = [];
   } catch (e) {
-    toastStore.error({ title: 'Deletion failed', message: (<{ message: string }>e).message });
+    toastStore.error({ title: "Deletion failed", message: (<{ message: string }>e).message });
   } finally {
     showDeleteSelectedRecordings.value = false;
   }
@@ -207,10 +207,10 @@ const deleteChannel = async () => {
     await client.channels.channelsDelete(channelId);
     channelStore.destroy(channelId);
     toastStore.success({
-      title: 'Channel deleted',
+      title: "Channel deleted",
       message: `Channel ${channel.value?.displayName}`,
     });
-    await router.replace('/');
+    await router.replace("/");
   } catch (e) {
     alert(e);
   } finally {
@@ -266,7 +266,7 @@ const bookmark = () => {
 
 const mergeVideos = async () => {
   // TODO: call merge videos api.
-  alert(selectedRecordings.value.map((x) => x.filename).join(', '));
+  alert(selectedRecordings.value.map((x) => x.filename).join(", "));
 };
 
 // --------------------------------------------------------------------------------------
@@ -283,7 +283,7 @@ onMounted(async () => {
     const data = await client.channels.channelsDetail(channelId);
 
     if (!data) {
-      await router.replace('/streams/live');
+      await router.replace("/streams/live");
       return;
     }
 

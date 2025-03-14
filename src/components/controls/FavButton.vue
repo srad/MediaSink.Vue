@@ -7,8 +7,8 @@
 
 <script setup lang="ts" generic="T">
 const emit = defineEmits<{
-  (e: 'fav', data: T, event: Event): void
-  (e: 'unfav', data: T, event: Event): void
+  (e: "fav", data: T, event: Event): void
+  (e: "unfav", data: T, event: Event): void
 }>();
 
 const props = defineProps<{

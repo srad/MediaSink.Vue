@@ -5,13 +5,13 @@
       <div v-for="(channel, index) in props.channels" :key="index" class="col-12 col-md-6 col-lg-4 col-xxl-3">
         <div class="collage-item">
           <RouterLink :to="`/channel/${channel.channelId}/${channel.channelName}`">
-            <img alt="preview" :src="`${fileUrl}/${channel.preview}`" />
+            <img alt="preview" :src="`${fileUrl}/${channel.preview}`"/>
           </RouterLink>
           <div class="recording-indicator" v-if="channel.isRecording">
             <i class="bi fs-5 text-danger blink bi-record-fill pulse"></i>
           </div>
           <div class="favorite-btn">
-            <ChannelFavButton :bookmarked="channel.fav" :channel-id="channel.channelId" @click.stop />
+            <ChannelFavButton :bookmarked="channel.fav" :channel-id="channel.channelId" @click.stop/>
           </div>
         </div>
       </div>
@@ -68,6 +68,7 @@ const props = defineProps<{
 .favorite-btn:hover {
   background-color: rgba(0, 0, 0, 0.7);
 }
+
 .recording-indicator {
   position: absolute;
   top: 5%;

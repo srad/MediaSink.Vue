@@ -5,10 +5,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
-import AuthLayout from '@/layouts/AuthLayout.vue';
-import { useRoute } from 'vue-router';
+import { computed } from "vue";
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
+import AuthLayout from "@/layouts/AuthLayout.vue";
+import { useRoute } from "vue-router";
 
 const route = useRoute();
 

@@ -27,11 +27,11 @@
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef, ref, computed, onMounted, onUnmounted } from 'vue';
+import { useTemplateRef, ref, computed, onMounted, onUnmounted } from "vue";
 
-const emit = defineEmits<{ (e: 'selected', value: string | number): void }>();
+const emit = defineEmits<{ (e: "selected", value: string | number): void }>();
 
-const video = useTemplateRef<HTMLVideoElement>('video');
+const video = useTemplateRef<HTMLVideoElement>("video");
 const thread = ref<null | ReturnType<typeof setTimeout>>(null);
 
 const errorLoad = ref(false);
@@ -51,7 +51,7 @@ const secRecording = ref((props.minRecording || 0) * 60);
 const minutes = computed(() => (secRecording.value / 60).toFixed(0));
 const seconds = computed(() => {
   const x = (secRecording.value % 60).toFixed(0);
-  return x.length < 2 ? '0' + String(x) : x;
+  return x.length < 2 ? "0" + String(x) : x;
 });
 
 const context = (e: Event) => e.preventDefault();
@@ -60,7 +60,7 @@ const hoverVideo = async () => {
   if (video.value) {
     video.value.playbackRate = 16;
     await video.value.play();
-    video.value?.removeAttribute('poster');
+    video.value?.removeAttribute("poster");
   }
 };
 

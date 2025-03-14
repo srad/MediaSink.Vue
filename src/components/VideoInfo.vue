@@ -2,7 +2,7 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item d-flex justify-content-center">
       <span>
-        {{ t('recording.durationMinutes', [durationFormatted]) }}
+        {{ t("recording.durationMinutes", [durationFormatted]) }}
       </span>
       <span class="text-secondary px-2">/</span>
       <span>
@@ -12,18 +12,18 @@
       <span class="text-cut">{{ ago }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <span>{{ t('recording.bitRate') }}</span>
+      <span>{{ t("recording.bitRate") }}</span>
       <span>{{ (bitRate / 1024 / 1024).toFixed(2) }} MBit</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <span>{{ t('recording.resolution') }}</span> <span>{{ width }}x{{ height }}</span>
+      <span>{{ t("recording.resolution") }}</span> <span>{{ width }}x{{ height }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <span>{{ t('recording.started') }}</span>
+      <span>{{ t("recording.started") }}</span>
       <span>{{ createdAtFormatted }}</span>
     </li>
     <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
-      <div>{{ t('recording.convert') }}</div>
+      <div>{{ t("recording.convert") }}</div>
       <div class="btn-group">
         <button v-if="height !== 720" class="btn btn-light" @click="emit('convert', {recording: data, mediaType: '720'})">
           720p
@@ -63,19 +63,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import type { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient.ts';
-import { fromNow } from '../utils/datetime';
-import FavButton from './controls/FavButton.vue';
+import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import type { DatabaseRecording as RecordingResponse } from "../services/api/v1/StreamSinkClient.ts";
+import { fromNow } from "../utils/datetime";
+import FavButton from "./controls/FavButton.vue";
 
 const { t } = useI18n();
 
 const emit = defineEmits<{
-  (e: 'preview', value: RecordingResponse): void
-  (e: 'destroy', value: RecordingResponse): void
-  (e: 'bookmarked', data: RecordingResponse, value: boolean): void
-  (e: 'convert', value: { recording: RecordingResponse, mediaType: string }): void
+  (e: "preview", value: RecordingResponse): void
+  (e: "destroy", value: RecordingResponse): void
+  (e: "bookmarked", data: RecordingResponse, value: boolean): void
+  (e: "convert", value: { recording: RecordingResponse, mediaType: string }): void
 }>();
 
 const props = defineProps<{
@@ -95,8 +95,8 @@ const props = defineProps<{
 const durationFormatted = computed(() => (props.duration / 60).toFixed(2));
 
 const createdAtFormatted = computed(() => new Date(props.createdAt).toLocaleDateString(undefined, {
-  hour: 'numeric',
-  minute: 'numeric'
+  hour: "numeric",
+  minute: "numeric"
 }));
 
 const ago = ref(fromNow(Date.parse(props.createdAt)));

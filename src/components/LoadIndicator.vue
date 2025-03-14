@@ -6,7 +6,7 @@
       </div>
     </div>
     <h3 v-if="props.empty && !props.busy" class="text-dark">
-      {{ props.emptyText || '...' }}
+      {{ props.emptyText || "..." }}
     </h3>
   </div>
   <template v-else>

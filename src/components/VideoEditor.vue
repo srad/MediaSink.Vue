@@ -46,18 +46,18 @@
 </template>
 
 <script setup lang="ts">
-import { watch, computed, ref } from 'vue';
+import { watch, computed, ref } from "vue";
 
 // --------------------------------------------------------------------------------------
 // Emits
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: 'add', value: { id: number, start: number, end: number }): void
-  (e: 'destroy', value: Timestamp): void
-  (e: 'data', value: number[][]): void
-  (e: 'start', value: number): void
-  (e: 'end', value: number): void
+  (e: "add", value: { id: number, start: number, end: number }): void
+  (e: "destroy", value: Timestamp): void
+  (e: "data", value: number[][]): void
+  (e: "start", value: number): void
+  (e: "end", value: number): void
 }>();
 
 /**
@@ -67,14 +67,14 @@ const emit = defineEmits<{
  *     event: 'change'
  *   },
  */
-//const model = defineModel({
-//  prop: 'timestamp',
-//  event: 'change'
-//});
+  //const model = defineModel({
+  //  prop: 'timestamp',
+  //  event: 'change'
+  //});
 
-// --------------------------------------------------------------------------------------
-// Props
-// --------------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------------
+  // Props
+  // --------------------------------------------------------------------------------------
 
 const props = defineProps<{ timestamp: number }>();
 
@@ -107,7 +107,7 @@ watch(start, (val) => {
 // Computed
 // --------------------------------------------------------------------------------------
 
-const sortedTimestamps = computed(() => timestamps.value.slice().sort((a, b) => a.start - b.start))
+const sortedTimestamps = computed(() => timestamps.value.slice().sort((a, b) => a.start - b.start));
 
 // --------------------------------------------------------------------------------------
 // Methods
@@ -124,7 +124,7 @@ const add = () => {
   const data = { id: counter.value, start: start.value, end: end.value };
   timestamps.value.push(data);
   counter.value += 1;
-  emit('add', data);
+  emit("add", data);
 };
 
 const markStart = () => start.value = props.timestamp;
@@ -133,7 +133,7 @@ const markEnd = () => end.value = props.timestamp;
 const destroy = (id: number) => {
   for (let i = 0; i < timestamps.value.length; i += 1) {
     if (timestamps.value[i]!.id === id) {
-      emit('destroy', timestamps.value[i]!);
+      emit("destroy", timestamps.value[i]!);
       timestamps.value.splice(i, 1);
       break;
     }

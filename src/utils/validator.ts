@@ -1,6 +1,8 @@
 export interface FieldConfig {
   name: string;
+
   validator(t: unknown): boolean;
+
   validMessage: string;
   invalidMessage: string;
 }

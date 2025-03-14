@@ -15,21 +15,21 @@ import {
   DatabaseJobOrder,
   DatabaseJobStatus,
   type RequestsChannelRequest as ChannelRequest
-} from '@/services/api/v1/StreamSinkClient';
-import { closeSocket, connectSocket, MessageType, socketOn } from '@/utils/socket';
-import ChannelModal from '@/components/modals/ChannelModal.vue';
-import NavTop from '@/components/navs/NavTop.vue';
-import { useChannelStore } from '@/stores/channel';
-import { useJobStore } from '@/stores/job';
-import { useToastStore } from '@/stores/toast';
-import { computed, inject, onMounted, onUnmounted, ref, watch, onActivated } from 'vue';
-import type { JobMessage, TaskComplete, TaskInfo, TaskProgress } from '@/types/appTypes';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
-import { createClient } from '@/services/api/v1/ClientFactory';
-import AppToaster from '@/components/AppToaster.vue';
-import { storeToRefs } from 'pinia';
+} from "@/services/api/v1/StreamSinkClient";
+import { closeSocket, connectSocket, MessageType, socketOn } from "@/utils/socket";
+import ChannelModal from "@/components/modals/ChannelModal.vue";
+import NavTop from "@/components/navs/NavTop.vue";
+import { useChannelStore } from "@/stores/channel";
+import { useJobStore } from "@/stores/job";
+import { useToastStore } from "@/stores/toast";
+import { computed, inject, onMounted, onUnmounted, ref, watch, onActivated } from "vue";
+import type { JobMessage, TaskComplete, TaskInfo, TaskProgress } from "@/types/appTypes";
+import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+import { createClient } from "@/services/api/v1/ClientFactory";
+import AppToaster from "@/components/AppToaster.vue";
+import { storeToRefs } from "pinia";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -43,7 +43,7 @@ const authStore = useAuthStore();
 
 const { t } = useI18n();
 
-const title = inject('appName') as string;
+const title = inject("appName") as string;
 const saving = ref(false);
 
 const router = useRouter();
@@ -52,12 +52,12 @@ const route = useRoute();
 const showModal = ref(false);
 
 const routes = [
-  { icon: 'bi-water', url: '/streams/live', title: t('menu.streams') },
-  { icon: 'bi-list', url: '/channels', title: t('menu.channels') },
-  { icon: 'bi-stopwatch', url: '/filter', title: t('menu.latest') },
-  { icon: 'bi-hypnotize', url: '/random', title: t('menu.random') },
-  { icon: 'bi-heart-fill', url: '/bookmarks', title: t('menu.favs') },
-  { icon: 'bi-eye-fill', url: '/admin', title: t('menu.admin') },
+  { icon: "bi-water", url: "/streams/live", title: t("menu.streams") },
+  { icon: "bi-list", url: "/channels", title: t("menu.channels") },
+  { icon: "bi-stopwatch", url: "/filter", title: t("menu.latest") },
+  { icon: "bi-hypnotize", url: "/random", title: t("menu.random") },
+  { icon: "bi-heart-fill", url: "/bookmarks", title: t("menu.favs") },
+  { icon: "bi-eye-fill", url: "/admin", title: t("menu.admin") },
 ];
 
 const toasts = computed(() => toastStore.getToast);
@@ -80,7 +80,7 @@ const save = async (data: ChannelRequest) => {
 
 const logout = () => {
   authStore.logout();
-  window.location.assign('/login');
+  window.location.assign("/login");
 };
 
 const hideModal = () => {
@@ -96,13 +96,13 @@ const hideModal = () => {
 watch(
   () => route.query,
   (newQuery) => {
-    showModal.value = 'channel' in newQuery;
+    showModal.value = "channel" in newQuery;
   },
 );
 
 watch(showModal, (val) => {
   if (val) {
-    router.push({ query: { channel: 'add' } });
+    router.push({ query: { channel: "add" } });
   } else {
     hideModal();
   }
@@ -140,7 +140,7 @@ onMounted(async () => {
       const job = data as DatabaseJob;
       jobStore.create(job);
       toastStore.success({
-        title: 'Job created',
+        title: "Job created",
         message: `File ${job.filename} in ${job.channelName}`,
       });
     });
@@ -159,7 +159,7 @@ onMounted(async () => {
       const id = jobId as number;
       jobStore.destroy(id);
       toastStore.success({
-        title: 'Job destroyed',
+        title: "Job destroyed",
         message: `Job id ${id} removed`,
       });
     });
@@ -174,7 +174,7 @@ onMounted(async () => {
     socketOn(MessageType.ChannelStart, (data) => {
       const id = data as number;
       channelStore.start(id);
-      toastStore.info({ title: 'Channel recording', message: `Channel id ${id}` });
+      toastStore.info({ title: "Channel recording", message: `Channel id ${id}` });
     });
   });
 });

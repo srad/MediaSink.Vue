@@ -1,6 +1,6 @@
 <template>
   <div>
-    <FavButton v-if="!busy" :data="{}" :faved="fav" @fav="bookmark" @unfav="bookmark" />
+    <FavButton v-if="!busy" :data="{}" :faved="fav" @fav="bookmark" @unfav="bookmark"/>
     <span v-else class="spinner-border spinner-border-sm" aria-hidden="true"></span>
   </div>
 </template>

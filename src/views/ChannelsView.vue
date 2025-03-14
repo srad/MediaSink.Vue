@@ -10,19 +10,19 @@
         </button>
         <button @click="downloadChannelsAsJson" type="button" class="btn btn-sm btn-primary me-2">Export channels</button>
         <button @click="inputFileClick" type="button" class="btn btn-sm btn-primary">Import channels</button>
-        <input ref="channelsFile" accept="application/json" type="file" name="importChannels" hidden @change="inputFileChanged" />
+        <input ref="channelsFile" accept="application/json" type="file" name="importChannels" hidden @change="inputFileChanged"/>
       </div>
       <div v-if="isImporting">
         <h6>Importing ...</h6>
         <div class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
           <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 75%"></div>
         </div>
-        <hr />
+        <hr/>
       </div>
     </div>
 
-    <ChannelsList v-if="settingsStore.isChannelsListLayout" :channels="channels" />
-    <ChannelsGrid v-else :channels="channels" />
+    <ChannelsList v-if="settingsStore.isChannelsListLayout" :channels="channels"/>
+    <ChannelsGrid v-else :channels="channels"/>
   </LoadIndicator>
 </template>
 

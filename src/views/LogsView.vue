@@ -6,9 +6,9 @@
 //import socket from "@/socket";
 //import event from "@/services/event";
 
-import { ref } from 'vue';
+import { ref } from "vue";
 
-const log = ref('');
+const log = ref("");
 
 //socket.on("log", (text) => {
 //  this.log += text + "\n";

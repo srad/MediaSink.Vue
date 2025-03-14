@@ -67,18 +67,18 @@
 </template>
 
 <script setup lang="ts">
-import { closeSocket, connectSocket, MessageType, socketOn } from '../../utils/socket';
-import { useChannelStore } from '../../stores/channel';
-import { useJobStore } from '../../stores/job';
-import { computed, onActivated, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import DiskStatus from '../DiskStatus.vue';
-import VideoControls from '../VideoControls.vue';
-import AppBrand from '../AppBrand.vue';
-import ModalConfirmDialog from '../modals/ModalConfirmDialog.vue';
-import type { HelpersDiskInfo } from '../../services/api/v1/StreamSinkClient';
-import { createClient } from '../../services/api/v1/ClientFactory';
-import { useAuthStore } from '../../stores/auth';
+import { closeSocket, connectSocket, MessageType, socketOn } from "../../utils/socket";
+import { useChannelStore } from "../../stores/channel";
+import { useJobStore } from "../../stores/job";
+import { computed, onActivated, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import DiskStatus from "../DiskStatus.vue";
+import VideoControls from "../VideoControls.vue";
+import AppBrand from "../AppBrand.vue";
+import ModalConfirmDialog from "../modals/ModalConfirmDialog.vue";
+import type { HelpersDiskInfo } from "../../services/api/v1/StreamSinkClient";
+import { createClient } from "../../services/api/v1/ClientFactory";
+import { useAuthStore } from "../../stores/auth";
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -95,8 +95,8 @@ const props = defineProps<{
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: 'add'): void;
-  (e: 'logout'): void;
+  (e: "add"): void;
+  (e: "logout"): void;
 }>();
 
 // --------------------------------------------------------------------------------------

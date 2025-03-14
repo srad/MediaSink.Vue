@@ -12,11 +12,14 @@ export default defineConfigWithVueTs(
   {
     name: "app/files-to-lint",
     files: ["**/*.{ts,mts,tsx,vue}"],
+    "rules": {
+      "@typescript-eslint/quotes": ["error", "double"]
+    }
   },
 
   {
     name: "app/files-to-ignore",
-    ignores: ["**/dist/**", "**/dist-ssr/**", "**/coverage/**", 'nightwatch/**'],
+    ignores: ["**/dist/**", "**/dist-ssr/**", "**/coverage/**", "nightwatch/**"],
   },
 
   pluginVue.configs["flat/essential"],

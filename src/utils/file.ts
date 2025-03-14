@@ -6,7 +6,7 @@
  */
 export const downloadObjectAsJson = (data: object | unknown[], filename: string, parentElement: HTMLElement) => {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
-  const downloadAnchorNode = document.createElement('a');
+  const downloadAnchorNode = document.createElement("a");
   downloadAnchorNode.setAttribute("href", dataStr);
   downloadAnchorNode.setAttribute("download", filename + ".json");
   parentElement.appendChild(downloadAnchorNode); // required for firefox

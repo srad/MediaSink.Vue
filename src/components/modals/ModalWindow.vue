@@ -28,7 +28,7 @@
 // Props
 // --------------------------------------------------------------------------------------
 
-import { ref, watch } from 'vue';
+import { ref, watch } from "vue";
 
 const props = defineProps<{
   show: boolean,
@@ -39,7 +39,7 @@ const props = defineProps<{
 // Emits
 // --------------------------------------------------------------------------------------
 
-const emit = defineEmits<{ (e: 'close'): void }>();
+const emit = defineEmits<{ (e: "close"): void }>();
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -55,7 +55,7 @@ watch(() => props.scrollTop, (val) => {
   if (val === true) {
     container.value?.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: "smooth"
     });
   }
 });

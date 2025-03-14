@@ -14,7 +14,7 @@
         <span v-else-if="props.recording.width === 3840">4k</span>
         <span v-else>{{ props.recording.width }}x{{ props.recording.height }}</span>
       </span>
-      <div class="position-absolute badge bg-danger" v-if="props.job !== null" style="user-select: none; z-index: 10; bottom: 10px; left: 10px">
+      <div class="position-absolute badge bg-danger" v-if="props.job" style="user-select: none; z-index: 10; bottom: 10px; left: 10px">
         <span class="me-1 spinner-border spinner-border-sm" style="height: 0.6rem; width: 0.6rem" role="status">
         </span>
         <span>Job active</span>
@@ -38,23 +38,22 @@
 </template>
 
 <script setup lang="ts">
-import VideoInfo from './VideoInfo.vue';
-import VideoPreview from './VideoPreview.vue';
-import type { DatabaseRecording as RecordingResponse } from '../services/api/v1/StreamSinkClient';
-import { watch, ref, inject } from 'vue';
-import { useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import { createClient } from '../services/api/v1/ClientFactory';
-import LoadIndicator from './LoadIndicator.vue';
+import VideoInfo from "./VideoInfo.vue";
+import VideoPreview from "./VideoPreview.vue";
+import type { DatabaseRecording as RecordingResponse } from "../services/api/v1/StreamSinkClient";
+import { watch, ref, inject } from "vue";
+import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
+import { createClient } from "../services/api/v1/ClientFactory";
 
 // --------------------------------------------------------------------------------------
 // Emits
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: 'destroyed', value: RecordingResponse): void;
-  (e: 'checked', value: { checked: boolean; recording: RecordingResponse }): void;
-  (e: 'bookmark', value: RecordingResponse): void;
+  (e: "destroyed", value: RecordingResponse): void;
+  (e: "checked", value: { checked: boolean; recording: RecordingResponse }): void;
+  (e: "bookmark", value: RecordingResponse): void;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -78,12 +77,12 @@ const checked = ref(props.check);
 const busy = ref(false);
 const destroyed = ref(false);
 
-const apiUrl = inject('apiUrl') as string;
-const fileUrl = inject('fileUrl') as string;
+const apiUrl = inject("apiUrl") as string;
+const fileUrl = inject("fileUrl") as string;
 
 const previewVideoUrl = `${fileUrl}/${props.recording.previewVideo}`;
 // TODO: Pass a default image from the server, if the preview image is missing.
-const previewCoverUrl = `${fileUrl}/${props.recording.previewCover || props.recording.channelName + '/.previews/live.jpg'}`;
+const previewCoverUrl = `${fileUrl}/${props.recording.previewCover || props.recording.channelName + "/.previews/live.jpg"}`;
 const recordingUrl = `${apiUrl + props.recording.channelName}/${props.recording.filename}`;
 
 const { t } = useI18n();
@@ -101,7 +100,7 @@ watch(() => props.check, (isChecked: boolean) => {
 });
 
 watch(checked, (val) => {
-  emit('checked', { checked: val, recording: props.recording });
+  emit("checked", { checked: val, recording: props.recording });
 });
 
 // --------------------------------------------------------------------------------------
@@ -115,7 +114,7 @@ const bookmark = async (recording: RecordingResponse, yesNo: boolean) => {
     const method = yesNo ? client.recordings.favPartialUpdate : client.recordings.unfavPartialUpdate;
     await method(recording.recordingId);
     recording.bookmark = yesNo;
-    emit('bookmark', recording);
+    emit("bookmark", recording);
   } catch (ex) {
     alert(ex);
   } finally {
@@ -124,7 +123,7 @@ const bookmark = async (recording: RecordingResponse, yesNo: boolean) => {
 };
 
 const generatePreview = async (recording: RecordingResponse) => {
-  if (window.confirm('Generate new preview?')) {
+  if (window.confirm("Generate new preview?")) {
     try {
       busy.value = true;
       const client = createClient();
@@ -154,7 +153,7 @@ const convert = async ({ recording, mediaType }: { recording: RecordingResponse;
 };
 
 const destroyRecording = async (recording: RecordingResponse) => {
-  if (!window.confirm(t('crud.destroy', [recording.filename]))) {
+  if (!window.confirm(t("crud.destroy", [recording.filename]))) {
     return;
   }
 
@@ -163,7 +162,7 @@ const destroyRecording = async (recording: RecordingResponse) => {
     const client = createClient();
     await client.recordings.recordingsDelete(recording.recordingId);
     destroyed.value = true;
-    setTimeout(() => emit('destroyed', recording), 1000);
+    setTimeout(() => emit("destroyed", recording), 1000);
   } catch (ex) {
     alert(ex);
   } finally {

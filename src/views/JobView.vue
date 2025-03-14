@@ -29,7 +29,7 @@
               <div class="col-auto">
                 <select id="limit" class="form-select" v-model="take">
                   <option value="" style="font-weight: bold" disabled>{{
-                      t('filter.limit')
+                      t("filter.limit")
                     }}
                   </option>
                   <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
@@ -38,7 +38,7 @@
 
               <div class="col-auto">
                 <button type="button" class="btn btn-primary" @click="resetFilters">
-                  {{ t('filter.reset') }}
+                  {{ t("filter.reset") }}
                 </button>
               </div>
             </div>
@@ -51,19 +51,19 @@
       <li class="nav-item" role="presentation">
         <RouterLink class="text-decoration-none" to="/jobs/general">
           <button data-tab="general" class="nav-link" :class="{ active: route.params.tab === 'general' }" id="pills-open-tab" data-bs-toggle="pill" data-bs-target="#pills-open" type="button" role="tab" aria-controls="pills-open" aria-selected="true">
-            {{ t('general.open') }} <i class="bi bi-arrow-clockwise"/></button>
+            {{ t("general.open") }} <i class="bi bi-arrow-clockwise"/></button>
         </RouterLink>
       </li>
       <li class="nav-item" role="presentation">
         <RouterLink to="/jobs/completed" class="text-decoration-none">
           <button data-tab="completed" class="nav-link" :class="{ active: route.params.tab === 'completed' }" id="pills-completed-tab" data-bs-toggle="pill" data-bs-target="#pills-completed" type="button" role="tab" aria-controls="pills-completed" aria-selected="false">
-            {{ t('general.completed') }} <i class="bi bi-check2-all"/></button>
+            {{ t("general.completed") }} <i class="bi bi-check2-all"/></button>
         </RouterLink>
       </li>
       <li class="nav-item" role="presentation">
         <RouterLink to="/jobs/other" class="text-decoration-none">
           <button data-tab="other" class="nav-link" :class="{ active: route.params.tab === 'other' }" id="pills-other-tab" data-bs-toggle="pill" data-bs-target="#pills-other" type="button" role="tab" aria-controls="pills-other" aria-selected="false">
-            {{ t('general.other') }}
+            {{ t("general.other") }}
             <i class="bi bi-question"/>
           </button>
         </RouterLink>
@@ -71,7 +71,7 @@
       <li class="nav-item" role="presentation">
         <RouterLink to="/jobs/processes" class="text-decoration-none">
           <button data-tab="streams" class="nav-link" :class="{ active: route.params.tab === 'processes' }" id="pills-processes-tab" data-bs-toggle="pill" data-bs-target="#pills-processes" type="button" role="tab" aria-controls="pills-processes" aria-selected="false">
-            {{ t('general.streams') }} <i class="bi bi-camera-video"/></button>
+            {{ t("general.streams") }} <i class="bi bi-camera-video"/></button>
         </RouterLink>
       </li>
     </ul>
@@ -128,17 +128,17 @@ import type {
   DatabaseJob,
   ResponsesJobsResponse,
   ServicesProcessInfo as ProcessInfo
-} from '@/services/api/v1/StreamSinkClient';
-import { DatabaseJobOrder, DatabaseJobStatus } from '@/services/api/v1/StreamSinkClient';
-import type { JobTableItem } from '@/types/appTypes';
-import { fromNow } from '@/utils/datetime';
-import { useJobStore } from '@/stores/job';
-import ModalConfirmDialog from '@/components/modals/ModalConfirmDialog.vue';
-import { computed, onActivated, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import JobTable from '@/components/JobTable.vue';
-import { useRoute } from 'vue-router';
-import { createClient } from '@/services/api/v1/ClientFactory';
+} from "@/services/api/v1/StreamSinkClient";
+import { DatabaseJobOrder, DatabaseJobStatus } from "@/services/api/v1/StreamSinkClient";
+import type { JobTableItem } from "@/types/appTypes";
+import { fromNow } from "@/utils/datetime";
+import { useJobStore } from "@/stores/job";
+import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
+import { computed, onActivated, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import JobTable from "@/components/JobTable.vue";
+import { useRoute } from "vue-router";
+import { createClient } from "@/services/api/v1/ClientFactory";
 
 const { t } = useI18n();
 
@@ -163,8 +163,8 @@ const jobsOther = ref<ResponsesJobsResponse | null>(null);
 const addFromNowToJob = (job: DatabaseJob): JobTableItem => {
   const newJob: JobTableItem = {
     createdAtFromNow: fromNow(Date.parse(job.createdAt)),
-    startedFromNow: job.startedAt ? fromNow(Date.parse(job.startedAt)) : '-',
-    completedAtFromNow: job.completedAt ? fromNow(Date.parse(job.completedAt)) : '-',
+    startedFromNow: job.startedAt ? fromNow(Date.parse(job.startedAt)) : "-",
+    completedAtFromNow: job.completedAt ? fromNow(Date.parse(job.completedAt)) : "-",
     ...job,
   };
 
@@ -187,7 +187,7 @@ const itemsOther = computed(() => (jobsOther.value?.jobs || []).map(addFromNowTo
 //const itemsOtherCount = computed(() => jobsOther.value?.totalCount || 0);
 
 const destroy = (id: number) => {
-  if (window.confirm('Delete?')) {
+  if (window.confirm("Delete?")) {
     const client = createClient();
     client.jobs
       .jobsDelete(id)

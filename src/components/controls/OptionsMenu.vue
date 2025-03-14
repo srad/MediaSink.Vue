@@ -4,27 +4,27 @@
     <ul class="dropdown-menu" :class="{ show: show }" data-bs-popper="static">
       <li>
         <button type="button" class="dropdown-item d-flex justify-content-between" @click="clickFile">
-          <input ref="file" name="file" v-show="false" accept="video/mp4" @change="fileChanged" type="file" />
+          <input ref="file" name="file" v-show="false" accept="video/mp4" @change="fileChanged" type="file"/>
           <span>Upload video</span>
-          <i class="bi text-primary bi-upload" />
+          <i class="bi text-primary bi-upload"/>
         </button>
       </li>
       <li>
         <button type="button" class="dropdown-item d-flex justify-content-between">
           <span>Edit channel</span>
-          <i class="bi bi-pencil text-info" />
+          <i class="bi bi-pencil text-info"/>
         </button>
       </li>
       <li>
         <button type="button" class="dropdown-item d-flex justify-content-between" @click="emit('delete')">
           <span class="me-2">Delete channel</span>
-          <i class="bi text-danger bi-trash3-fill" />
+          <i class="bi text-danger bi-trash3-fill"/>
         </button>
       </li>
       <li>
         <div class="dropdown-item form-check form-switch d-flex justify-content-between" v-if="multiSelect">
           <label class="form-check-label m-0 p-0 me-2" for="flexSwitchCheckDefault">Enabled?</label>
-          <input class="form-check-input m-0 my-1 p-0" type="checkbox" role="switch" id="flexSwitchCheckDefault" :checked="!props.channelPaused" @change="emit('pause', $event.target as HTMLInputElement)" />
+          <input class="form-check-input m-0 my-1 p-0" type="checkbox" role="switch" id="flexSwitchCheckDefault" :checked="!props.channelPaused" @change="emit('pause', $event.target as HTMLInputElement)"/>
         </div>
       </li>
     </ul>
