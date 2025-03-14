@@ -24,7 +24,7 @@ const useAuthStore = defineStore("auth", {
     logout: () => {
       useAuthStore.token = null;
       useAuthStore.loggedIn = false;
-      useAuthStore.$patch({ token: null, loggedIn: false }); // force update, sometimes does not update values.
+      localStorage.removeItem("auth");
     },
     register: async (user: RequestsAuthenticationRequest) => {
       await AuthService.signup(user);
