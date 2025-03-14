@@ -8,8 +8,7 @@ declare global {
 }
 
 const checkResponseStatus = (response: Response) => {
-  if ([500, 401].includes(response.status) && !["/login", "/register"].includes(window.location.pathname)) {
-    alert(`logout ${response.status}`);
+  if ([500, 401].includes(response.status)) {
     const authStore = useAuthStore();
     authStore.logout();
     // Unauthorized: Redirect to login page
