@@ -12,29 +12,30 @@ import type { RequestsAuthenticationRequest } from "../services/api/v1/StreamSin
 const useAuthStore = defineStore("auth", {
   persist: true,
   state: (): AuthState => ({
-    loggedIn: false,
-    token: null,
+    loggedIn: localStorage.getItem("authenticated") === "1",
+    token: localStorage.getItem("jwt"),
   }),
   actions: {
     login: async (user: RequestsAuthenticationRequest) => {
-      useAuthStore.$reset();
       const token = await AuthService.login(user);
       useAuthStore.token = token;
       useAuthStore.loggedIn = true;
+      localStorage.setItem("jwt", token);
+      localStorage.setItem("authenticated", "1");
     },
     logout: () => {
       useAuthStore.token = null;
       useAuthStore.loggedIn = false;
-      localStorage.removeItem("auth");
-      useAuthStore.$reset();
+      localStorage.removeItem("jwt");
+      localStorage.removeItem("authenticated");
     },
     register: async (user: RequestsAuthenticationRequest) => {
       await AuthService.signup(user);
     }
   },
   getters: {
-    isLoggedIn: (state: AuthState) => state.loggedIn,
-    getToken: (state: AuthState): string | null | undefined => state.token,
+    isLoggedIn: (state: AuthState) => localStorage.getItem("authenticated") === "1",
+    getToken: (state: AuthState): string | null => localStorage.getItem("jwt"),
   }
 });
 

@@ -8,10 +8,9 @@ declare global {
 }
 
 const checkResponseStatus = (response: Response) => {
-  if ([500, 401].includes(response.status)) {
+  if ([500, 401].includes(response.status) && !["/login", "/register"].includes(window.location.pathname)) {
     const authStore = useAuthStore();
     authStore.logout();
-
     // Unauthorized: Redirect to login page
     window.location.assign("/login");
     throw new Error("Unauthorized access, redirecting to login...");

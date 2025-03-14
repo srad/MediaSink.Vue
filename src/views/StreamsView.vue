@@ -98,10 +98,9 @@
 </template>
 
 <script setup lang="ts">
-import type { DatabaseChannel as ChannelResponse } from "@/services/api/v1/StreamSinkClient";
+import type { DatabaseChannel as ChannelResponse, ServicesChannelInfo } from "@/services/api/v1/StreamSinkClient";
 import ChannelItem from "@/components/ChannelItem.vue";
 import ChannelModal from "@/components/modals/ChannelModal.vue";
-import { useChannelStore } from "@/stores/channel";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { ChannelUpdate } from "@/types/appTypes";
@@ -112,8 +111,8 @@ import LoadIndicator from "@/components/LoadIndicator.vue";
 // Declarations
 // --------------------------------------------------------------------------------------
 
-const channelStore = useChannelStore();
 const route = useRoute();
+const channels = ref<ServicesChannelInfo[]>([]);
 
 const channelItemClass = "col-lg-6 col-xl-6 col-xxl-4 col-md-6";
 const channelId = ref<number>();
@@ -132,7 +131,7 @@ const isLoading = ref(true);
 const saving = ref(false);
 
 const searchVal = ref<string>((route.query.search || route.query.tag || route.params.tag || "") as string);
-const tagFilter = ref<string>((route.params.tag || route.query.tag || "") as string);
+//const tagFilter = ref<string>((route.params.tag || route.query.tag || "") as string);
 
 const router = useRouter();
 
@@ -160,28 +159,28 @@ const tagTerms = computed(() =>
 );
 
 const notRecordingStreams = computed(() =>
-  channelStore.channels
+  channels.value
     .slice()
     .filter((row) => !row.isRecording && !row.isPaused)
     .sort(sort),
 );
 
 const disabledStreams = computed(() =>
-  channelStore.channels
+  channels.value
     .slice()
     .filter((row) => row.isPaused)
     .sort(sort),
 );
 
 const recordingStreams = computed(() =>
-  channelStore.channels
+  channels.value
     .slice()
     .filter((row) => row.isRecording && !row.isTerminating)
     .sort(sort),
 );
 
 const searchResults = computed(() =>
-  channelStore.channels
+  channels.value
     .slice()
     .filter((channel) => searchFilter(channel, searchTerms.value, tagTerms.value))
     .filter((channel) => (favs.value ? channel.fav : true)) // Only use, if defined.
@@ -203,7 +202,10 @@ const save = async (channel: ChannelUpdate) => {
     saving.value = true;
     const client = createClient();
     const data = await client.channels.channelsPartialUpdate(channel.channelId, channel);
-    channelStore.update(data);
+    const i = channels.value.findIndex((channel) => data.channelId = channel.channelId);
+    if (i !== -1) {
+      Object.assign(channels.value[i], data);
+    }
     showModal.value = false;
   } catch (e) {
     alert(e);
@@ -247,7 +249,9 @@ watch(searchVal, (search) => {
 // --------------------------------------------------------------------------------------
 
 onMounted(async () => {
-  await channelStore.load();
+  const client = createClient();
+  const data = await client.channels.channelsList();
+  channels.value = data || [];
   isLoading.value = false;
 });
 </script>
