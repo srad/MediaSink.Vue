@@ -17,6 +17,7 @@ const useAuthStore = defineStore("auth", {
   }),
   actions: {
     login: async (user: RequestsAuthenticationRequest) => {
+      useAuthStore.$reset();
       const token = await AuthService.login(user);
       useAuthStore.token = token;
       useAuthStore.loggedIn = true;
@@ -25,6 +26,7 @@ const useAuthStore = defineStore("auth", {
       useAuthStore.token = null;
       useAuthStore.loggedIn = false;
       localStorage.removeItem("auth");
+      useAuthStore.$reset();
     },
     register: async (user: RequestsAuthenticationRequest) => {
       await AuthService.signup(user);
