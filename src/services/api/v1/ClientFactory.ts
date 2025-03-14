@@ -1,6 +1,5 @@
 import { ContentType, type DatabaseRecording, type DatabaseRecording as RecordingResponse, HttpClient, StreamSinkClient } from "./StreamSinkClient";
 import { useAuthStore } from "../../../stores/auth";
-import { useRouter } from "vue-router";
 
 declare global {
   interface Window {
@@ -8,18 +7,13 @@ declare global {
   }
 }
 
-const checkResponseStatus = async (response: Response) => {
-  // Unauthorized: Redirect to login page
+const checkResponseStatus = (response: Response) => {
   if ([500, 401].includes(response.status)) {
     const authStore = useAuthStore();
     authStore.logout();
 
-    const router = useRouter();
-    await router.push({
-      path: "/login",
-      force: true,
-    });
-
+    // Unauthorized: Redirect to login page
+    window.location.assign("/login");
     throw new Error("Unauthorized access, redirecting to login...");
   }
 };
