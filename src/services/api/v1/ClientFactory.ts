@@ -7,6 +7,17 @@ declare global {
   }
 }
 
+const checkResponseStatus = (response: Response) => {
+  if ([500, 401].includes(response.status) && !["/login", "/register"].includes(window.location.pathname)) {
+    alert(`logout ${response.status}`);
+    const authStore = useAuthStore();
+    authStore.logout();
+    // Unauthorized: Redirect to login page
+    window.location.assign("/login");
+    throw new Error("Unauthorized access, redirecting to login...");
+  }
+};
+
 export class MyClient extends StreamSinkClient<unknown> {
   constructor(token: string | null | undefined, apiUrl: string) {
     const authStore = useAuthStore();
@@ -28,22 +39,11 @@ export class MyClient extends StreamSinkClient<unknown> {
         return new Promise<Response>((resolve, reject) => {
           fetch(input, init)
             .then((response) => {
-              if (response.status === 401 && !["/login", "/register"].includes(window.location.pathname)) {
-                authStore.logout();
-                // Unauthorized: Redirect to login page
-                window.location.assign("/login");
-                throw new Error("Unauthorized access, redirecting to login...");
-              }
+              checkResponseStatus(response);
               resolve(response);
             })
             .catch(err => {
-              if (err.status === 401 && !["/login", "/register"].includes(window.location.pathname)) {
-                authStore.logout();
-                // Unauthorized: Redirect to login page
-                window.location.assign("/login");
-              }
-              // Interrupt execution
-              // reject(err);
+              checkResponseStatus(err);
             });
         });
       },
