@@ -28,7 +28,7 @@ const props = defineProps<{ duration: number, width: number }>();
 const timeMarkers = computed(() => {
   // Scaled inverse proportional function which makes sure the distances between
   // time markers are roughly evenly and don't shrink with stripe image resize.
-  const factor = Math.floor((1 / (props.width / props.duration)) * 10);
+  const factor = (1 / (props.width / props.duration)) * 10;
   const segmentDensity = 10 * factor;
   const pixelsPerMinute = Math.floor(props.width / (props.duration / segmentDensity));
   const segmentCount = Math.floor(props.width / pixelsPerMinute);
