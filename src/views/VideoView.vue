@@ -51,6 +51,7 @@
 
               <div class="w-100" style="height: 10%">
                 <VideoStripe
+                  :loaded="isLoaded"
                   :src="stripeUrl"
                   :disabled="cutInterval != undefined"
                   :seeked="seeked"

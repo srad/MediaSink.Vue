@@ -1,10 +1,10 @@
 <template>
   <div class="position-relative time-index-container user-select-none" :style="{width: props.width + 'px'}">
-    <div class="position-absolute time-index" v-for="marker in timeMarkers" :style="{left: marker.left + 'px' }">
+    <div class="position-absolute time-index" v-for="marker in timeMarkers" :style="{transform: `translateX(${marker.left}px)` }">
       <div class="position-relative">
         <div class="position-relative">
           <div class="position-absolute" style="transform: translateX(-50%)">{{ marker.time }}</div>
-          <div class="position-absolute m-0 p-0 border-end border-danger" style="height: 200px; transform: translate(-50%, -100%)"></div>
+          <div class="position-absolute m-0 p-0 border-end border-1" style="border-color: deeppink !important; height: 200px; transform: translate(-50%, -100%)"></div>
         </div>
       </div>
     </div>
@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { formatDurationToMMSS } from "../utils/time";
+import { secondsToMMSS } from "../utils/time";
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -26,16 +26,18 @@ const props = defineProps<{ duration: number, width: number }>();
 // --------------------------------------------------------------------------------------
 
 const timeMarkers = computed(() => {
-  const numberOfSegments = Math.floor(Math.floor(props.duration) / 60);
-  const markerDistance = props.width / numberOfSegments;
-  const timeDistance = props.duration / numberOfSegments;
+  // Scaled inverse proportional function which makes sure the distances between
+  // time markers are roughly evenly and don't shrink with stripe image resize.
+  const factor = Math.floor((1 / (props.width / props.duration)) * 10);
+  const segmentDensity = 10 * factor;
+  const pixelsPerMinute = Math.floor(props.width / (props.duration / segmentDensity));
+  const segmentCount = Math.floor(props.width / pixelsPerMinute);
 
-  // Skip start and end marker.
-  const result = new Array(numberOfSegments)
+  const result = new Array(segmentCount)
     .fill(0)
-    .map((_, i) => ({ left: i * markerDistance, time: formatDurationToMMSS(timeDistance * i) }));
+    .map((_, i) => ({ left: i * pixelsPerMinute, time: secondsToMMSS(segmentDensity * i) }));
 
-  result.push({ left: props.width - 30, time: formatDurationToMMSS(props.duration) });
+  result.push({ left: props.width - 30, time: secondsToMMSS(props.duration) });
 
   return result;
 });

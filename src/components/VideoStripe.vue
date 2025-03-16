@@ -1,18 +1,18 @@
 <template>
   <div ref="stripeContainer" class="position-relative h-100 whitespace-nowrap overflow-x-scroll" @click="seek($event)" draggable="false">
     <div class="position-absolute bottom-0">
-      <VideoTimeIndex v-if="imageLoaded" :duration="props.duration" :width="stripeImage!.width"/>
+      <VideoTimeIndex v-if="imageLoaded && props.loaded" :duration="props.duration" :width="stripeImage!.width"/>
     </div>
 
     <img draggable="false" alt="stripe" class="stripe position-absolute" ref="stripeImage" :src="src" style="height: 100%;" @mousedown="down($event)"/>
 
-    <div :key="marking.start" @click="markingSelect(i)" :class="{ selected: marking.selected, unselected: !marking.selected }" class="marking position-absolute" draggable="false" v-for="(marking, i) in markings" :style="{ left: marking.start + 'px', width: marking.end - marking.start + 'px' }">
+    <div :key="marking.start" @click="markingSelect(i)" :class="{ selected: marking.selected, unselected: !marking.selected }" class="marking position-absolute" draggable="false" v-for="(marking, i) in markings" :style="{ transform: `translateX(${marking.start}px)`, width: marking.end - marking.start + 'px' }">
       <span class="bar bar-start position-absolute" draggable="false" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'start')"> </span>
       <span class="bar bar-end position-absolute" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'end')" draggable="false"></span>
       <i @click="destroyMarking(i)" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" class="text-white bg-danger p-1 bi bi-trash op-100 marking-destroy position-absolute" style="opacity: 1"></i>
     </div>
 
-    <span v-if="showBar" class="timecode position-absolute" :style="{ left: `${barLeft}px` }"></span>
+    <span v-if="showBar" class="timecode position-absolute" :style="{ transform: `translateX(${barLeft}px)` }"></span>
   </div>
 </template>
 
@@ -28,6 +28,7 @@ import VideoTimeIndex from "./VideoTimeIndex.vue";
 // --------------------------------------------------------------------------------------
 
 const props = defineProps<{
+  loaded: boolean;
   src: string;
   timecode: number;
   duration: number;
@@ -92,6 +93,13 @@ watch(() => props.seeked, (timeIndex: number) => {
 
   const scrollLeft = barLeft.value - (stripeContainer.value.getBoundingClientRect().width / 2);
   animateScrollLeft(stripeContainer.value, scrollLeft, 1000);
+});
+
+watch(() => props.timecode, (timecode) => {
+  requestAnimationFrame(() => {
+    const timeOffset = timecode / props.duration;
+    barLeft.value = new BigNumber(timeOffset).multipliedBy(stripeImage.value!.width).toNumber();
+  });
 });
 
 // --------------------------------------------------------------------------------------
@@ -420,15 +428,5 @@ img {
 
 .bar-end {
   right: 0;
-}
-
-.tick::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 2px;
-  background: black;
 }
 </style>

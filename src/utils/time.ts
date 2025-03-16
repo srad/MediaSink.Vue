@@ -8,7 +8,7 @@ export function durationToHHMM(seconds: number): string {
   return `${formattedHours}:${formattedMinutes}`;
 }
 
-export function formatDurationToMMSS(seconds: number): string {
+export function secondsToMMSS(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
 
