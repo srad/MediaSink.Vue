@@ -33,7 +33,7 @@ const props = defineProps<{
   timecode: number;
   duration: number;
   paused: boolean;
-  disabled: boolean;
+  disabled?: boolean;
   seeked: number;
 }>();
 

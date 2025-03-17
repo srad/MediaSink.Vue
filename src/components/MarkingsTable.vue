@@ -1,31 +1,31 @@
 <template>
   <div class="table-responsive">
-    <table class="table table-sm bg-white table-bordered">
+    <table class="table table-sm bg-white table-bordered table-hover">
       <thead>
       <tr>
         <th class="bg-light text-center px-2">{{ t("videoView.segment.start") }}</th>
         <th class="bg-light text-center px-2">{{ t("videoView.segment.end") }}</th>
         <th class="bg-light text-center px-2">{{ t("videoView.segment.duration") }}</th>
         <th class="bg-light text-center px-2" v-if="showDestroy">
-          <i class="bi bi-trash text-danger"></i>
+          <i class="bi bi-trash3 text-danger"></i>
         </th>
       </tr>
       </thead>
       <tbody>
-      <tr class="align-middle" :class="{'bg-secondary': overview.marking.selected}" @click="emit('selected', overview.marking)" :key="String(overview.marking.timestart)+String(overview.marking.timeend)" v-for="overview in markingsOverview">
-        <td class="px-2 text-center">{{ overview.start }}</td>
-        <td class=" px-2 text-center">{{ overview.end }}</td>
-        <td class=" px-2 text-center">{{ overview.duration }}min</td>
-        <td class="px-2 text-center" v-if="showDestroy">
+      <tr style="cursor:pointer !important;" class="align-middle" :class="{'bg-secondary': overview.marking.selected}" @click="emit('selected', overview.marking)" :key="String(overview.marking.timestart)+String(overview.marking.timeend)" v-for="overview in markingsOverview">
+        <td class="px-2 text-center py-1">{{ overview.start }}</td>
+        <td class=" px-2 text-center py-1">{{ overview.end }}</td>
+        <td class=" px-2 text-center py-1">{{ overview.duration }}</td>
+        <td class="text-center p-0" v-if="showDestroy">
           <button @click="emit('destroy', overview.marking)" class="btn btn-sm bg-transparent">
-            <i class="bi bi-trash text-danger"></i>
+            <i class="bi bi-trash3 text-danger"></i>
           </button>
         </td>
       </tr>
-      <tr>
-        <td colspan="2" class="px-2 fw-bold bg-warning-subtle">Total</td>
-        <td class="px-2 fw-bold bg-warning-subtle">{{ markingsDuration }}min</td>
-        <td class="px-2 fw-bold bg-warning-subtle text-center" v-if="showDestroy"></td>
+      <tr class="bg-info-light">
+        <td colspan="2" class="px-2 fw-bold bg-transparent">Total (min)</td>
+        <td class="px-2 fw-bold text-center bg-transparent">{{ markingsDuration }}</td>
+        <td class="px-2 fw-bold text-center bg-transparent" v-if="showDestroy"></td>
       </tr>
       </tbody>
     </table>

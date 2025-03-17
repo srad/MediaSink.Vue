@@ -40,11 +40,12 @@
                   </video>
                 </div>
 
-                <div v-if="markings.length > 0" class="d-flex flex-column m-0 border-start border-primary ps-2 ms-2 py-2" :class="{ 'w-20': markings.length > 0 }">
+                <div v-if="markings.length > 0" class="d-flex flex-column m-0 border-start border-primary px-2 ms-2 py-2" :class="{ 'w-20': markings.length > 0 }">
                   <MarkingsTable :show-destroy="true" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)"/>
 
-                  <button class="btn btn-primary" @click="playCut" v-if="!cutInterval">Play Cut <i class="bi bi-play-fill"></i></button>
+                  <button class="btn btn-primary" @click="playCut" v-if="!playingCut">Play Cut <i class="bi bi-play-fill"></i></button>
                   <button v-else class="btn btn-primary" @click="stopCut"><span>Stop cut</span> <i class="bi bi-stop-fill"></i></button>
+
                   <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="showConfirmDialog = true">{{ t("videoView.button.cut") }} <i class="bi bi-scissors"></i></button>
                 </div>
               </div>
@@ -53,12 +54,12 @@
                 <VideoStripe
                   :loaded="isLoaded"
                   :src="stripeUrl"
-                  :disabled="cutInterval != undefined"
+                  :disabled="playingCut"
                   :seeked="seeked"
-                  :paused="isPaused"
+                  :paused="pause"
                   :timecode="timeCode"
                   :duration="duration"
-                  :markings="markings" @selecting="() => pause()"
+                  :markings="markings" @selecting="() =>  pause = true"
                   @marking="(m) => (markings = m)"
                   @seek="seek"
                 />
@@ -147,7 +148,7 @@ const videoUrl = ref("");
 const seeked = ref(0);
 const isMuted = ref(settingsStore.isMuted);
 const isMounted = ref(false);
-const isPaused = ref(false);
+const pause = ref(false);
 const isLoaded = ref(false);
 const isShown = ref(false);
 const playbackSpeed = ref(1.0);
@@ -160,7 +161,7 @@ const busy = ref(false);
 const showConfirmDialog = ref(false);
 const deleteFileAfterCut = ref(false);
 
-let cutInterval: number | undefined;
+const playingCut = ref(false);
 
 // --------------------------------------------------------------------------------------
 // Watchers
@@ -172,7 +173,7 @@ watch(isMuted, (val) => {
   }
 });
 
-watch(isPaused, async (val) => {
+watch(pause, async (val) => {
   if (isMounted.value && video.value) {
     const vid = video.value;
 
@@ -194,22 +195,12 @@ watch(playbackSpeed, (val) => {
 // Function
 // --------------------------------------------------------------------------------------
 
-const pause = () => {
-  video.value?.pause();
-  isPaused.value = true;
-};
-
-const play = async () => {
-  await video.value?.play();
-  isPaused.value = false;
-};
-
 const back = () => (video.value!.currentTime = (video.value?.currentTime || 0) - 30);
 const forward = () => (video.value!.currentTime = (video.value?.currentTime || 0) + 30);
 
 const stopCut = () => {
-  pause();
-  clearInterval(cutInterval);
+  pause.value = true;
+  playingCut.value = false;
 };
 
 const volumeChanged = (event: Event) => {
@@ -229,25 +220,27 @@ const playCut = () => {
 
   let i = 0;
 
-  const lastTime = markings.value[markings.value.length - 1]!.timeend;
-  let marking = markings.value[i];
+  const timeUpdate = () => {
+    if (!markings.value[i] || !playingCut.value) {
+      video.value!.removeEventListener("timeupdate", timeUpdate);
+      pause.value = true;
+      playingCut.value = false;
+      return;
+    }
 
-  (video as unknown as HTMLVideoElement).currentTime = marking!.timestart;
-  play();
-
-  cutInterval = setInterval(() => {
-    requestAnimationFrame(() => {
-      if (video.value!.currentTime >= lastTime) {
-        stopCut();
-      } else {
-        marking = markings.value[i];
-        if (video.value!.currentTime >= marking!.timeend) {
-          marking = markings.value[++i];
-          video.value!.currentTime = marking!.timestart;
-        }
+    if (video.value!.currentTime >= markings.value[i].timeend) {
+      i++;
+      if (markings.value[i]) {
+        timeCode.value = markings.value[i].timestart;
       }
-    });
-  }, 100);
+      return;
+    }
+  };
+
+  timeCode.value = markings.value[i].timestart;
+  video.value!.addEventListener("timeupdate", timeUpdate);
+  playingCut.value = true;
+  pause.value = false;
 };
 
 const resetSelection = () => {
@@ -326,7 +319,7 @@ const loadData = () => {
     isLoaded.value = true;
     video.value.volume = settingsStore.getVolume;
     video.value.focus(); // Allows using key controls for the video immediately. Including forward+rewind with the left/right keys.
-    play();
+    pause.value = false;
   }
 };
 
