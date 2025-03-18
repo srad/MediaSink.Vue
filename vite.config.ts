@@ -21,7 +21,7 @@ export default defineConfig({
         name: "StreamSink",
         short_name: "StreamSink",
         description: "Media library with integrated video editor and stream recording automation",
-        theme_color: "#4019A6",
+        theme_color: "#301240",
         "icons": [
           {
             "src": "icons/windows11/SmallTile.scale-100.png",

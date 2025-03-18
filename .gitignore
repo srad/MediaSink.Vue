@@ -34,3 +34,4 @@ tests_output/
 
 public/build.js
 public/env.js
+dev-dist/
