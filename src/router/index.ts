@@ -36,7 +36,7 @@ const routes = [
   },
   { path: "/filter", name: "Filter", component: FilterView, meta: { title: "Latest" } },
   { path: "/random", name: "Random", component: RandomView, meta: { title: "Random" } },
-  { path: "/recordings/:id", name: "Video", component: VideoView },
+  { path: "/recordings/:id", name: "Video", component: VideoView, meta: { layout: "fullscreen" } },
   { path: "/logs", name: "Log", component: LogView, meta: { title: "Logs" } },
   { path: "/bookmarks", name: "Bookmark", component: BookmarkView, meta: { title: "Favourites" } },
   { path: "/:pathMatch(.*)*", redirect: "/streams/live/tab" },
@@ -51,7 +51,7 @@ router.afterEach((to) => {
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
-  const publicPages = ["/login", "/register"];
+  const publicPages = [ "/login", "/register" ];
   const isLoggedIn = authStore.isLoggedIn;
 
   if (!isLoggedIn && publicPages.includes(to.path)) {

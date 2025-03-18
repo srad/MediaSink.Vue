@@ -1,6 +1,6 @@
-@import "./custom-bootstrap";
-@import "bootstrap-icons/font/bootstrap-icons.css";
-@import "form";
+@forward "./custom-bootstrap";
+@forward "bootstrap-icons/font/bootstrap-icons.css";
+@forward "form";
 
 html,
 body {

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="recording">
     <ModalConfirmDialog :show="showConfirmDialog" @cancel="showConfirmDialog = false" @confirm="cutVideo">
       <template v-slot:header>
         <span class="fs-5">Confirm your video cut</span>
@@ -18,13 +18,77 @@
 
     <BusyOverlay :visible="busy"></BusyOverlay>
 
-    <div class="modal show m-0 p-0m position-absolute" tabindex="-1" style="display: block !important">
+    <div class="d-flex flex-column bg-light vh-100 w-100">
+      <div class="d-flex flex-row vh-100 w-100">
+        <div class="w-100 d-flex flex-column">
+          <div class="flex-grow-1 bg-info-subtle">
+            <video style="outline: none" controls ref="video" @volumechange="volumeChanged($event)" @loadeddata="loadData" @timeupdate="timeupdate" :muted="isMuted" @seeked="() => seeked = video!.currentTime" autoplay>
+              <source :src="videoUrl" type="video/mp4"/>
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          <div class="d-flex align-items-center justify-content-between w-100 d-none d-lg-flex p-1 bg-secondary" style="height: 50px">
+            <div>
+              <button class="btn btn-danger" @click="destroy">
+                <span>Delete</span>
+              </button>
+            </div>
+
+            <div class="d-flex">
+              <div class="me-2 d-flex">
+                <button class="btn btn-info me-1" @click="back" type="button">
+                  <i class="bi bi-zoom-out"/>
+                </button>
+                <button class="btn btn-info me-1" @click="back" type="button">
+                  <i class="bi bi-zoom-in"/>
+                </button>
+              </div>
+
+              <div class="d-flex">
+                <button class="btn btn-primary me-1" @click="back" type="button">
+                  <i class="bi bi-chevron-left"/>
+                </button>
+
+                <button class="btn btn-primary" @click="forward" type="button">
+                  <i class="bi bi-chevron-right"/>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-if="editMode||true" class="d-none d-lg-flex flex-column p-2 border-start border-primary ms-2" style="width: 350px">
+          <MarkingsTable :show-destroy="true" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)"/>
+
+          <button class="btn btn-primary" @click="playCut" v-if="!playingCut">Play Cut <i class="bi bi-play-fill"></i></button>
+          <button v-else class="btn btn-primary" @click="stopCut"><span>Stop cut</span> <i class="bi bi-stop-fill"></i></button>
+
+          <button v-if="editMode" class="btn my-2 btn-warning" type="button" @click="showConfirmDialog = true">{{ t("videoView.button.cut") }} <i class="bi bi-scissors"></i></button>
+        </div>
+      </div>
+      <!-- Strip -->
+      <div class="w-100" style="height: 20%; max-height: 150px">
+        <VideoStripe
+          :loaded="isLoaded"
+          :src="stripeUrl"
+          :disabled="playingCut"
+          :seeked="seeked"
+          :paused="pause"
+          :timecode="timeCode"
+          :duration="duration"
+          :markings="markings" @selecting="() =>  pause = true"
+          @marking="(m) => (markings = m)"
+          @seek="seek"
+        />
+      </div>
+    </div>
+
+    <div v-if="false" class="modal show m-0 p-0m position-absolute" tabindex="-1" style="display: block !important">
       <div class="modal-dialog modal-fullscreen p-0">
         <div class="modal-content">
           <template v-if="recording">
-            <div class="modal-body bg-light p-0 m-0" style="overflow: hidden">
-              <div class="d-flex flex-row" style="height: 90%">
-                <div class="d-flex flex-column m-0 position-relative" :class="{ 'w-80': markings.length > 0, 'w-100': markings.length === 0 }">
+            <div class="modal-body bg-light p-0 m-0 d-flex flex-column" style="overflow: hidden">
+              <div class="d-flex flex-row vh-100">
+                <div class="d-flex flex-column m-0 position-relative" :class="{ 'w-80': editMode, 'w-100': markings.length === 0 }">
 
                   <button style="top: 5px; left: 5px;" type="button" class="btn btn-sm btn-outline-info position-absolute" @click="router.push(`/channel/${recording.channelId}/${recording.channelName}`)">
                     {{ recording.channelName }}
@@ -40,14 +104,17 @@
                   </video>
                 </div>
 
-                <div v-if="markings.length > 0" class="d-flex flex-column m-0 border-start border-primary px-2 ms-2 py-2" :class="{ 'w-20': markings.length > 0 }">
+                <div v-if="editMode" class="d-flex flex-column m-0 border-start border-primary px-2 ms-2 py-2" :class="{ 'w-20': editMode }">
                   <MarkingsTable :show-destroy="true" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)"/>
 
                   <button class="btn btn-primary" @click="playCut" v-if="!playingCut">Play Cut <i class="bi bi-play-fill"></i></button>
                   <button v-else class="btn btn-primary" @click="stopCut"><span>Stop cut</span> <i class="bi bi-stop-fill"></i></button>
 
-                  <button v-if="markings.length > 0" class="btn my-2 btn-warning" type="button" @click="showConfirmDialog = true">{{ t("videoView.button.cut") }} <i class="bi bi-scissors"></i></button>
+                  <button v-if="editMode" class="btn my-2 btn-warning" type="button" @click="showConfirmDialog = true">{{ t("videoView.button.cut") }} <i class="bi bi-scissors"></i></button>
                 </div>
+              </div>
+              <div v-if="editMode" style="height: 10%">
+
               </div>
 
               <div class="w-100" style="height: 10%">
@@ -66,7 +133,7 @@
               </div>
             </div>
 
-            <div class="modal-footer p-1 d-flex justify-content-between" v-if="stripeUrl">
+            <div class="modal-footer p-1 d-flex justify-content-between" v-if="stripeUrl && !editMode">
               <div>
                 <button class="btn btn-danger btn-sm me-2" @click="destroy">
                   <i class="bi bi-trash3-fill"/>
@@ -117,7 +184,7 @@ import type { DatabaseRecording } from "@/services/api/v1/StreamSinkClient";
 import VideoStripe from "@/components/VideoStripe.vue";
 import RecordingFavButton from "@/components/controls/RecordingFavButton.vue";
 import BusyOverlay from "@/components/BusyOverlay.vue";
-import { inject, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
@@ -155,13 +222,19 @@ const playbackSpeed = ref(1.0);
 const markings = ref<Marking[]>([]);
 const timeCode = ref<number>(0);
 const duration = ref<number>(0);
-const recording = ref<DatabaseRecording | undefined>(undefined);
+const recording = ref<DatabaseRecording | null>(null);
 const id = ref<number | null>(null);
 const busy = ref(false);
 const showConfirmDialog = ref(false);
 const deleteFileAfterCut = ref(false);
 
 const playingCut = ref(false);
+
+// --------------------------------------------------------------------------------------
+// Computes
+// --------------------------------------------------------------------------------------
+
+const editMode = computed(() => markings.value.length > 0);
 
 // --------------------------------------------------------------------------------------
 // Watchers
@@ -269,7 +342,7 @@ const destroy = () => {
     return;
   }
 
-  if (!window.confirm(t("videoView.destroy", [recording.value.filename]))) {
+  if (!window.confirm(t("videoView.destroy", [ recording.value.filename ]))) {
     return;
   }
 

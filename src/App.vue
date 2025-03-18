@@ -16,6 +16,7 @@ import DefaultLayout from "@/layouts/DefaultLayout.vue";
 import AuthLayout from "@/layouts/AuthLayout.vue";
 import { useRoute } from "vue-router";
 import { useServiceWorker } from "./composables/useServiceWorker";
+import FullscreenLayout from "@/layouts/FullscreenLayout.vue";
 
 const route = useRoute();
 const { updateAvailable, updateSW } = useServiceWorker();
@@ -27,6 +28,7 @@ const refreshApp = () => {
 const layouts = {
   default: DefaultLayout,
   auth: AuthLayout,
+  fullscreen: FullscreenLayout
 };
 
 //@ts-expect-error nonsense

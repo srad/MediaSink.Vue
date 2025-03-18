@@ -114,7 +114,7 @@ import LoadIndicator from "@/components/LoadIndicator.vue";
 const route = useRoute();
 const channels = ref<ServicesChannelInfo[]>([]);
 
-const channelItemClass = "col-lg-6 col-xl-6 col-xxl-4 col-md-6";
+const channelItemClass = "col-lg-6 col-xl-4 col-xxl-3 col-md-6 col-sm-8";
 const channelId = ref<number>();
 const showModal = ref(false);
 const channelName = ref("");
