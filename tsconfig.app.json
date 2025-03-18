@@ -10,7 +10,11 @@
     "src/**/__tests__/*"
   ],
   "compilerOptions": {
-    "types": ["pinia-plugin-persistedstate"],
+    "types": [
+      "pinia-plugin-persistedstate",
+      "vite-plugin-pwa/client",
+      "vite-plugin-pwa/vue"
+    ],
     "lib": [
       "ES2020",
       "DOM",

@@ -1,6 +1,6 @@
 <template>
   <RouterLink class="navbar-brand text-white fw-bold d-flex" to="/streams/live">
-    <img alt="icon" class="px-2" style="height: 28px; width: auto" src="/icon.png"/>
+    <img alt="icon" class="px-2" style="height: 28px; width: auto" src="/icons/ios/64.png"/>
     <span class="d-none d-sm-block">{{ props.title }}</span>
   </RouterLink>
 </template>
