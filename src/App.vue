@@ -1,6 +1,6 @@
 <template>
   <!-- Update Notification -->
-  <div v-if="updateAvailable || true" class="update-notification align-items-center d-flex bg-warning shadow-sm p-3 rounded-2">
+  <div v-if="updateAvailable" class="update-notification align-items-center d-flex bg-warning shadow-sm p-3 rounded-2">
     <p>New update available!</p>
     <button type="button" class="btn btn-sm btn-primary" @click="refreshApp">Update Now</button>
   </div>
