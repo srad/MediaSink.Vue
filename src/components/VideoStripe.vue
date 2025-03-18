@@ -1,5 +1,5 @@
 <template>
-  <div ref="stripeContainer" class="position-relative h-100 whitespace-nowrap overflow-x-scroll" @click="seek($event)" draggable="false">
+  <div ref="stripeContainer" class="position-relative h-100 whitespace-nowrap overflow-x-scroll" @click="seek($event)" draggable="false" style="min-height: 100px">
     <div class="position-absolute bottom-0">
       <VideoTimeIndex v-if="imageLoaded && props.loaded" :duration="props.duration" :width="stripeImage!.width"/>
     </div>
@@ -352,22 +352,24 @@ const markingSelect = (index: number): void => {
 };
 
 const resizePreview = (event: WheelEvent): void => {
-  const el = stripeImage.value!;
+  const imgElement = stripeImage.value!;
 
   const resizeBy = event.deltaY * 3;
-  const oldWidth = el.width;
+  const oldWidth = imgElement.width;
 
-  el.width += resizeBy;
+  imgElement.width += resizeBy;
 
-  if (el.width < (window.innerWidth * 3) / 4) {
-    el.width = oldWidth;
+  if (imgElement.width < (window.innerWidth * 3) / 4) {
+    imgElement.width = oldWidth;
     return;
   }
 
-  const factor = el.width / oldWidth;
-  width.value = el.width;
+  const factor = imgElement.width / oldWidth;
+  width.value = imgElement.width;
 
   // Linear transformation on all x coordinates
+  barLeft.value *= factor;
+  stripeContainer.value!.scrollLeft *= factor; // Prevents that
   markings.value.forEach((m) => {
     m.start *= factor;
     m.end *= factor;

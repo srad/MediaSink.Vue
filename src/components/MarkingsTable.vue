@@ -1,6 +1,6 @@
 <template>
   <div class="table-responsive">
-    <table class="table table-sm bg-white table-bordered table-hover">
+    <table class="table table-sm bg-white table-bordered border-dark table-hover">
       <thead>
       <tr>
         <th class="bg-light text-center px-2">{{ t("videoView.segment.start") }}</th>
@@ -22,7 +22,7 @@
           </button>
         </td>
       </tr>
-      <tr class="bg-info-light">
+      <tr class="bg-danger-subtle">
         <td colspan="2" class="px-2 fw-bold bg-transparent">Total (min)</td>
         <td class="px-2 fw-bold text-center bg-transparent">{{ markingsDuration }}</td>
         <td class="px-2 fw-bold text-center bg-transparent" v-if="showDestroy"></td>
