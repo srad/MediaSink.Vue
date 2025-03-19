@@ -1,10 +1,17 @@
 <template>
   <ModalConfirmDialog :show="showConfirmDialog" @cancel="showConfirmDialog = false" @confirm="cutVideo">
+
     <template v-slot:header>
       <span class="fs-5">Confirm your video cut</span>
     </template>
+
     <template v-slot:body>
-      <MarkingsTable v-if="showConfirmDialog" :show-destroy="false" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)"/>
+      <MarkingsTable
+        v-if="showConfirmDialog"
+        :show-destroy="false"
+        :markings="markings"
+        @destroy="(marking: Marking) => destroyMarking(marking)"
+        @selected="(marking: Marking) => selectMarking(marking)"/>
 
       <hr/>
 
@@ -41,7 +48,7 @@
           </div>
 
           <!-- Controls: Fixed height -->
-          <div class="d-flex align-items-center justify-content-between w-100 d-none d-lg-flex p-1 bg-dark flex-shrink-0 border-top border-danger" style="height: 40px;">
+          <div class="d-flex align-items-center justify-content-between w-100 d-none d-lg-flex p-1 bg-dark flex-shrink-0" :class="{'border-top border-danger': editMode}" style="height: 40px;">
             <div>
               <button class="btn btn-danger btn-sm" @click="destroy">
                 <span>Delete</span>
@@ -62,11 +69,11 @@
               <!-- back forth buttons -->
               <div class="d-flex">
                 <button class="btn btn-info btn-sm me-1" @click="back" type="button">
-                  -{{skipSeconds}}s<i class="bi bi-chevron-left"></i>
+                  -{{ skipSeconds }}s<i class="bi bi-chevron-left"></i>
                 </button>
 
                 <button class="btn btn-info btn-sm" @click="forward" type="button">
-                  <i class="bi bi-chevron-right"></i>{{skipSeconds}}s+
+                  <i class="bi bi-chevron-right"></i>{{ skipSeconds }}s+
                 </button>
               </div>
             </div>
@@ -78,6 +85,7 @@
           <MarkingsTable
             :show-destroy="true"
             :markings="markings"
+            @destroy-all="() => markings=[]"
             @destroy="(marking: Marking) => destroyMarking(marking)"
             @selected="(marking: Marking) => selectMarking(marking)"/>
 
@@ -86,7 +94,7 @@
           <button v-else class="btn btn-sm btn-primary" @click="stopCut"><span>Stop cut</span> <i class="bi bi-stop-fill"></i></button>
           -->
 
-          <button v-if="editMode" class="btn btn-sm my-2 btn-warning" type="button" @click="showConfirmDialog = true">
+          <button v-if="editMode" class="btn btn-sm btn-warning" type="button" @click="showConfirmDialog = true">
             {{ t("videoView.button.cut") }} <i class="bi bi-scissors"></i>
           </button>
         </div>
@@ -116,7 +124,6 @@
 <script setup lang="ts">
 import type { DatabaseRecording } from "@/services/api/v1/StreamSinkClient";
 import VideoStripe from "@/components/VideoStripe.vue";
-import RecordingFavButton from "@/components/controls/RecordingFavButton.vue";
 import BusyOverlay from "@/components/BusyOverlay.vue";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
@@ -249,15 +256,11 @@ const playCut = () => {
   pause.value = false;
 };
 
-const resetSelection = () => {
-  for (let i = 0; i < markings.value.length; i++) {
-    markings.value[i]!.selected = false;
-  }
-};
+const resetSelection = () => markings.value.forEach(x => x.selected = false);
 
 const selectMarking = (marking: Marking) => {
   resetSelection();
-  video.value!.currentTime = marking.timestart;
+  seek(marking.timestart);
   marking.selected = true;
 };
 
@@ -275,7 +278,7 @@ const destroy = () => {
     return;
   }
 
-  if (!window.confirm(t("videoView.destroy", [recording.value.filename]))) {
+  if (!window.confirm(t("videoView.destroy", [ recording.value.filename ]))) {
     return;
   }
 

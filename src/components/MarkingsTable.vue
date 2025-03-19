@@ -2,22 +2,28 @@
   <div class="table-responsive">
     <table class="table table-sm bg-white table-bordered border-dark table-hover">
       <thead>
-      <tr>
-        <th class="bg-light text-center px-2">{{ t("videoView.segment.start") }}</th>
-        <th class="bg-light text-center px-2">{{ t("videoView.segment.end") }}</th>
-        <th class="bg-light text-center px-2">{{ t("videoView.segment.duration") }}</th>
-        <th class="bg-light text-center px-2" v-if="showDestroy">
-          <i class="bi bi-trash3 text-danger"></i>
+      <tr class="align-middle">
+        <th class="bg-dark-subtle text-center px-2">{{ t("videoView.segment.start") }}</th>
+        <th class="bg-dark-subtle text-center px-2">{{ t("videoView.segment.end") }}</th>
+        <th class="bg-dark-subtle text-center px-2">{{ t("videoView.segment.duration") }}</th>
+        <th class="bg-dark-subtle text-center px-2" v-if="showDestroy">
+          <button @click="destroyAll" class="btn btn-sm bg-transparent">
+            <i class="bi bi-trash3 text-danger"></i>
+          </button>
         </th>
       </tr>
       </thead>
       <tbody>
-      <tr style="cursor:pointer !important;" class="align-middle" :class="{'bg-secondary': overview.marking.selected}" @click="emit('selected', overview.marking)" :key="String(overview.marking.timestart)+String(overview.marking.timeend)" v-for="overview in markingsOverview">
-        <td class="px-2 text-center py-1">{{ overview.start }}</td>
-        <td class=" px-2 text-center py-1">{{ overview.end }}</td>
-        <td class=" px-2 text-center py-1">{{ overview.duration }}</td>
-        <td class="text-center p-0" v-if="showDestroy">
-          <button @click="emit('destroy', overview.marking)" class="btn btn-sm bg-transparent">
+      <tr v-for="(overview, i) in markingsOverview" :key="`${overview.marking.timestart}${overview.marking.timeend}`"
+          style="cursor:pointer !important;"
+          class="align-middle"
+          :class="{'bg-secondary': overview.marking.selected}"
+          @click="() => { selectedIndex= i; emit('selected', overview.marking); }">
+        <td class="px-2 text-center py-1" :class="{'bg-warning': selectedIndex === i}">{{ overview.start }}</td>
+        <td class=" px-2 text-center py-1" :class="{'bg-warning': selectedIndex === i}">{{ overview.end }}</td>
+        <td class=" px-2 text-center py-1" :class="{'bg-warning': selectedIndex === i}">{{ overview.duration }}</td>
+        <td class="text-center p-0" v-if="showDestroy" :class="{'bg-warning': selectedIndex === i}">
+          <button @click="destroy(overview.marking, i)" class="btn btn-sm bg-transparent">
             <i class="bi bi-trash3 text-danger"></i>
           </button>
         </td>
@@ -33,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineEmits, defineProps } from "vue";
+import { computed, defineEmits, defineProps, ref } from "vue";
 import type { Marking } from "../types/appTypes.ts";
 import { useI18n } from "vue-i18n";
 
@@ -43,9 +49,12 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
+const selectedIndex = ref(-1);
+
 const emit = defineEmits<{
   (e: "selected", value: Marking): void
   (e: "destroy", value: Marking): void
+  (e: "destroyAll"): void
 }>();
 
 const props = defineProps<{ markings: Marking[], showDestroy: boolean }>();
@@ -53,6 +62,20 @@ const props = defineProps<{ markings: Marking[], showDestroy: boolean }>();
 // --------------------------------------------------------------------------------------
 // Methods
 // --------------------------------------------------------------------------------------
+
+const destroy = (markings: Marking, index: number) => {
+  emit("destroy", markings);
+
+  // Reset row highlighting.
+  if (selectedIndex.value === index) {
+    selectedIndex.value = -1;
+  }
+};
+
+const destroyAll = () => {
+  emit("destroyAll");
+  selectedIndex.value = -1;
+};
 
 const secondsToTimeCode = (seconds: number) => {
   const date = new Date(0);

@@ -1,27 +1,60 @@
 <template>
-  <div ref="stripeContainer" class="position-relative h-100 whitespace-nowrap overflow-x-scroll" @click="seek($event)" draggable="false" style="min-height: 100px">
+  <div draggable="false" ref="stripeContainer" class="position-relative h-100 whitespace-nowrap overflow-x-scroll overflow-y-hidden" @click="seek($event)" style="min-height: 100px">
     <div class="position-absolute bottom-0">
-      <VideoTimeIndex v-if="imageLoaded && props.loaded" :duration="props.duration" :width="stripeImage!.width"/>
+      <VideoTimeIndex v-if="props.loaded" :duration="props.duration" :width="imageWidth"/>
     </div>
 
-    <img draggable="false" alt="stripe" class="stripe position-absolute" ref="stripeImage" :src="src" style="height: 100%;" @mousedown="down($event)"/>
+    <img ref="stripeImage"
+         alt="stripe"
+         draggable="false"
+         class="stripe position-absolute"
+         :class="{'watermark': !imageLoaded}"
+         style="height: 100%;"
+         :style="imageStyle"
+         :src="src"
+         @mousedown="down($event)"/>
 
-    <div :key="marking.start" @click="markingSelect(i)" :class="{ selected: marking.selected, unselected: !marking.selected }" class="marking position-absolute" draggable="false" v-for="(marking, i) in markings" :style="{ transform: `translateX(${marking.start}px)`, width: marking.end - marking.start + 'px' }">
-      <span class="bar bar-start position-absolute" draggable="false" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'start')"> </span>
-      <span class="bar bar-end position-absolute" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" @mousedown="markerDown($event, marking, i, 'end')" draggable="false"></span>
-      <i @click="destroyMarking(i)" v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)" class="text-white bg-danger p-1 bi bi-trash op-100 marking-destroy position-absolute" style="opacity: 1"></i>
+    <div v-for="(marking, i) in markings"
+         class="marking position-absolute" draggable="false"
+         @click="selectedIndex = i"
+         :key="marking.start"
+         :class="{ selected: marking.selected, unselected: !marking.selected }"
+         :style="{ transform: `translateX(${marking.start}px)`, width: `${marking.end - marking.start}px` }">
+
+      <span v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)"
+            class="bar bar-start position-absolute"
+            draggable="false"
+            @mousedown="markerDown($event, marking, i, 'start')"/>
+
+      <span v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)"
+            class="bar bar-end position-absolute"
+            @mousedown="markerDown($event, marking, i, 'end')"
+            draggable="false"/>
+
+      <i v-if="currentMarkerIndex === -1 || (currentMarkerIndex - 1 === i && !mouseDown)"
+         @click="destroyMarking(i)"
+         class="text-white bg-danger p-1 bi bi-trash op-100 marking-destroy position-absolute"
+         style="opacity: 1"/>
     </div>
 
-    <span v-if="showBar" class="timecode position-absolute" :style="{ transform: `translateX(${barLeft}px)` }"></span>
+    <span v-if="showBar"
+          class="time-code position-absolute"
+          :style="{ transform: `translateX(${barLeft}px)` }"/>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import type { Marking } from "../types/appTypes";
 import { BigNumber } from "bignumber.js";
 import { animateScrollLeft } from "../utils/animations";
 import VideoTimeIndex from "./VideoTimeIndex.vue";
+
+// --------------------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------------------
+
+type Pixel = number;
 
 // --------------------------------------------------------------------------------------
 // Props
@@ -34,6 +67,7 @@ const props = defineProps<{
   duration: number;
   paused: boolean;
   disabled?: boolean;
+  markings: Marking[];
   seeked: number;
 }>();
 
@@ -51,6 +85,11 @@ const emit = defineEmits<{
 // Declarations
 // --------------------------------------------------------------------------------------
 
+const IMAGE_DEFAULT_DIM = {
+  width: "43000px",
+  height: "256px",
+};
+
 const markings = ref<Marking[]>([]);
 const showBar = ref(true);
 const stripeImage = ref<HTMLImageElement>();
@@ -65,12 +104,21 @@ let currentMarkerIndex = -1;
 const width = ref(0);
 const barLeft = ref(0);
 const imageLoaded = ref(false);
+const imageWidth = ref(0);
+const selectedIndex = ref(-1);
 
 let seekedThroughStripeClick = false;
 
 // --------------------------------------------------------------------------------------
 // Computed
 // --------------------------------------------------------------------------------------
+
+const imageStyle = computed(() => {
+  if (!imageLoaded.value) {
+    return { width: IMAGE_DEFAULT_DIM.width, height: IMAGE_DEFAULT_DIM.height };
+  }
+  return {};
+});
 
 // --------------------------------------------------------------------------------------
 // Watchers
@@ -98,8 +146,26 @@ watch(() => props.seeked, (timeIndex: number) => {
 watch(() => props.timecode, (timecode) => {
   requestAnimationFrame(() => {
     const timeOffset = timecode / props.duration;
-    barLeft.value = new BigNumber(timeOffset).multipliedBy(stripeImage.value!.width).toNumber();
+    barLeft.value = new BigNumber(timeOffset).multipliedBy(imageWidth.value).toNumber();
   });
+});
+
+watch(() => props.markings, newMarkings => {
+  markings.value = newMarkings;
+});
+
+watch(selectedIndex, (index: number) => {
+  // catch event order from stripe before the delete button
+  if (props.disabled || !markings.value[index]) {
+    return;
+  }
+
+  // Mark index as selected, unselect all other ones.
+  markings.value.forEach((m, i) => m.selected = i === index);
+});
+
+watch(imageLoaded, () => {
+  width.value = stripeImage.value!.clientWidth;
 });
 
 // --------------------------------------------------------------------------------------
@@ -109,7 +175,10 @@ watch(() => props.timecode, (timecode) => {
 onMounted(() => {
   stripeContainer.value?.addEventListener("wheel", resizePreview, true);
   if (stripeImage.value) {
-    stripeImage.value.onload = load;
+    stripeImage.value.onload = () => {
+      imageLoaded.value = true;
+      imageWidth.value = stripeImage.value!.width;
+    };
   }
 });
 
@@ -120,7 +189,7 @@ onUnmounted(() => stripeContainer.value?.removeEventListener("wheel", resizePrev
 // --------------------------------------------------------------------------------------
 
 const getCurrentTimeIndex = (): BigNumber => {
-  const offset = new BigNumber(barLeft.value).dividedBy(stripeImage.value!.width);
+  const offset = new BigNumber(barLeft.value).dividedBy(imageWidth.value);
   const timeOffset = offset.multipliedBy(props.duration);
 
   return timeOffset;
@@ -170,13 +239,13 @@ const markerUp = (): void => {
     return;
   }
 
-  markerDownIndex = 0;
   markerPos = "";
   document.body.style.cursor = "default";
   window.removeEventListener("mousemove", moveMarker);
   window.removeEventListener("mouseup", markerUp);
   emit("marking", markings.value);
-  emitCurrentTimeIndex();
+  emit("seek", markings.value[markerDownIndex].timestart);
+  markerDownIndex = 0;
 };
 
 const markerDown = (event: MouseEvent, marker: object, i: number, pos: string): void => {
@@ -195,11 +264,6 @@ const markerDown = (event: MouseEvent, marker: object, i: number, pos: string): 
   document.body.style.cursor = "col-resize";
   window.addEventListener("mousemove", moveMarker);
   window.addEventListener("mouseup", markerUp);
-};
-
-const load = () => {
-  width.value = stripeImage.value!.clientWidth;
-  imageLoaded.value = true;
 };
 
 const destroyMarking = (index: number): void => {
@@ -340,17 +404,6 @@ const overlaps = (selectionStart: number, selectionEnd: number) => {
     return false;
   };
 
-const markingSelect = (index: number): void => {
-  // catch event order from stripe before the delete button
-  if (props.disabled || !markings.value[index]) {
-    return;
-  }
-
-  // Only one at a time
-  markings.value.forEach((m) => (m.selected = false));
-  markings.value[index]!.selected = !markings.value[index]!.selected;
-};
-
 const resizePreview = (event: WheelEvent): void => {
   const imgElement = stripeImage.value!;
 
@@ -374,7 +427,6 @@ const resizePreview = (event: WheelEvent): void => {
     m.start *= factor;
     m.end *= factor;
   });
-  //emit('scroll', event);
 };
 </script>
 
@@ -412,7 +464,7 @@ const resizePreview = (event: WheelEvent): void => {
   user-select: none;
 }
 
-.timecode {
+.time-code {
   width: 3px;
   height: 100%;
   background: greenyellow;
@@ -430,5 +482,34 @@ img {
 
 .bar-end {
   right: 0;
+}
+
+.watermark {
+  will-change: background-position;
+}
+
+.watermark {
+  width: 400%; /* Ensure enough space for smooth animation */
+  height: 400%;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(0, 0, 0, 0.1),
+    rgba(0, 0, 0, 0.1) 10px,
+    rgba(0, 0, 0, 0) 10px,
+    rgba(0, 0, 0, 0) 20px
+  );
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: moveLines 4s linear infinite;
+}
+
+@keyframes moveLines {
+  from {
+    transform: translateX(0) translateY(0);
+  }
+  to {
+    transform: translateX(-40px) translateY(-40px);
+  }
 }
 </style>
