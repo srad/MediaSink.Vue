@@ -67,10 +67,10 @@
 </template>
 
 <script setup lang="ts">
-import { closeSocket, connectSocket, MessageType, socketOn } from "../../utils/socket";
+import { MessageType, SocketManager } from "../../utils/socket";
 import { useChannelStore } from "../../stores/channel";
 import { useJobStore } from "../../stores/job";
-import { computed, onActivated, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import DiskStatus from "../DiskStatus.vue";
 import VideoControls from "../VideoControls.vue";
@@ -122,6 +122,8 @@ const authStore = useAuthStore();
 
 let thread: undefined | ReturnType<typeof setInterval> = undefined;
 
+const socketManager = new SocketManager();
+
 // --------------------------------------------------------------------------------------
 // Computes
 // --------------------------------------------------------------------------------------
@@ -135,7 +137,7 @@ const jobsCount = computed(() => jobStore.jobsCount);
 
 const query = async () => {
   const client = createClient();
-  const [recRes, diskRes] = await Promise.all<[Promise<boolean>, Promise<HelpersDiskInfo>]>([client.isRecording(), client.info.diskList()]);
+  const [ recRes, diskRes ] = await Promise.all<[ Promise<boolean>, Promise<HelpersDiskInfo> ]>([ client.isRecording(), client.info.diskList() ]);
   isRecording.value = recRes;
   diskAvailablePercentage.value = diskRes.pcent;
 };
@@ -160,8 +162,8 @@ const record = async () => {
 
 const initialLoad = async () => {
   const client = createClient();
-  const res = await Promise.all<[Promise<boolean>, Promise<HelpersDiskInfo>]>([client.isRecording(), client.info.diskList()]);
-  const [recRes, diskRes] = res;
+  const res = await Promise.all<[ Promise<boolean>, Promise<HelpersDiskInfo> ]>([ client.isRecording(), client.info.diskList() ]);
+  const [ recRes, diskRes ] = res;
   diskAvailablePercentage.value = diskRes.pcent;
   isRecording.value = recRes;
 };
@@ -183,23 +185,23 @@ onMounted(async () => {
 
   await initialLoad();
 
-  connectSocket().then(async () => {
-    socketOn(MessageType.HeartBeat, (nextUpdate) => {
-      heartBeatNextUpdate.value = nextUpdate as number;
-      const id = setInterval(() => {
-        heartBeatNextUpdate.value -= 1;
-        if (heartBeatNextUpdate.value <= 0) {
-          clearInterval(id);
-        }
-      }, 1000);
-    });
+  await socketManager.connect();
+
+  socketManager.on(MessageType.HeartBeat, (nextUpdate) => {
+    heartBeatNextUpdate.value = nextUpdate as number;
+    const id = setInterval(() => {
+      heartBeatNextUpdate.value -= 1;
+      if (heartBeatNextUpdate.value <= 0) {
+        clearInterval(id);
+      }
+    }, 1000);
   });
 
   thread = setInterval(query, 1000 * 10);
 });
 
 onUnmounted(() => {
-  closeSocket();
+  socketManager.close();
   clearInterval(thread);
 });
 </script>

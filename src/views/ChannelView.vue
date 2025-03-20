@@ -88,9 +88,9 @@
 <script setup lang="ts">
 import VideoItem from "../components/VideoItem.vue";
 import type { DatabaseRecording, DatabaseRecording as RecordingResponse, ServicesChannelInfo } from "../services/api/v1/StreamSinkClient";
-import { computed, inject, onMounted, ref, useTemplateRef } from "vue";
-import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
-import { closeSocket, connectSocket, MessageType, socketOn } from "../utils/socket";
+import { computed, inject, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { MessageType, SocketManager } from "../utils/socket";
 import BusyOverlay from "../components/BusyOverlay.vue";
 import { useToastStore } from "../stores/toast";
 import { useChannelStore } from "../stores/channel";
@@ -129,6 +129,8 @@ const showConfirm = ref(false);
 const showDeleteSelectedRecordings = ref(false);
 
 const fileUrl = inject("fileUrl");
+
+const socketManager = new SocketManager();
 
 // --------------------------------------------------------------------------------------
 // Computes
@@ -230,7 +232,7 @@ const fileSelected = async (file: File) => {
     uploadProgress.value = 0;
     showModal.value = true;
     const client = createClient();
-    const [req, abortController] = client.channelUpload(channelId, file, (pcent: number) => (uploadProgress.value = pcent));
+    const [ req, abortController ] = client.channelUpload(channelId, file, (pcent: number) => (uploadProgress.value = pcent));
     uploadAbortController = abortController;
     const recording = await req;
     uploadProgress.value = 0;
@@ -273,8 +275,9 @@ const mergeVideos = async () => {
 // Hooks
 // --------------------------------------------------------------------------------------
 
-onBeforeRouteLeave(() => {
-  closeSocket();
+onUnmounted(() => {
+  socketManager.close();
+  alert("unmouted");
 });
 
 onMounted(async () => {
@@ -289,14 +292,16 @@ onMounted(async () => {
 
     channel.value = data;
 
-    connectSocket().then(() => {
-      socketOn(MessageType.RecordingAdd, (recording) => {
-        const r = recording as RecordingResponse;
-        channelStore.addRecording(r);
-      });
+    await socketManager.connect();
+
+    socketManager.on(MessageType.RecordingAdd, (recording) => {
+      const r = recording as RecordingResponse;
+      channelStore.addRecording(r);
     });
 
     window.scrollTo(0, 0);
+
+    alert("mounted");
   } catch (error) {
     alert((<{ error: string }>error).error);
     router.back();

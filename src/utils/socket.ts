@@ -8,123 +8,144 @@ declare global {
 
 type ListenerType = (data: unknown) => void;
 
-let connection: WebSocket | null = null;
-const listeners: { [key: string]: ListenerType[] } = {};
+type SocketMessage = { data: string };
 
-const notify = (event: string, data: object) => {
-  if (!connection) {
-    return;
-  }
+export class SocketManager {
+  private static connection: WebSocket | null = null;
+  private static listeners: { [key: string]: ListenerType[] } = {};
+  private instanceListeners: { [key: string]: ListenerType[] } = {};
 
-  if (listeners[event]) {
-    listeners[event]!.forEach((fn) => fn(data));
-  }
-};
-
-// The callee can optionally wait for the promise.
-// Either, the socket is already open and the promise is resolved.
-// Or the connection is created and resolved, once the websocket is open.
-export const connectSocket = () => {
-  return new Promise<void>((resolve, reject) => {
-    // Already connected
-    if (connection !== null) {
-      resolve();
-      return;
-    }
-
-    // Not logged-in.
-    const authStore = useAuthStore();
-    if (!authStore.isLoggedIn) {
-      reject("WebSocket missing authorization token");
-      return;
-    }
-
-    connection = new WebSocket(window.APP_SOCKETURL + "?Authorization=" + authStore.getToken);
-
-    connection.addEventListener("message", (msg: { data: string }) => {
-      const json = JSON.parse(msg.data) as { name: string; data: object };
-      notify(json.name, json.data);
-    });
-
-    connection.addEventListener("open", () => {
-      resolve();
-      console.log("open ws");
-    });
-
-    connection.addEventListener("close", () => {
-      console.log("close ws");
-    });
-
-    connection.addEventListener("error", (ev: Event) => {
-      console.error(ev);
-      reject(ev);
-    });
-  });
-};
-
-// Do not close the socket, since multiple callers might use the connection still, even one does not.
-// The more reasonable action is to remove all the client's function from the listeners array.
-export const closeSocket = () => {
-  /*
-  this.connection?.close();
-  this.connection = null;
-  this.listeners = {};
-   */
-};
-
-export const socketOn = (event: string, fn: ListenerType) => {
-  if (!listeners[event]) {
-    listeners[event] = [];
-  }
-  listeners[event]!.push(fn);
-};
-
-/**
- * The benefit of this function is that is also allows to remove listeners from the open connection.
- * @example
- * const listeners = socketCreateListeners();
- *
- * // Subscribe.
- * listeners.on(JobCreate, () => {
- *     // ...
- * });
- *
- *
- * //Removes all added observers.
- * listeners.off();
- */
-export const socketCreateListeners = function () {
-  return (function () {
-    // Immediately invoked to create separate scope where listeners are stored.
-    const fns: ListenerType[] = [];
-
-    return {
-      on(event: string, fn: ListenerType) {
-        if (!listeners[event]) {
-          listeners[event] = [];
+  // The callee can optionally wait for the promise.
+  // Either, the socket is already open and the promise is resolved.
+  // Or the connection is created and resolved, once the websocket is open.
+  connect(): Promise<WebSocket> {
+    return new Promise<WebSocket>((resolve, reject) => {
+      // Already connected/connecting
+      if (SocketManager.connection !== null) {
+        // Already connected
+        if (SocketManager.connection.readyState === WebSocket.OPEN) {
+          resolve(SocketManager.connection);
+          return;
         }
-        listeners[event]!.push(fn);
-        fns.push(fn);
-      },
-      off() {
-        // Remove all functions from the global "listeners" object.
-        for (const name in listeners) {
-          const listenerArray = listeners[name];
-          if (listenerArray) {
-            for (let i = 0; i < listenerArray.length; i++) {
-              for (let j = 0; j < fns.length; j++) {
-                if (listenerArray[i] === fns[j]) {
-                  listenerArray.splice(i, 1);
-                  fns.splice(j, 1);
-                }
-              }
+
+        // Currently connecting ...
+        if (SocketManager.connection?.readyState === WebSocket.CONNECTING) {
+          const checker = setInterval(() => {
+            if (SocketManager.connection?.readyState === WebSocket.OPEN) {
+              clearInterval(checker);
+              resolve(SocketManager.connection);
+            } else if (SocketManager.connection?.readyState === WebSocket.CLOSING || SocketManager.connection?.readyState === WebSocket.CLOSED) {
+              clearInterval(checker);
+              reject("Connection already closed or closing");
             }
-          }
+          }, 1000);
+          return;
         }
-      },
-    };
-  })();
-};
+      }
+
+      // Not logged-in.
+      const authStore = useAuthStore();
+      if (!authStore.isLoggedIn) {
+        reject("WebSocket missing authorization token");
+        return;
+      }
+
+      // Blocks multiple connections, wait ...
+      SocketManager.connection = new WebSocket(window.APP_SOCKETURL + "?Authorization=" + authStore.getToken);
+
+      SocketManager.connection.addEventListener("message", SocketManager.invokeNotify);
+
+      SocketManager.connection.addEventListener("open", () => {
+        resolve(SocketManager.connection!);
+        console.log("open ws");
+      });
+
+      SocketManager.connection.addEventListener("close", () => {
+        console.log("close ws");
+      });
+
+      SocketManager.connection.addEventListener("error", (ev: Event) => {
+        console.error(ev);
+        SocketManager.connection?.close();
+        SocketManager.connection = null;
+        reject(ev);
+      });
+    });
+  };
+
+  private static invokeNotify(rawMessage: SocketMessage) {
+    const json = JSON.parse(rawMessage.data) as { name: string; data: object };
+    SocketManager.notify(json.name, json.data);
+  }
+
+  private static notify(event: string, data: object) {
+    if (!SocketManager.connection) {
+      return;
+    }
+
+    if (this.listeners[event]) {
+      this.listeners[event]!.forEach((fn) => fn(data));
+    }
+  }
+
+  /**
+   * Destroys all listeners.
+   */
+  close(): void {
+    this.instanceListeners = {};
+  };
+
+  on(event: string, fn: ListenerType) {
+    // Init
+    if (!this.instanceListeners[event]) {
+      this.instanceListeners[event] = [];
+    }
+    if (!SocketManager.listeners[event]) {
+      SocketManager.listeners[event] = [];
+    }
+
+    // Add function reference.
+    SocketManager.listeners[event].push(fn);
+    this.instanceListeners[event].push(fn);
+  };
+
+  /**
+   * Removes a listener function. Notice that you can only remove non-anonymous functions,
+   * since the compiler generate function references on-the-fly for them, in-place.
+   * so do not do:
+   *  manager.on('some-event', () => ...)
+   *  but instead:
+   *  function abc() {...};
+   *  // Both functions reference the same function reference.
+   *  manager.on('some-event', abc);
+   *  manager.off('some-event', abc);
+   * @param event
+   * @param fn
+   */
+  off(event: string, fn: ListenerType) {
+    this.offInstance(event, fn);
+    this.offGlobalEvent(fn);
+  };
+
+  private offInstance(event: string, fn: ListenerType) {
+    if (this.instanceListeners[event]) {
+      for (let i = 0; i < this.instanceListeners[event].length; i++) {
+        if (this.instanceListeners[event][i] === fn) {
+          this.instanceListeners[event].splice(i, 1);
+        }
+      }
+    }
+  }
+
+  private offGlobalEvent(fn: ListenerType) {
+    const instanceFns = Object.values(this.instanceListeners).flat();
+
+    // Filter out functions that exist in instanceFns
+    for (const eventName in SocketManager.listeners) {
+      SocketManager.listeners[eventName] = SocketManager.listeners[eventName].filter((listener) => !instanceFns.includes(listener));
+    }
+  }
+}
 
 export const MessageType = {
   HeartBeat: "heartbeat",
