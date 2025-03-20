@@ -1,7 +1,7 @@
 <template>
   <div draggable="false" ref="stripeContainer" class="position-relative h-100 whitespace-nowrap overflow-x-scroll overflow-y-hidden" @click="seek($event)" style="min-height: 100px">
     <div class="position-absolute bottom-0">
-      <VideoTimeIndex v-if="props.loaded" :duration="props.duration" :width="imageWidth"/>
+      <VideoTimeIndex v-if="props.loaded" :duration="props.duration" :width="stripeImage!.width"/>
     </div>
 
     <img ref="stripeImage"
@@ -38,7 +38,7 @@
     </div>
 
     <span v-if="showBar"
-          class="time-code position-absolute"
+          class="time-code position-absolute pointer-events-none"
           :style="{ transform: `translateX(${barLeft}px)` }"/>
   </div>
 </template>
@@ -101,10 +101,10 @@ let mouseOffsetX = 0;
 let mouseDown = false;
 let mouseMoved = false;
 let currentMarkerIndex = -1;
-const width = ref(0);
+const width = ref<Pixel>(43000);
 const barLeft = ref(0);
 const imageLoaded = ref(false);
-const imageWidth = ref(0);
+const imageWidth = computed(() => imageLoaded.value ? stripeImage.value!.width : IMAGE_DEFAULT_DIM.width);
 const selectedIndex = ref(-1);
 
 let seekedThroughStripeClick = false;
@@ -115,7 +115,7 @@ let seekedThroughStripeClick = false;
 
 const imageStyle = computed(() => {
   if (!imageLoaded.value) {
-    return { width: IMAGE_DEFAULT_DIM.width, height: IMAGE_DEFAULT_DIM.height };
+    return { width: imageWidth.value, height: IMAGE_DEFAULT_DIM.height };
   }
   return {};
 });
@@ -164,10 +164,6 @@ watch(selectedIndex, (index: number) => {
   markings.value.forEach((m, i) => m.selected = i === index);
 });
 
-watch(imageLoaded, () => {
-  width.value = stripeImage.value!.clientWidth;
-});
-
 // --------------------------------------------------------------------------------------
 // Hooks
 // --------------------------------------------------------------------------------------
@@ -175,10 +171,7 @@ watch(imageLoaded, () => {
 onMounted(() => {
   stripeContainer.value?.addEventListener("wheel", resizePreview, true);
   if (stripeImage.value) {
-    stripeImage.value.onload = () => {
-      imageLoaded.value = true;
-      imageWidth.value = stripeImage.value!.width;
-    };
+    stripeImage.value.onload = () => imageLoaded.value = true;
   }
 });
 
@@ -412,7 +405,7 @@ const resizePreview = (event: WheelEvent): void => {
 
   imgElement.width += resizeBy;
 
-  if (imgElement.width < (window.innerWidth * 3) / 4) {
+  if (imgElement.width <= (window.innerWidth * 3) / 4) {
     imgElement.width = oldWidth;
     return;
   }

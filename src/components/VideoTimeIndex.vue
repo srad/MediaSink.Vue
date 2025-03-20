@@ -1,10 +1,10 @@
 <template>
-  <div class="position-relative time-index-container user-select-none" :style="{width: props.width + 'px'}">
+  <div class="position-relative time-index-container user-select-none pointer-events-none" :style="{width: props.width + 'px'}">
     <div class="position-absolute time-index" v-for="marker in timeMarkers" :style="{transform: `translateX(${marker.left}px)` }">
       <div class="position-relative">
         <div class="position-relative">
-          <div class="position-absolute" style="transform: translateX(-50%)">{{ marker.time }}</div>
-          <div class="position-absolute m-0 p-0 border-end border-1" style="border-color: deeppink !important; height: 200px; transform: translate(-50%, -100%)"></div>
+          <div class="position-absolute pointer-events-none" style="transform: translateX(10%)">{{ marker.time }}</div>
+          <div class="position-absolute m-0 p-0 border-end border-1 pointer-events-none" style="border-color: deeppink !important; height: 200px; transform: translate(-50%, -100%)"></div>
         </div>
       </div>
     </div>
