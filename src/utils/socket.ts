@@ -1,11 +1,5 @@
 import { useAuthStore } from "../stores/auth";
 
-declare global {
-  interface Window {
-    APP_SOCKETURL: string;
-  }
-}
-
 type ListenerType = (data: unknown) => void;
 
 type SocketMessage = { data: string };

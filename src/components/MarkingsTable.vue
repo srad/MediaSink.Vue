@@ -34,7 +34,6 @@
 
 <script setup lang="ts">
 import { computed, defineEmits, defineProps } from "vue";
-import type { Marking } from "../types/appTypes.ts";
 import { useI18n } from "vue-i18n";
 
 // --------------------------------------------------------------------------------------

@@ -16,45 +16,45 @@
     <template v-slot:body>
       <form :class="{ saving: 'disabled' }">
         <AppAlert style="font-size: 0.9rem" :alert-type="AlertType.Error" v-if="validations.length > 0">
-          <CheckList :items="validations"/>
+          <CheckList :items="validations" />
         </AppAlert>
 
         <div>
           <label :for="`${id}_url`" class="form-label fw-bold">URL</label>
           <div class="input-group mb-3">
-            <input :id="`${id}_url`" type="url" required autocomplete="off" ref="streamUrl" class="form-control" :name="`${id}_url`" v-model="myUrl" @input="recommendChannelName"/>
+            <input :id="`${id}_url`" type="url" required autocomplete="off" ref="streamUrl" class="form-control" :name="`${id}_url`" v-model="myUrl" @input="recommendChannelName" />
             <button class="btn btn-outline-secondary" type="button" name="button-addon1" @click="paste">Paste</button>
           </div>
         </div>
 
         <div class="mb-3">
           <label :for="`${id}_display`" class="form-label fw-bold">Display name</label>
-          <input :id="`${id}_display`" pattern="^[^\s\\]+(\s{1}[^\s\\]+)*$" type="text" required autocapitalize="off" autocomplete="off" class="form-control" :name="`${id}_display`" v-model="myDisplayName"/>
+          <input :id="`${id}_display`" pattern="^[^\s\\]+(\s{1}[^\s\\]+)*$" type="text" required autocapitalize="off" autocomplete="off" class="form-control" :name="`${id}_display`" v-model="myDisplayName" />
           <div class="fs-6 my-2">Displayed as stream name. Can be changed at any time. No leading and trailing white spaces allowed, or double white spaces.</div>
         </div>
 
         <div class="mb-3">
           <label :for="`${id}_channel`" class="form-label fw-bold">Channel name</label>
-          <input :id="`${id}_channel`" pattern="^[_a-z0-9]+$" type="text" required autocapitalize="off" autocomplete="off" class="form-control" :name="`${id}_channel`" :disabled="channelDisabled" v-model="myChannelName"/>
+          <input :id="`${id}_channel`" pattern="^[_a-z0-9]+$" type="text" required autocapitalize="off" autocomplete="off" class="form-control" :name="`${id}_channel`" :disabled="channelDisabled" v-model="myChannelName" />
           <div v-if="!channelDisabled" class="fs-6 my-2">Only letters <span class="badge bg-info">a-z</span>, numbers <span class="badge bg-info">a-z</span>, and underscores <span class="badge bg-info">_</span> is allowed as channel name. This will also be the parent folder name for all recordings of this service.</div>
           <div v-else class="fs-6 my-2">This field is the file system folder name and cannot be changed.</div>
         </div>
 
         <div class="mb-3">
           <label :for="`${id}_minDuration`" class="form-label fw-bold">Minimum recording duration (minutes)</label>
-          <input :id="`${id}_minDuration`" type="number" required min="0" class="form-control" :name="`${id}_minDuration`" v-model="myMinDuration"/>
+          <input :id="`${id}_minDuration`" type="number" required min="0" class="form-control" :name="`${id}_minDuration`" v-model="myMinDuration" />
           <div class="fs-6 my-2">Under this duration (min) a recording is discarded (considered too short)</div>
         </div>
 
         <div class="mb-3">
           <label :for="`${id}_skip`" class="form-label fw-bold">Skip start (seconds)</label>
-          <input :id="`${id}_skip`" type="number" required min="0" class="form-control" :name="`${id}_skip`" v-model="mySkipStart"/>
+          <input :id="`${id}_skip`" type="number" required min="0" class="form-control" :name="`${id}_skip`" v-model="mySkipStart" />
           <div class="fs-6 my-2">Some broadcasters have certain number of seconds ads at the video start. Define how many seconds at start should be skipped when recording, i.e. for Twitch 15s.</div>
         </div>
 
         <div class="mb-3">
           <div class="form-check form-switch">
-            <input :id="`${id}_isPaused`" type="checkbox" :checked="myIsPaused" class="form-check-input" :name="`${id}_isPaused`" v-model="myIsPaused"/>
+            <input :id="`${id}_isPaused`" type="checkbox" :checked="myIsPaused" class="form-check-input" :name="`${id}_isPaused`" v-model="myIsPaused" />
             <label class="form-check-label" :for="`${id}_isPaused`">Pause Recording</label>
           </div>
           <div class="fs-6 my-2">Do not record as long as paused.</div>
@@ -78,10 +78,9 @@ import Modal from "./ModalWindow.vue";
 import { defineEmits, ref, watch } from "vue";
 import { randomString } from "../../utils/math";
 import AppAlert from "../AppAlert.vue";
-import { type ChannelUpdate } from "../../types/appTypes";
 import { createValidator, type ValidationMessage } from "../../utils/validator";
 import CheckList from "../CheckList.vue";
-import { AlertType } from "../../types/appTypes";
+import { AlertType } from "../../types/alert-type";
 
 // --------------------------------------------------------------------------------------
 // Props

@@ -18,7 +18,6 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from "vue";
-import type { Marking } from "../types/appTypes";
 import { BigNumber } from "bignumber.js";
 import { animateScrollLeft } from "../utils/animations";
 import VideoTimeIndex from "./VideoTimeIndex.vue";

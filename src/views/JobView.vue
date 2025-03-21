@@ -130,7 +130,6 @@ import type {
   ServicesProcessInfo as ProcessInfo
 } from "@/services/api/v1/StreamSinkClient";
 import { DatabaseJobOrder, DatabaseJobStatus } from "@/services/api/v1/StreamSinkClient";
-import type { JobTableItem } from "@/types/appTypes";
 import { fromNow } from "@/utils/datetime";
 import { useJobStore } from "@/stores/job";
 import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";

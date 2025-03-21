@@ -1,6 +1,5 @@
 //@ts-nocheck https://github.com/prazdevs/pinia-plugin-persistedstate/issues/373
 import { defineStore } from "pinia";
-import type { AuthState } from "../types/appTypes.ts";
 import AuthService from "../services/auth.service";
 import type { RequestsAuthenticationRequest } from "../services/api/v1/StreamSinkClient.ts";
 

@@ -1,7 +1,6 @@
 import type { DatabaseJob as Job } from "../services/api/v1/StreamSinkClient";
 import { DatabaseJobStatus } from "../services/api/v1/StreamSinkClient";
 import { defineStore } from "pinia";
-import type { JobMessage, JobState, TaskComplete, TaskInfo, TaskProgress } from "../types/appTypes.ts";
 
 export const useJobStore = defineStore("job", {
   state(): JobState {
@@ -73,7 +72,7 @@ export const useJobStore = defineStore("job", {
       this.jobs[i]!.command = message.data.command;
     },
     isProcessing(recordingId: number): string | null {
-      const job = this.jobs.find((job) => job.recordingId === recordingId);
+      const job = this.jobs.find((job: Job) => job.recordingId === recordingId);
       if (job) {
         return job.task;
       }

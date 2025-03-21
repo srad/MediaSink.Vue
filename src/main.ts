@@ -5,21 +5,6 @@ import App from "./App.vue";
 import router from "./router";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 
-// The whole point of this is to allow docker runtime environment variables.
-// See also: docker-entrypoint.sh
-export {};
-declare global {
-  interface Window {
-    APP_APIURL: string;
-    APP_BASE: string;
-    APP_NAME: string;
-    APP_SOCKETURL: string;
-    APP_FILEURL: string;
-    APP_BUILD: string;
-    APP_VERSION: string;
-  }
-}
-
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
