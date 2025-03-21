@@ -41,7 +41,7 @@
           </div>
 
           <!-- Controls: Fixed height -->
-          <div class="d-flex align-items-center justify-content-between w-100 d-none d-lg-flex p-1 bg-dark flex-shrink-0 border-top border-danger" style="height: 40px;">
+          <div class="d-flex align-items-center justify-content-between w-100 p-1 bg-dark flex-shrink-0 border-top border-white" style="height: 40px;">
             <div>
               <button class="btn btn-danger btn-sm" @click="destroy">
                 <span>Delete</span>
@@ -74,7 +74,7 @@
         </div>
 
         <!-- Sidebar -->
-        <div v-if="editMode" class="d-none d-lg-flex flex-column p-1 bg-secondary border-start border-danger" style="width: 350px;font-size: 0.85rem">
+        <div v-if="editMode" class="d-none d-lg-flex flex-column p-1 bg-secondary" style="width: 350px;font-size: 0.85rem">
           <MarkingsTable
             :show-destroy="true"
             :markings="markings"
