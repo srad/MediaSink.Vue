@@ -1,12 +1,6 @@
 import { ContentType, type DatabaseRecording, type DatabaseRecording as RecordingResponse, HttpClient, StreamSinkClient } from "./StreamSinkClient";
 import { useAuthStore } from "../../../stores/auth";
 
-declare global {
-  interface Window {
-    APP_APIURL: string;
-  }
-}
-
 const checkResponseStatus = (response: Response) => {
   if ([500, 401].includes(response.status) && !["/login", "/register"].includes(window.location.pathname)) {
     const authStore = useAuthStore();
@@ -19,7 +13,6 @@ const checkResponseStatus = (response: Response) => {
 
 export class MyClient extends StreamSinkClient<unknown> {
   constructor(token: string | null | undefined, apiUrl: string) {
-    const authStore = useAuthStore();
     let auth = {};
     if (token) {
       auth = { Authorization: `Bearer ${token}` };

@@ -41,7 +41,7 @@
               <span class="d-none d-lg-inline">Recording</span>
               <span class="d-flex justify-content-between">
                 <span class="d-lg-none">Rec</span>
-                <span class="recording-number">{{ recordingStreams.length }}</span>
+                <span class="recording-number">{{ channelStore.recordingStreams.length }}</span>
               </span>
             </button>
           </li>
@@ -49,7 +49,7 @@
             <button class="nav-link d-flex justify-content-between" @click="() => show('offline')" :class="{ active: tab === 'offline' }" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
               <span class="d-none d-lg-inline">Offline</span>
               <span class="d-flex justify-content-between">
-                <span class="d-lg-none">Off</span><span class="recording-number">{{ notRecordingStreams.length }}</span>
+                <span class="d-lg-none">Off</span><span class="recording-number">{{ channelStore.notRecordingStreams.length }}</span>
               </span>
             </button>
           </li>
@@ -57,7 +57,7 @@
             <button class="nav-link d-flex justify-content-between" @click="() => show('disabled')" :class="{ active: tab === 'disabled' }" id="disabled-tab" data-bs-toggle="tab" data-bs-target="#disabled" type="button" role="tab" aria-controls="disabled" aria-selected="false">
               <span class="d-none d-lg-inline">Disabled</span>
               <span class="d-flex justify-content-between">
-                <span class="d-lg-none">Disabled</span><span class="recording-number">{{ disabledStreams.length }}</span>
+                <span class="d-lg-none">Disabled</span><span class="recording-number">{{ channelStore.disabledStreams.length }}</span>
               </span>
             </button>
           </li>
@@ -66,28 +66,28 @@
         <div class="tab-content py-2" id="myTabContent">
           <div class="tab-pane fade" :class="{ 'active show': tab === 'live' }" id="home" role="tabpanel" aria-labelledby="home-tab">
             <div class="row">
-              <div v-for="channel in recordingStreams" :key="channel.channelId" :class="channelItemClass">
+              <div v-for="channel in channelStore.recordingStreams" :key="channel.channelId" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
-              <h1 v-if="recordingStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
+              <h1 v-if="channelStore.recordingStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
             </div>
           </div>
 
           <div class="tab-pane fade" :class="{ 'active show': tab === 'offline' }" id="profile" role="tabpanel" aria-labelledby="profile-tab">
             <div class="row">
-              <div v-for="channel in notRecordingStreams" :key="channel.channelId" :class="channelItemClass">
+              <div v-for="channel in channelStore.notRecordingStreams" :key="channel.channelId" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
-              <h1 v-if="notRecordingStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
+              <h1 v-if="channelStore.notRecordingStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
             </div>
           </div>
 
           <div class="tab-pane fade" :class="{ 'active show': tab === 'disabled' }" id="disabled" role="tabpanel" aria-labelledby="disabled-tab">
             <div class="row">
-              <div v-for="channel in disabledStreams" :key="channel.channelId" :class="channelItemClass">
+              <div v-for="channel in channelStore.disabledStreams" :key="channel.channelId" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel"/>
               </div>
-              <h1 v-if="disabledStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
+              <h1 v-if="channelStore.disabledStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
             </div>
           </div>
         </div>
@@ -98,21 +98,19 @@
 </template>
 
 <script setup lang="ts">
-import type { DatabaseChannel as ChannelResponse, ServicesChannelInfo } from "@/services/api/v1/StreamSinkClient";
+import type { DatabaseChannel as ChannelResponse } from "@/services/api/v1/StreamSinkClient";
 import ChannelItem from "@/components/ChannelItem.vue";
 import ChannelModal from "@/components/modals/ChannelModal.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { createClient } from "@/services/api/v1/ClientFactory";
 import LoadIndicator from "@/components/LoadIndicator.vue";
+import { sortChannel, useChannelStore } from "@/stores/channel.ts";
 
 // --------------------------------------------------------------------------------------
 // Declarations
 // --------------------------------------------------------------------------------------
 
 const route = useRoute();
-const channels = ref<ServicesChannelInfo[]>([]);
-
 const channelItemClass = "col-lg-6 col-xl-4 col-xxl-3 col-md-6 col-sm-8";
 const channelId = ref<number>();
 const showModal = ref(false);
@@ -136,6 +134,8 @@ const router = useRouter();
 
 const tab = ref(route.params.tab);
 
+const channelStore = useChannelStore();
+
 // --------------------------------------------------------------------------------------
 // Computes
 // --------------------------------------------------------------------------------------
@@ -157,33 +157,12 @@ const tagTerms = computed(() =>
     .join(" "),
 );
 
-const notRecordingStreams = computed(() =>
-  channels.value
-    .slice()
-    .filter((row) => !row.isRecording && !row.isPaused)
-    .sort(sort),
-);
-
-const disabledStreams = computed(() =>
-  channels.value
-    .slice()
-    .filter((row) => row.isPaused)
-    .sort(sort),
-);
-
-const recordingStreams = computed(() =>
-  channels.value
-    .slice()
-    .filter((row) => row.isRecording && !row.isTerminating)
-    .sort(sort),
-);
-
 const searchResults = computed(() =>
-  channels.value
+  channelStore.all
     .slice()
     .filter((channel) => searchFilter(channel, searchTerms.value, tagTerms.value))
     .filter((channel) => (favs.value ? channel.fav : true)) // Only use, if defined.
-    .sort(sort),
+    .sort(sortChannel),
 );
 
 // --------------------------------------------------------------------------------------
@@ -194,17 +173,10 @@ const searchFilter = (channel: ChannelResponse, search: string, tag: string): bo
   return (search && search.length > 0 ? channel.channelName!.indexOf(search) !== -1 : true) && (tag && tag.length > 0 && channel.tags ? channel.tags.some((t) => t === tag) : true);
 };
 
-const sort = (a: ChannelResponse, b: ChannelResponse) => a.channelName!.localeCompare(b.channelName!);
-
 const save = async (channel: ChannelUpdate) => {
   try {
     saving.value = true;
-    const client = createClient();
-    const data = await client.channels.channelsPartialUpdate(channel.channelId, channel);
-    const i = channels.value.findIndex((channel) => data.channelId = channel.channelId);
-    if (i !== -1) {
-      Object.assign(channels.value[i], data);
-    }
+    await channelStore.save(channel);
     showModal.value = false;
   } catch (e) {
     alert(e);
@@ -248,9 +220,7 @@ watch(searchVal, (search) => {
 // --------------------------------------------------------------------------------------
 
 onMounted(async () => {
-  const client = createClient();
-  const data = await client.channels.channelsList();
-  channels.value = data || [];
+  await channelStore.load();
   isLoading.value = false;
 });
 </script>

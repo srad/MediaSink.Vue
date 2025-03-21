@@ -10,34 +10,38 @@
         </button>
         <button @click="downloadChannelsAsJson" type="button" class="btn btn-sm btn-primary me-2">Export channels</button>
         <button @click="inputFileClick" type="button" class="btn btn-sm btn-primary">Import channels</button>
-        <input ref="channelsFile" accept="application/json" type="file" name="importChannels" hidden @change="inputFileChanged"/>
+        <input ref="channelsFile" accept="application/json" type="file" name="importChannels" hidden @change="inputFileChanged" />
       </div>
       <div v-if="isImporting">
         <h6>Importing ...</h6>
         <div class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
           <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 75%"></div>
         </div>
-        <hr/>
+        <hr />
       </div>
     </div>
 
-    <ChannelsList v-if="settingsStore.isChannelsListLayout" :channels="channels"/>
-    <ChannelsGrid v-else :channels="channels"/>
+    <ChannelsList v-if="settingsStore.isChannelsListLayout" :channels="channelStore.all" />
+    <ChannelsGrid v-else :channels="channelStore.all" />
   </LoadIndicator>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 
-import type { DatabaseChannel, ServicesChannelInfo } from "@/services/api/v1/StreamSinkClient";
+import type { DatabaseChannel } from "@/services/api/v1/StreamSinkClient";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import { downloadObjectAsJson } from "@/utils/file";
 import LoadIndicator from "@/components/LoadIndicator.vue";
 import { useSettingsStore } from "@/stores/settings.ts";
 import ChannelsGrid from "@/components/channels/ChannelsGrid.vue";
 import ChannelsList from "@/components/channels/ChannelsList.vue";
+import { useChannelStore } from "@/stores/channel.ts";
 
-//type ChannelsViewLayout = "grid" | "list";
+// --------------------------------------------------------------------------------------
+// Declarations
+// --------------------------------------------------------------------------------------
+const channelStore = useChannelStore();
 
 // --------------------------------------------------------------------------------------
 // refs
@@ -45,7 +49,6 @@ import ChannelsList from "@/components/channels/ChannelsList.vue";
 
 const isImporting = ref(false);
 const channelsFile = useTemplateRef<HTMLInputElement>("channelsFile");
-const channels = ref<ServicesChannelInfo[]>([]);
 const isLoading = ref(true);
 
 const settingsStore = useSettingsStore();
@@ -97,7 +100,7 @@ const importChannels = (channelsResponse: DatabaseChannel[]) => {
         url: channel.url,
       });
 
-      channels.value.push(response);
+      channelStore.add(response);
     } catch (err) {
       alert(err);
     }
@@ -110,10 +113,7 @@ const importChannels = (channelsResponse: DatabaseChannel[]) => {
 // --------------------------------------------------------------------------------------
 
 onMounted(async () => {
-  const client = createClient();
-  const data = await client.channels.channelsList();
-  const sortedChannels: ServicesChannelInfo[] = (data || []).sort((a: ServicesChannelInfo, b: ServicesChannelInfo) => a.channelName.localeCompare(b.channelName));
-  channels.value = sortedChannels;
+  await channelStore.load();
   isLoading.value = false;
 });
 </script>

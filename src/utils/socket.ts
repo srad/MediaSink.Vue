@@ -8,77 +8,70 @@ export class SocketManager {
   private static connection: WebSocket | null = null;
   private static listeners: { [key: string]: ListenerType[] } = {};
   private instanceListeners: { [key: string]: ListenerType[] } = {};
+  private static pendingPromise: Promise<WebSocket> | null = null; // Track pending connection attempts
 
   // The callee can optionally wait for the promise.
   // Either, the socket is already open and the promise is resolved.
   // Or the connection is created and resolved, once the websocket is open.
   connect(): Promise<WebSocket> {
-    return new Promise<WebSocket>((resolve, reject) => {
-      // Already connected/connecting
-      if (SocketManager.connection !== null) {
-        // Already connected
-        if (SocketManager.connection.readyState === WebSocket.OPEN) {
-          resolve(SocketManager.connection);
-          return;
-        }
+    // If a connection is already open, return it.
+    if (SocketManager.connection !== null && SocketManager.connection.readyState === WebSocket.OPEN) {
+      return Promise.resolve(SocketManager.connection);
+    }
 
-        // Currently connecting ...
-        if (SocketManager.connection?.readyState === WebSocket.CONNECTING) {
-          const checker = setInterval(() => {
-            if (SocketManager.connection?.readyState === WebSocket.OPEN) {
-              clearInterval(checker);
-              resolve(SocketManager.connection);
-            } else if (SocketManager.connection?.readyState === WebSocket.CLOSING || SocketManager.connection?.readyState === WebSocket.CLOSED) {
-              clearInterval(checker);
-              reject("Connection already closed or closing");
-            }
-          }, 1000);
-          return;
-        }
-      }
+    // If there's an ongoing connection attempt, return its promise.
+    if (SocketManager.pendingPromise) {
+      return SocketManager.pendingPromise;
+    }
 
-      // Not logged-in.
+    SocketManager.pendingPromise = new Promise<WebSocket>((resolve, reject) => {
       const authStore = useAuthStore();
+
       if (!authStore.isLoggedIn) {
+        SocketManager.pendingPromise = null; // Clear pending promise
         reject("WebSocket missing authorization token");
         return;
       }
 
-      // Blocks multiple connections, wait ...
+      // Create the WebSocket connection
       SocketManager.connection = new WebSocket(window.APP_SOCKETURL + "?Authorization=" + authStore.getToken);
 
-      SocketManager.connection.addEventListener("message", SocketManager.invokeNotify);
+      SocketManager.connection.addEventListener("message", SocketManager.invokeNotify.bind(SocketManager));
 
       SocketManager.connection.addEventListener("open", () => {
+        console.log("WebSocket connection opened");
         resolve(SocketManager.connection!);
-        console.log("open ws");
+        SocketManager.pendingPromise = null; // Clear pending promise
       });
 
       SocketManager.connection.addEventListener("close", () => {
-        console.log("close ws");
+        console.log("WebSocket connection closed");
+        if (SocketManager.pendingPromise) {
+          SocketManager.pendingPromise = Promise.reject(new Error("WebSocket connection closed"));
+        }
+        SocketManager.pendingPromise = null;
       });
 
       SocketManager.connection.addEventListener("error", (ev: Event) => {
-        console.error(ev);
+        console.error("WebSocket error", ev);
         SocketManager.connection?.close();
         SocketManager.connection = null;
+        SocketManager.pendingPromise = null; // Clear pending promise
         reject(ev);
       });
     });
-  };
+
+    return SocketManager.pendingPromise;
+  }
 
   private static invokeNotify(rawMessage: SocketMessage) {
     const json = JSON.parse(rawMessage.data) as { name: string; data: object };
     SocketManager.notify(json.name, json.data);
   }
 
-  private static notify(event: string, data: object) {
-    if (!SocketManager.connection) {
-      return;
-    }
-
-    if (this.listeners[event]) {
-      this.listeners[event]!.forEach((fn) => fn(data));
+  private static notify(event: string, data: unknown) {
+    if (SocketManager.listeners[event]) {
+      SocketManager.listeners[event].forEach((fn) => fn(data));
     }
   }
 
@@ -86,8 +79,9 @@ export class SocketManager {
    * Destroys all listeners.
    */
   close(): void {
+    this.offGlobal();
     this.instanceListeners = {};
-  };
+  }
 
   on(event: string, fn: ListenerType) {
     // Init
@@ -101,7 +95,7 @@ export class SocketManager {
     // Add function reference.
     SocketManager.listeners[event].push(fn);
     this.instanceListeners[event].push(fn);
-  };
+  }
 
   /**
    * Removes a listener function. Notice that you can only remove non-anonymous functions,
@@ -118,26 +112,30 @@ export class SocketManager {
    */
   off(event: string, fn: ListenerType) {
     this.offInstance(event, fn);
-    this.offGlobalEvent(fn);
-  };
+    this.offFnFromGlobalListener(event, fn);
+  }
 
   private offInstance(event: string, fn: ListenerType) {
     if (this.instanceListeners[event]) {
-      for (let i = 0; i < this.instanceListeners[event].length; i++) {
-        if (this.instanceListeners[event][i] === fn) {
-          this.instanceListeners[event].splice(i, 1);
-        }
-      }
+      this.instanceListeners[event] = this.instanceListeners[event].filter((listener) => listener !== fn);
     }
   }
 
-  private offGlobalEvent(fn: ListenerType) {
+  /**
+   * Remove instance listeners from global array.
+   * @private
+   */
+  private offGlobal() {
     const instanceFns = Object.values(this.instanceListeners).flat();
 
     // Filter out functions that exist in instanceFns
     for (const eventName in SocketManager.listeners) {
       SocketManager.listeners[eventName] = SocketManager.listeners[eventName].filter((listener) => !instanceFns.includes(listener));
     }
+  }
+
+  private offFnFromGlobalListener(eventName: string, fn: ListenerType) {
+    SocketManager.listeners[eventName] = SocketManager.listeners[eventName].filter((listener) => listener !== fn);
   }
 }
 

@@ -1,26 +1,46 @@
-import type {
-  DatabaseChannel,
-  DatabaseRecording,
-  RequestsChannelRequest as ChannelRequest,
-  ServicesChannelInfo,
-  ServicesChannelInfo as ChannelInfo
-} from "../services/api/v1/StreamSinkClient";
+import type { DatabaseChannel as ChannelResponse, DatabaseChannel, DatabaseRecording, RequestsChannelRequest as ChannelRequest, ServicesChannelInfo, ServicesChannelInfo as ChannelInfo } from "../services/api/v1/StreamSinkClient";
 import { defineStore } from "pinia";
 import { createClient } from "../services/api/v1/ClientFactory";
 import { useJobStore } from "../stores/job";
+
+export const sortChannel = (a: ChannelResponse, b: ChannelResponse) => a.channelName!.localeCompare(b.channelName!);
 
 export const useChannelStore = defineStore("channel", {
   state: (): ChannelState => ({
     channels: [],
   }),
+  getters: {
+    all(): ChannelInfo[] {
+      return this.channels;
+    },
+    notRecordingStreams(): ChannelInfo[] {
+      return this.channels
+        .slice()
+        .filter((row: ChannelInfo) => !row.isRecording && !row.isPaused)
+        .sort(sortChannel);
+    },
+    disabledStreams(): ChannelInfo[] {
+      return this.channels
+        .slice()
+        .filter((row: ChannelInfo) => row.isPaused)
+        .sort(sortChannel);
+    },
+    recordingStreams(): ChannelInfo[] {
+      return this.channels
+        .slice()
+        .filter((row: ChannelInfo) => row.isRecording && !row.isTerminating)
+        .sort(sortChannel);
+    },
+  },
   actions: {
     addRecording(r: DatabaseRecording) {
-      this.channels.find((x: ChannelInfo) => x.channelId === r.channelId)?.recordings?.push(r);
+      this.channels = this.channels.map((channel: ChannelInfo) => (channel.channelId === r.channelId ? { ...channel, recordings: [...(channel.recordings || []), r] } : channel));
     },
     async load() {
       const client = createClient();
       const data = await client.channels.channelsList();
-      this.channels = data || [];
+      const sortedChannels: ServicesChannelInfo[] = (data || []).sort((a, b) => a.channelName.localeCompare(b.channelName));
+      this.channels = sortedChannels || [];
     },
     save(channel: ChannelRequest): Promise<ServicesChannelInfo> {
       return new Promise((resolve, reject) => {
@@ -35,80 +55,46 @@ export const useChannelStore = defineStore("channel", {
       });
     },
     online(channelId: number) {
-      const i = this.channels.findIndex((ch: ChannelInfo) => ch.channelId === channelId);
-      if (i !== -1) {
-        this.channels[i]!.isOnline = true;
-      }
+      this.channels = this.channels.map((channel: ChannelInfo) => (channel.channelId === channelId ? { ...channel, isOnline: true } : channel));
     },
     offline(channelId: number) {
-      const i = this.channels.findIndex((ch: ChannelInfo) => ch.channelId === channelId);
-      if (i !== -1) {
-        this.channels[i]!.isOnline = false;
-        this.channels[i]!.isRecording = false;
-      }
+      this.channels = this.channels.map((channel: ChannelInfo) => (channel.channelId === channelId ? { ...channel, isOnline: false, isRecording: false } : channel));
     },
     thumbnail(channelId: number) {
-      const index = this.channels.findIndex((ch: ChannelInfo) => ch.channelId === channelId);
-      if (index !== -1) {
-        // Refresh cache with url timestamp update.
-        this.channels[index]!.preview = this.channels[index]!.preview.split("?")[0] + `?time=${Date.now()}`;
-      }
+      this.channels = this.channels.map((channel: ChannelInfo) => (channel.channelId === channelId ? { ...channel, preview: channel.preview.split("?")[0] + `?time=${Date.now()}` } : channel));
     },
     start(channelId: number) {
-      const i = this.channels.findIndex((ch: ChannelInfo) => ch.channelId === channelId);
-      if (i !== -1) {
-        this.channels[i]!.isRecording = true;
-        this.channels[i]!.isOnline = true;
-      }
+      this.channels = this.channels.map((channel: ChannelInfo) => (channel.channelId === channelId ? { ...channel, isRecording: true, isOnline: true } : channel));
     },
     add(channel: ChannelInfo) {
       if (!this.channels.some((c: ChannelInfo) => c.channelId === channel.channelId)) {
-        this.channels.push(channel);
+        this.channels = [...this.channels, channel];
       }
     },
     update(channel: DatabaseChannel) {
-      const i = this.channels.findIndex((c: ChannelInfo) => c.channelId === channel.channelId);
-      if (i !== -1) {
-        const ch = this.channels[i] as ChannelInfo;
-        Object.keys(channel).forEach((key: string) => {
-          //@ts-expect-error type nonsesense
-          ch[key] = channel[key];
-        });
-      }
+      this.channels = this.channels.map((ch: ChannelInfo) => (ch.channelId === channel.channelId ? { ...ch, ...channel } : ch));
     },
     destroy(channelId: number) {
       this.channels = this.channels.filter((x: ChannelInfo) => x.channelId !== channelId);
-      const jobStore = useJobStore();
-      jobStore.deleteChannel(channelId);
+      useJobStore().deleteChannel(channelId);
     },
     pause(channelId: number) {
-      const i = this.channels.findIndex((c: ChannelInfo) => c.channelId === channelId);
-      if (i !== -1) {
-        this.channels[i]!.isRecording = false;
-        this.channels[i]!.isPaused = true;
-      }
+      this.channels = this.channels.map((channel: ChannelInfo) => (channel.channelId === channelId ? { ...channel, isRecording: false, isPaused: true } : channel));
     },
     resume(channelId: number) {
-      const i = this.channels.findIndex((c: ChannelInfo) => c.channelId === channelId);
-      if (i !== -1) {
-        this.channels[i]!.isPaused = false;
-      }
+      this.channels = this.channels.map((channel: ChannelInfo) => (channel.channelId === channelId ? { ...channel, isPaused: false } : channel));
     },
     fav(id: number) {
-      const i = this.channels.findIndex((ch: ChannelInfo) => ch.channelId === id);
-      this.channels[i]!.fav = true;
+      this.channels = this.channels.map((channel: ChannelInfo) => (channel.channelId === id ? { ...channel, fav: true } : channel));
     },
     unfav(id: number) {
-      const i = this.channels.findIndex((ch: ChannelInfo) => ch.channelId === id);
-      this.channels[i]!.fav = false;
+      this.channels = this.channels.map((channel: ChannelInfo) => (channel.channelId === id ? { ...channel, fav: false } : channel));
     },
     clear() {
       this.channels = [];
     },
     stop() {
-      for (let i = 0; i < this.channels.length; i += 1) {
-        this.channels[i]!.isRecording = false;
-      }
+      this.channels = this.channels.map((channel: ChannelInfo) => ({ ...channel, isRecording: false }));
     },
   },
 });
