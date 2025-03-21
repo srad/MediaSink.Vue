@@ -3,22 +3,21 @@
   "include": [
     "env.d.ts",
     "src/**/*",
-    "src/**/*.vue",
     "src/**/*.d.ts"
   ],
   "exclude": [
     "src/**/__tests__/*"
   ],
   "compilerOptions": {
+    "strict": true,
     "types": [
       "pinia-plugin-persistedstate",
       "vite-plugin-pwa/client",
       "vite-plugin-pwa/vue"
     ],
     "lib": [
-      "ES2020",
+      "ESNext",
       "DOM",
-      "DOM.Iterable"
     ],
     "noUnusedLocals": false,
     "noUnusedParameters": false,

@@ -9,7 +9,7 @@
       <template v-slot:body>
         <ul class="list-unstyled">
           <li :key="recording.recordingId" v-for="recording in selectedRecordings" class="list-group-item d-flex justify-content-between mb-2">
-            <img class="img-thumbnail w-20 me-2" :alt="recording.filename" :src="`${fileUrl}/${recording.previewCover || recording.channelName + '/.previews/live.jpg'}`" />
+            <img class="img-thumbnail w-20 me-2" :alt="recording.filename" loading="lazy" :src="`${fileUrl}/${recording.previewCover || recording.channelName + '/.previews/live.jpg'}`" />
             <div class="w-80">
               <div>{{ recording.filename }}</div>
               <div>{{ (recording.duration / 60).toFixed(1) }}min - {{ Math.fround(recording.size / 1024 / 1024 / 1024).toFixed(1) }}GB</div>
@@ -77,7 +77,7 @@
       </div>
 
       <div class="row mb-5">
-        <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-6 col-xl-4 col-xxl-3 col-md-6">
+        <div v-for="recording in recordings" :key="recording.recordingId" class="mb-3 col-lg-6 col-xl-4 col-xxl-3 col-md-6">
           <VideoItem :job="jobStore.isProcessing(recording.recordingId)" @destroyed="destroyRecording" :check="selectedRecordings.some((x: RecordingResponse) => x.recordingId === recording.recordingId)" @checked="selectRecording" :show-selection="true" :recording="recording" :show-title="false" />
         </div>
       </div>
@@ -140,7 +140,9 @@ const areItemsSelected = computed(() => selectedRecordings.value.length > 0);
 
 const recordings = computed(() => {
   if (channel.value && channel.value.recordings) {
-    return channel!.value.recordings.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).sort((a, b) => b.videoType.localeCompare(a.videoType));
+    return [...channel.value.recordings] // Avoid mutating original array
+      .sort((a, b) => b.videoType.localeCompare(a.videoType))
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
   }
   return [];
 });
@@ -276,6 +278,8 @@ const mergeVideos = async () => {
 // --------------------------------------------------------------------------------------
 
 onUnmounted(() => {
+  channel.value = null; // Force release memory
+  selectedRecordings.value = [];
   socketManager.close();
 });
 

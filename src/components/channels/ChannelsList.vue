@@ -15,7 +15,7 @@
     <tbody>
     <tr :key="channel.channelId" v-for="channel in channels" class="align-middle">
       <td class="text-center p-0">
-        <img alt="preview" :src="`${fileUrl}/${channel.preview}`" class="rounded" style="height: 50px; width: auto"/>
+        <img alt="preview" :src="`${fileUrl}/${channel.preview}`" class="rounded" loading="lazy" style="height: 50px; width: auto"/>
       </td>
       <td class="px-2">
         <RouterLink class="text-decoration-none" :to="`/channel/${channel.channelId}/${channel.channelName}`">

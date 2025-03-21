@@ -3,7 +3,13 @@
     <span class="recording-indicator position-absolute">
       <i class="bi fs-4 text-danger blink bi-record-fill pulse" v-if="props.isRecording"></i>
     </span>
-    <img class="w-100 h-auto" alt="preview" :src="props.previewImage" v-if="!props.previewVideo || props.previewVideo?.endsWith('null')"/>
+
+    <img class="w-100 h-auto"
+         alt="preview"
+         loading="lazy"
+         :src="props.previewImage"
+         v-if="!props.previewVideo || props.previewVideo?.endsWith('null')"/>
+
     <video v-else ref="video" loop muted playsinline
            class="w-100 h-auto"
            style="user-select: none; z-index: 0;"

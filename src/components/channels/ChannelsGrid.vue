@@ -5,7 +5,7 @@
       <div v-for="(channel, index) in props.channels" :key="index" class="col-12 col-md-6 col-lg-4 col-xxl-3">
         <div class="collage-item">
           <RouterLink :to="`/channel/${channel.channelId}/${channel.channelName}`">
-            <img alt="preview" :src="`${fileUrl}/${channel.preview}`"/>
+            <img loading="lazy" alt="preview" :src="`${fileUrl}/${channel.preview}`"/>
           </RouterLink>
           <div class="recording-indicator" v-if="channel.isRecording">
             <i class="bi fs-5 text-danger blink bi-record-fill pulse"></i>

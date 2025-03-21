@@ -154,12 +154,10 @@ watch(isMuted, (muted) => {
 
 watch(pause, async (val) => {
   if (isMounted.value && video.value) {
-    const vid = video.value;
-
     if (val) {
-      vid.pause();
-    } else {
-      await vid.play();
+      video.value.pause();
+    } else if (video.value.paused) {
+      await video.value.play();
     }
   }
 });
@@ -195,7 +193,7 @@ const playCut = () => {
   let i = 0;
 
   const timeUpdate = () => {
-    if (!markings.value[i] || !playingCut.value) {
+    if (i >= markings.value.length) {
       video.value!.removeEventListener("timeupdate", timeUpdate);
       pause.value = true;
       playingCut.value = false;
@@ -210,6 +208,13 @@ const playCut = () => {
       return;
     }
   };
+
+  if (i >= markings.value.length) {
+    video.value!.removeEventListener("timeupdate", timeUpdate);
+    pause.value = true;
+    playingCut.value = false;
+    return;
+  }
 
   timeCode.value = markings.value[i].timestart;
   video.value!.addEventListener("timeupdate", timeUpdate);
@@ -297,16 +302,21 @@ const loadData = async () => {
   }
 };
 
+let lastUpdate = 0;
 const timeupdate = () => {
   if (isMounted.value && video.value) {
-    timeCode.value = video.value.currentTime;
+    const now = performance.now();
+    if (now - lastUpdate > 100) { // Update every 100ms instead of every frame
+      timeCode.value = video.value.currentTime;
+      lastUpdate = now;
+    }
   }
 };
 
 const unloadVideo = () => {
   if (isMounted.value && video.value) {
     video.value.pause();
-    video.value.firstElementChild!.removeAttribute("src");
+    video.value.src = "";
     video.value.load();
   }
 };
@@ -348,7 +358,9 @@ onMounted(async () => {
   stripeUrl.value = fileUrl + "/" + recording.value?.previewStripe;
   videoUrl.value = fileUrl + "/" + recording.value?.pathRelative;
 
+  window.removeEventListener("orientationchange", rotate); // Ensure no duplicate listeners
   window.addEventListener("orientationchange", rotate);
+
   isMounted.value = true;
   isShown.value = true;
 });

@@ -8,6 +8,12 @@ import nightwatchPlugin from "vite-plugin-nightwatch";
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    sourcemap: true,
+  },
+  css: {
+    devSourcemap: true,
+  },
   plugins: [
     vue(),
     vueDevTools(),
