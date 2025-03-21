@@ -4,12 +4,12 @@
       <span class="fs-5">Confirm your video cut</span>
     </template>
     <template v-slot:body>
-      <MarkingsTable v-if="showConfirmDialog" :show-destroy="false" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)"/>
+      <MarkingsTable v-if="showConfirmDialog" :show-destroy="false" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)" />
 
-      <hr/>
+      <hr />
 
       <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="deleteFileAfterCut"/>
+        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="deleteFileAfterCut" />
         <label class="form-check-label" for="flexSwitchCheckDefault">Delete file after cut?</label>
       </div>
     </template>
@@ -17,35 +17,27 @@
   <BusyOverlay :visible="busy"></BusyOverlay>
 
   <div v-if="recording">
-
     <div class="d-flex flex-column bg-light w-100 vh-100">
       <!-- Main Row: Video & Sidebar -->
       <div class="d-flex flex-row w-100 flex-grow-1 overflow-hidden">
         <div class="w-100 d-flex flex-column">
           <!-- Video Container: Takes remaining space -->
           <div class="d-flex flex-grow-1 overflow-hidden bg-dark">
-            <video class="w-100 h-100"
-                   style="object-fit: contain; outline: none;"
-                   ref="video"
-                   :muted="isMuted"
-                   @volumechange="volumeChanged($event)"
-                   @loadeddata="loadData"
-                   @timeupdate="timeupdate"
-                   @seeked="() => seeked = video!.currentTime"
-                   controls
-                   playsinline
-                   autoplay>
-              <source :src="videoUrl" type="video/mp4"/>
+            <video class="w-100 h-100" style="object-fit: contain; outline: none" ref="video" :muted="isMuted" @volumechange="volumeChanged($event)" @loadeddata="loadData" @timeupdate="timeupdate" @seeked="() => (seeked = video!.currentTime)" controls playsinline autoplay>
+              <source :src="videoUrl" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </div>
 
           <!-- Controls: Fixed height -->
-          <div class="d-flex align-items-center justify-content-between w-100 p-1 bg-dark flex-shrink-0 border-top border-white" style="height: 40px;">
+          <div class="d-flex align-items-center justify-content-between w-100 p-1 bg-dark flex-shrink-0 border-top border-white" style="height: 40px">
             <div>
-              <button class="btn btn-danger btn-sm" @click="destroy">
+              <button class="btn btn-danger btn-sm me-1" @click="destroy">
                 <span>Delete</span>
               </button>
+              <RouterLink class="btn btn-sm btn-info" :to="`/channel/${recording.channelId}/${recording.channelName}`">
+                Show Channel
+              </RouterLink>
             </div>
 
             <div class="d-flex">
@@ -61,55 +53,32 @@
 
               <!-- back forth buttons -->
               <div class="d-flex">
-                <button class="btn btn-info btn-sm me-1" @click="back" type="button">
-                  -{{skipSeconds}}s<i class="bi bi-chevron-left"></i>
-                </button>
+                <button class="btn btn-info btn-sm me-1" @click="back" type="button">-{{ skipSeconds }}s<i class="bi bi-chevron-left"></i></button>
 
-                <button class="btn btn-info btn-sm" @click="forward" type="button">
-                  <i class="bi bi-chevron-right"></i>{{skipSeconds}}s+
-                </button>
+                <button class="btn btn-info btn-sm" @click="forward" type="button"><i class="bi bi-chevron-right"></i>{{ skipSeconds }}s+</button>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Sidebar -->
-        <div v-if="editMode" class="d-none d-lg-flex flex-column p-1 bg-secondary" style="width: 350px;font-size: 0.85rem">
-          <MarkingsTable
-            :show-destroy="true"
-            :markings="markings"
-            @destroy="(marking: Marking) => destroyMarking(marking)"
-            @selected="(marking: Marking) => selectMarking(marking)"/>
+        <div v-if="editMode" class="d-none d-lg-flex flex-column p-1 bg-secondary" style="width: 350px; font-size: 0.85rem">
+          <MarkingsTable :show-destroy="true" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)" />
 
           <!-- Play cut controls
           <button class="btn btn-primary btn-sm" @click="playCut" v-if="!playingCut">Play Cut <i class="bi bi-play-fill"></i></button>
           <button v-else class="btn btn-sm btn-primary" @click="stopCut"><span>Stop cut</span> <i class="bi bi-stop-fill"></i></button>
           -->
 
-          <button v-if="editMode" class="btn btn-sm my-2 btn-warning" type="button" @click="showConfirmDialog = true">
-            {{ t("videoView.button.cut") }} <i class="bi bi-scissors"></i>
-          </button>
+          <button v-if="editMode" class="btn btn-sm my-2 btn-warning" type="button" @click="showConfirmDialog = true">{{ t("videoView.button.cut") }} <i class="bi bi-scissors"></i></button>
         </div>
       </div>
 
       <!-- Video Stripe: Fixed height, always visible -->
-      <div class="w-100 flex-shrink-0 bg-light position-relative" style="height: 20vh; max-height: 100px;">
-        <VideoStripe
-          :loaded="isLoaded"
-          :src="stripeUrl"
-          :disabled="playingCut"
-          :seeked="seeked"
-          :paused="pause"
-          :timecode="timeCode"
-          :duration="duration"
-          :markings="markings"
-          @selecting="() =>  pause = true"
-          @marking="(m) => (markings = m)"
-          @seek="seek"/>
+      <div class="w-100 flex-shrink-0 bg-light position-relative" style="height: 20vh; max-height: 100px">
+        <VideoStripe :loaded="isLoaded" :src="stripeUrl" :disabled="playingCut" :seeked="seeked" :paused="pause" :timecode="timeCode" :duration="duration" :markings="markings" @selecting="() => (pause = true)" @marking="(m) => (markings = m)" @seek="seek" />
       </div>
     </div>
-
-
   </div>
 </template>
 
