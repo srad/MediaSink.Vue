@@ -1,35 +1,28 @@
 <template>
   <div>
-    <NavTop :routes="routes" :title="title" @add="showModal = true" :show-logout="true" @logout="logout"/>
+    <NavTop :routes="routes" :title="title" @add="showModal = true" :show-logout="true" @logout="logout" />
     <main class="container-fluid" style="margin-top: 4rem">
       <slot></slot>
-      <ChannelModal :clear="showModal" :show="showModal" :is-paused="false" :saving="false" title="Add Stream" @save="save" @close="showModal = false"/>
-      <AppToaster :toasts="toasts"/>
+      <ChannelModal :clear="showModal" :show="showModal" :is-paused="false" :saving="false" title="Add Stream" @save="save" @close="showModal = false" />
+      <AppToaster :toasts="toasts" />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  type DatabaseJob,
-  DatabaseJobOrder,
-  DatabaseJobStatus,
-  type RequestsChannelRequest as ChannelRequest
-} from "@/services/api/v1/StreamSinkClient";
+import { type DatabaseJob, DatabaseJobOrder, DatabaseJobStatus, type RequestsChannelRequest as ChannelRequest } from "@/services/api/v1/StreamSinkClient";
 import { closeSocket, connectSocket, MessageType, socketOn } from "@/utils/socket";
 import ChannelModal from "@/components/modals/ChannelModal.vue";
 import NavTop from "@/components/navs/NavTop.vue";
 import { useChannelStore } from "@/stores/channel";
 import { useJobStore } from "@/stores/job";
 import { useToastStore } from "@/stores/toast";
-import { computed, inject, onMounted, onUnmounted, ref, watch, onActivated } from "vue";
-import type { JobMessage, TaskComplete, TaskInfo, TaskProgress } from "@/types/appTypes";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import AppToaster from "@/components/AppToaster.vue";
-import { storeToRefs } from "pinia";
 
 // --------------------------------------------------------------------------------------
 // Declarations

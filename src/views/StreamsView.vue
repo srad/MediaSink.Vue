@@ -103,7 +103,6 @@ import ChannelItem from "@/components/ChannelItem.vue";
 import ChannelModal from "@/components/modals/ChannelModal.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import type { ChannelUpdate } from "@/types/appTypes";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import LoadIndicator from "@/components/LoadIndicator.vue";
 
