@@ -42,7 +42,21 @@ const routes = [
   { path: "/:pathMatch(.*)*", redirect: "/streams/live/tab" },
 ];
 
-const router = createRouter({ history: createWebHistory(), routes });
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const contentElement = document.querySelector("body");
+        if (contentElement) {
+          contentElement.scrollTo({ top: 0, behavior: "instant" });
+        }
+        resolve(savedPosition || { top: 0 });
+      }, 100); // Small delay to ensure the content has loaded
+    });
+  },
+});
 
 router.afterEach((to) => {
   //@ts-expect-error Vue nonsense error
@@ -51,7 +65,7 @@ router.afterEach((to) => {
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
-  const publicPages = [ "/login", "/register" ];
+  const publicPages = ["/login", "/register"];
   const isLoggedIn = authStore.isLoggedIn;
 
   if (!isLoggedIn && publicPages.includes(to.path)) {
