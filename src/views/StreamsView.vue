@@ -1,19 +1,19 @@
 <template>
-  <ChannelModal @save="save" @close="showModal = false" title="Edit Stream" :saving="saving" :is-paused="isPaused" :channel-disabled="true" :clear="false" :channel-id="channelId" :show="showModal" :channel-name="channelName" :display-name="displayName" :url="url" :min-duration="minDuration" :skip-start="skipStart"/>
+  <ChannelModal @save="save" @close="showModal = false" title="Edit Stream" :saving="saving" :is-paused="isPaused" :channel-disabled="true" :clear="false" :channel-id="channelId" :show="showModal" :channel-name="channelName" :display-name="displayName" :url="url" :min-duration="minDuration" :skip-start="skipStart" />
 
   <!-- Search bar -->
   <div class="row">
     <div class="col">
       <!--<div class="d-flex rounded-2 border mb-3 p-0 bg-light border-info p-1">-->
       <div class="input-group mb-3 align-middle">
-        <input ref="searchField" autocapitalize="off" autocomplete="off" class="form-control border-secondary" type="text" name="search" placeholder="search ... #tag" v-model="searchVal"/>
+        <input ref="searchField" autocapitalize="off" autocomplete="off" class="form-control border-secondary" type="text" name="search" placeholder="search ... #tag" v-model="searchVal" />
         <span class="input-group-text bg-danger-subtle" v-if="searchVal != ''">
-            <i class="bi bi-x-lg text-danger fs-4" @click="searchVal = ''"/>
-          </span>
+          <i class="bi bi-x-lg text-danger fs-4" @click="searchVal = ''" />
+        </span>
         <span class="input-group-text" style="color: deeppink">
-            <i v-if="favs" class="bi bi-heart-fill fs-4" @click="favs = false"/>
-            <i v-else class="bi bi-heart fs-4" @click="favs = true"/>
-          </span>
+          <i v-if="favs" class="bi bi-heart-fill fs-4" @click="favs = false" />
+          <i v-else class="bi bi-heart fs-4" @click="favs = true" />
+        </span>
       </div>
     </div>
   </div>
@@ -29,7 +29,7 @@
             <h5 class="m-5">No results...</h5>
           </div>
           <div v-else v-for="channel in searchResults" :key="channel.channelId" :class="channelItemClass">
-            <ChannelItem :channel="channel"/>
+            <ChannelItem :channel="channel" />
           </div>
         </div>
       </div>
@@ -67,7 +67,7 @@
           <div class="tab-pane fade" :class="{ 'active show': tab === 'live' }" id="home" role="tabpanel" aria-labelledby="home-tab">
             <div class="row">
               <div v-for="channel in channelStore.recordingStreams" :key="channel.channelId" :class="channelItemClass">
-                <ChannelItem :channel="channel" @edit="editChannel"/>
+                <ChannelItem :channel="channel" @edit="editChannel" />
               </div>
               <h1 v-if="channelStore.recordingStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
             </div>
@@ -76,7 +76,7 @@
           <div class="tab-pane fade" :class="{ 'active show': tab === 'offline' }" id="profile" role="tabpanel" aria-labelledby="profile-tab">
             <div class="row">
               <div v-for="channel in channelStore.notRecordingStreams" :key="channel.channelId" :class="channelItemClass">
-                <ChannelItem :channel="channel" @edit="editChannel"/>
+                <ChannelItem :channel="channel" @edit="editChannel" />
               </div>
               <h1 v-if="channelStore.notRecordingStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
             </div>
@@ -85,7 +85,7 @@
           <div class="tab-pane fade" :class="{ 'active show': tab === 'disabled' }" id="disabled" role="tabpanel" aria-labelledby="disabled-tab">
             <div class="row">
               <div v-for="channel in channelStore.disabledStreams" :key="channel.channelId" :class="channelItemClass">
-                <ChannelItem :channel="channel" @edit="editChannel"/>
+                <ChannelItem :channel="channel" @edit="editChannel" />
               </div>
               <h1 v-if="channelStore.disabledStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
             </div>
@@ -105,6 +105,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import LoadIndicator from "@/components/LoadIndicator.vue";
 import { sortChannel, useChannelStore } from "@/stores/channel.ts";
+import type { ChannelUpdate } from "@/types/channel";
 
 // --------------------------------------------------------------------------------------
 // Declarations

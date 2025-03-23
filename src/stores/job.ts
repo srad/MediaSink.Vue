@@ -1,6 +1,39 @@
-import type { DatabaseJob as Job } from "../services/api/v1/StreamSinkClient";
+import { type DatabaseJob as Job, DatabaseJobOrder } from "../services/api/v1/StreamSinkClient";
 import { DatabaseJobStatus } from "../services/api/v1/StreamSinkClient";
 import { defineStore } from "pinia";
+import { createClient } from "../services/api/v1/ClientFactory";
+
+export type JobMessage<T> = {
+  data: T;
+  job: Job;
+};
+
+export type JobState = {
+  jobs: Job[];
+  jobsCount: number;
+};
+
+export type TaskInfo = {
+  steps: number;
+  step: number;
+  pid: number;
+  command: string;
+  message: string;
+};
+
+export type TaskComplete = {
+  steps: number;
+  step: number;
+  message: string;
+};
+
+export type TaskProgress = {
+  current: number;
+  total: number;
+  steps: number;
+  step: number;
+  message: string;
+};
 
 export const useJobStore = defineStore("job", {
   state(): JobState {
@@ -10,31 +43,44 @@ export const useJobStore = defineStore("job", {
     };
   },
   getters: {
-    getJobs(): Job[] {
-      return this.jobs || [];
+    all: (state: JobState): Job[] => {
+      return state.jobs || [];
     },
-    getOpen(): Job[] {
-      return (this.jobs || []).filter((x: Job) => x.status === DatabaseJobStatus.StatusJobOpen);
+    open: (state: JobState): Job[] => {
+      return (state.jobs || []).filter((x: Job) => x.status === DatabaseJobStatus.StatusJobOpen);
     },
-    isProcessing(): (recordingId: number) => string | null {
-      return (recordingId: number) => {
-        return this.jobs.find((job: Job) => job.recordingId === recordingId)?.task || null;
-      };
+    // A little function acrobatics: getters are treated as functions and immediately called.
+    isProcessing: (state: JobState): ((recordingId: number) => string | null) => {
+      return (recordingId: number) => state.jobs.find((job: Job) => job.recordingId === recordingId)?.task || null;
     },
   },
   actions: {
-    create(job: Job) {
+    async load() {
+      const client = createClient();
+
+      const response = await client.jobs.listCreate({
+        skip: 0,
+        take: 100,
+        states: [DatabaseJobStatus.StatusJobOpen],
+        sortOrder: DatabaseJobOrder.JobOrderASC,
+      });
+
+      if (response.jobs) {
+        this.jobs = response.jobs;
+        this.jobsCount = response.totalCount; // Not the number of returned items, the total number in the database.
+      }
+    },
+    add(job: Job) {
       this.jobs.push(job);
       this.jobsCount += 1;
     },
     dec() {
       this.jobsCount = Math.max(this.jobsCount - 1, 0);
     },
-    deleteChannel(channelId: number) {
-      this.jobs = this.jobs.filter((x: Job) => x.channelId !== channelId);
-    },
-    deleteRecording(recordingId: number) {
-      this.jobs = this.jobs.filter((x: Job) => x.recordingId !== recordingId);
+    destroyChannel(channelId: number) {
+      if (this.jobs.some((job: Job) => job.channelId === channelId)) {
+        this.jobs = this.jobs.filter((x: Job) => x.channelId !== channelId);
+      }
     },
     destroy(jobId: number) {
       const index = this.jobs.findIndex((x: Job) => x.jobId === jobId);

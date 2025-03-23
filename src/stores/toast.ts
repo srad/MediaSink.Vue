@@ -1,5 +1,24 @@
-/// <reference path="../types/global.d.ts" />
 import { defineStore } from "pinia";
+
+export type ToastState = {
+  toasts: Toast[];
+};
+
+export enum ToastKind {
+  Success = "success",
+  Error = "error",
+  Warning = "warning",
+  Info = "info",
+}
+
+export type Toast = {
+  title: string;
+  message: string;
+  hide: boolean;
+  created: Date;
+  countdown: number;
+  kind: ToastKind;
+};
 
 export const useToastStore = defineStore("toast", {
   state: (): ToastState => ({
@@ -7,23 +26,23 @@ export const useToastStore = defineStore("toast", {
   }),
   actions: {
     info({ title, message }: { title: string; message: string }) {
-      this.add({ title, message, kind: "info" });
+      this.add({ title, message, kind: ToastKind.Info });
     },
     error({ title, message }: { title: string; message: string }) {
-      this.add({ title, message, kind: "error" });
+      this.add({ title, message, kind: ToastKind.Error });
     },
     warn({ title, message }: { title: string; message: string }) {
-      this.add({ title, message, kind: "warning" });
+      this.add({ title, message, kind: ToastKind.Warning });
     },
     success({ title, message }: { title: string; message: string }) {
-      this.add({ title, message, kind: "success" });
+      this.add({ title, message, kind: ToastKind.Success });
     },
     add({ title, message, kind }: { title: string; message: string; kind?: ToastKind }) {
       // The animation can also be implemented with pure CSS, but that free us from this state update logic.
       const toast: Toast = {
         title,
         message,
-        kind: kind || "info",
+        kind: kind || ToastKind.Info,
         hide: false,
         created: new Date(),
         countdown: 100,
@@ -54,8 +73,8 @@ export const useToastStore = defineStore("toast", {
     },
   },
   getters: {
-    getToast(): Toast[] {
-      return this.toasts;
+    all: (state: ToastState): Toast[] => {
+      return state.toasts;
     },
   },
 });

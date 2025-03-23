@@ -84,7 +84,7 @@
 
 <script setup lang="ts">
 import type { DatabaseRecording } from "@/services/api/v1/StreamSinkClient";
-import VideoStripe from "@/components/VideoStripe.vue";
+import VideoStripe, { type Marking } from "@/components/VideoStripe.vue";
 import RecordingFavButton from "@/components/controls/RecordingFavButton.vue";
 import BusyOverlay from "@/components/BusyOverlay.vue";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
@@ -182,7 +182,7 @@ const stopCut = () => {
 
 const volumeChanged = (event: Event) => {
   isMuted.value = video.value!.muted;
-  settingsStore.setVolume(video.value!.volume);
+  settingsStore.updateVolume(video.value!.volume);
 };
 
 const playCut = () => {
@@ -261,7 +261,7 @@ const destroy = () => {
     .recordingsDelete(recording.value.recordingId)
     .then(() => {
       // Remove from Job list if existent.
-      jobStore.deleteRecording(recording.value!.recordingId);
+      jobStore.destroy(recording.value!.recordingId);
       toastStore.success({ title: "Video deleted", message: recording.value!.filename });
       router.back();
     })
@@ -296,7 +296,7 @@ const loadData = async () => {
   if (isMounted.value && video.value) {
     duration.value = video.value.duration;
     isLoaded.value = true;
-    video.value.volume = settingsStore.getVolume;
+    video.value.volume = settingsStore.videoVolume;
     video.value.focus(); // Allows using key controls for the video immediately. Including forward+rewind with the left/right keys.
     pause.value = false;
   }

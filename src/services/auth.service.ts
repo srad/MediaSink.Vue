@@ -2,6 +2,12 @@ import { createClient } from "./api/v1/ClientFactory";
 import { type RequestsAuthenticationRequest } from "./api/v1/StreamSinkClient";
 import { useAuthStore } from "../stores/auth";
 
+declare global {
+  interface Window {
+    APP_APIURL: string;
+  }
+}
+
 export interface AuthInfo {
   token: string;
 }
@@ -22,24 +28,20 @@ export default class AuthService {
       client.auth
         .loginCreate(user)
         .then((response) => {
-          const authStore = useAuthStore();
           const r = response as unknown as AuthInfo;
           if (r.token) {
             return resolve(r.token);
-          } else {
-            return reject("token not found");
           }
+          return reject("token not found");
         })
         .catch(reject);
     });
   }
 
-  static logout() {
-  }
+  static logout() {}
 
   static signup(user: RequestsAuthenticationRequest) {
     const client = clientBuilder();
     return client.auth.signupCreate(user);
   }
-
 }

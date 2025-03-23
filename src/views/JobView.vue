@@ -20,18 +20,15 @@
           <div class="d-flex justify-content-center">
             <div class="col-auto">
               <button type="button" class="btn me-2" :class="{ 'btn-success': !processingJobs, 'btn-danger': processingJobs }" @click="showConfirmToggleWorkerDialog = true">
-                <span v-if="processingJobs"><i class="bi bi-pause-fill blink"/> <span class="ms-1 d-none d-sm-inline-flex">Pause</span></span>
-                <span v-else><i class="bi bi-play-fill"/> <span class="ms-1 d-none d-sm-inline-flex">Resume</span></span>
+                <span v-if="processingJobs"><i class="bi bi-pause-fill blink" /> <span class="ms-1 d-none d-sm-inline-flex">Pause</span></span>
+                <span v-else><i class="bi bi-play-fill" /> <span class="ms-1 d-none d-sm-inline-flex">Resume</span></span>
               </button>
             </div>
             <!-- filter row -->
             <div class="row align-items-center">
               <div class="col-auto">
                 <select id="limit" class="form-select" v-model="take">
-                  <option value="" style="font-weight: bold" disabled>{{
-                      t("filter.limit")
-                    }}
-                  </option>
+                  <option value="" style="font-weight: bold" disabled>{{ t("filter.limit") }}</option>
                   <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
                 </select>
               </div>
@@ -50,71 +47,68 @@
     <ul class="nav nav-tabs my-2" id="pills-tab" role="tablist">
       <li class="nav-item" role="presentation">
         <RouterLink class="text-decoration-none" to="/jobs/general">
-          <button data-tab="general" class="nav-link" :class="{ active: route.params.tab === 'general' }" id="pills-open-tab" data-bs-toggle="pill" data-bs-target="#pills-open" type="button" role="tab" aria-controls="pills-open" aria-selected="true">
-            {{ t("general.open") }} <i class="bi bi-arrow-clockwise"/></button>
+          <button data-tab="general" class="nav-link" :class="{ active: route.params.tab === 'general' }" id="pills-open-tab" data-bs-toggle="pill" data-bs-target="#pills-open" type="button" role="tab" aria-controls="pills-open" aria-selected="true">{{ t("general.open") }} <i class="bi bi-arrow-clockwise" /></button>
         </RouterLink>
       </li>
       <li class="nav-item" role="presentation">
         <RouterLink to="/jobs/completed" class="text-decoration-none">
-          <button data-tab="completed" class="nav-link" :class="{ active: route.params.tab === 'completed' }" id="pills-completed-tab" data-bs-toggle="pill" data-bs-target="#pills-completed" type="button" role="tab" aria-controls="pills-completed" aria-selected="false">
-            {{ t("general.completed") }} <i class="bi bi-check2-all"/></button>
+          <button data-tab="completed" class="nav-link" :class="{ active: route.params.tab === 'completed' }" id="pills-completed-tab" data-bs-toggle="pill" data-bs-target="#pills-completed" type="button" role="tab" aria-controls="pills-completed" aria-selected="false">{{ t("general.completed") }} <i class="bi bi-check2-all" /></button>
         </RouterLink>
       </li>
       <li class="nav-item" role="presentation">
         <RouterLink to="/jobs/other" class="text-decoration-none">
           <button data-tab="other" class="nav-link" :class="{ active: route.params.tab === 'other' }" id="pills-other-tab" data-bs-toggle="pill" data-bs-target="#pills-other" type="button" role="tab" aria-controls="pills-other" aria-selected="false">
             {{ t("general.other") }}
-            <i class="bi bi-question"/>
+            <i class="bi bi-question" />
           </button>
         </RouterLink>
       </li>
       <li class="nav-item" role="presentation">
         <RouterLink to="/jobs/processes" class="text-decoration-none">
-          <button data-tab="streams" class="nav-link" :class="{ active: route.params.tab === 'processes' }" id="pills-processes-tab" data-bs-toggle="pill" data-bs-target="#pills-processes" type="button" role="tab" aria-controls="pills-processes" aria-selected="false">
-            {{ t("general.streams") }} <i class="bi bi-camera-video"/></button>
+          <button data-tab="streams" class="nav-link" :class="{ active: route.params.tab === 'processes' }" id="pills-processes-tab" data-bs-toggle="pill" data-bs-target="#pills-processes" type="button" role="tab" aria-controls="pills-processes" aria-selected="false">{{ t("general.streams") }} <i class="bi bi-camera-video" /></button>
         </RouterLink>
       </li>
     </ul>
     <div class="tab-content" id="pills-tabContent">
       <div data-tab="general" class="tab-pane fade" :class="{ 'show active': route.params.tab === 'general' }" id="pills-open" role="tabpanel" aria-labelledby="pills-open-tab">
-        <JobTable :jobs="itemsOpen" @destroy="destroy" :total-count="itemsCount" :show-progress="true"/>
+        <JobTable :jobs="itemsOpen" @destroy="destroy" :total-count="itemsCount" :show-progress="true" />
       </div>
 
       <div data-tab="completed" class="tab-pane fade" :class="{ 'show active': route.params.tab === 'completed' }" id="pills-completed" role="tabpanel" aria-labelledby="pills-completed-tab">
-        <JobTable :jobs="itemsCompleted" @destroy="destroy" :total-count="itemsCompletedCount" :show-progress="false"/>
+        <JobTable :jobs="itemsCompleted" @destroy="destroy" :total-count="itemsCompletedCount" :show-progress="false" />
       </div>
 
       <div data-tab="other" class="tab-pane fade" :class="{ 'show active': route.params.tab === 'other' }" id="pills-other" role="tabpanel" aria-labelledby="pills-other-tab">
-        <JobTable :jobs="itemsOther" @destroy="destroy" :total-count="itemsCompletedCount" :show-progress="false" :show-info="true"/>
+        <JobTable :jobs="itemsOther" @destroy="destroy" :total-count="itemsCompletedCount" :show-progress="false" :show-info="true" />
       </div>
 
       <div data-tab="streams" class="tab-pane fade" :class="{ 'show active': route.params.tab === 'processes' }" id="pills-processes" role="tabpanel" aria-labelledby="pills-processes-tab">
         <div class="table-responsive">
           <table class="table table-bordered">
             <thead>
-            <tr>
-              <th class="bg-light" style="width: 10%">Channel-Id</th>
-              <th class="bg-light" style="width: 10%">Pid</th>
-              <th class="bg-light" style="width: 10%">Path</th>
-              <th class="bg-light">Args</th>
-              <th class="bg-light">Output</th>
-            </tr>
+              <tr>
+                <th class="bg-light" style="width: 10%">Channel-Id</th>
+                <th class="bg-light" style="width: 10%">Pid</th>
+                <th class="bg-light" style="width: 10%">Path</th>
+                <th class="bg-light">Args</th>
+                <th class="bg-light">Output</th>
+              </tr>
             </thead>
             <tbody>
-            <tr v-if="processes.length === 0">
-              <td colspan="5">None</td>
-            </tr>
-            <tr v-else v-for="p in processes" :key="p.id">
-              <td>{{ p.id }}</td>
-              <td>{{ p.pid }}</td>
-              <td>{{ p.path }}</td>
-              <td>
-                <textarea disabled class="form-control" rows="5" v-model="p.args"></textarea>
-              </td>
-              <td>
-                <textarea disabled class="form-control" rows="5" v-model="p.output"></textarea>
-              </td>
-            </tr>
+              <tr v-if="processes.length === 0">
+                <td colspan="5">None</td>
+              </tr>
+              <tr v-else v-for="p in processes" :key="p.id">
+                <td>{{ p.id }}</td>
+                <td>{{ p.pid }}</td>
+                <td>{{ p.path }}</td>
+                <td>
+                  <textarea disabled class="form-control" rows="5" v-model="p.args"></textarea>
+                </td>
+                <td>
+                  <textarea disabled class="form-control" rows="5" v-model="p.output"></textarea>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -124,18 +118,14 @@
 </template>
 
 <script setup lang="ts">
-import type {
-  DatabaseJob,
-  ResponsesJobsResponse,
-  ServicesProcessInfo as ProcessInfo
-} from "@/services/api/v1/StreamSinkClient";
+import type { DatabaseJob, ResponsesJobsResponse, ServicesProcessInfo as ProcessInfo } from "@/services/api/v1/StreamSinkClient";
 import { DatabaseJobOrder, DatabaseJobStatus } from "@/services/api/v1/StreamSinkClient";
 import { fromNow } from "@/utils/datetime";
 import { useJobStore } from "@/stores/job";
 import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
-import { computed, onActivated, onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import JobTable from "@/components/JobTable.vue";
+import JobTable, { type JobTableItem } from "@/components/JobTable.vue";
 import { useRoute } from "vue-router";
 import { createClient } from "@/services/api/v1/ClientFactory";
 
@@ -176,7 +166,7 @@ const addFromNowToJob = (job: DatabaseJob): JobTableItem => {
   return newJob;
 };
 
-const itemsOpen = computed(() => jobStore.getOpen.map(addFromNowToJob));
+const itemsOpen = computed(() => jobStore.open.map(addFromNowToJob));
 const itemsCount = computed(() => jobStore.jobsCount);
 
 const itemsCompleted = computed(() => (jobsCompleted.value?.jobs || []).map(addFromNowToJob));

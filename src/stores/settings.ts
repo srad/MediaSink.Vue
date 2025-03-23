@@ -1,18 +1,21 @@
 import { defineStore } from "pinia";
 
-export type ChannelsViewLayout = "grid" | "list";
+export enum ChannelsViewLayout {
+  Grid = "grid",
+  List = "list",
+}
 
 export type SettingsState = {
   videoVolume: number;
   videoMuted: boolean;
-  channelsView: ChannelsViewLayout;
+  layout: ChannelsViewLayout;
   filterViewPageSize: number;
 };
 
 export const useSettingsStore = defineStore("settings", {
   persist: true,
   state: (): SettingsState => ({
-    channelsView: "grid",
+    layout: ChannelsViewLayout.Grid,
     videoVolume: 1.0,
     videoMuted: true,
     filterViewPageSize: 100,
@@ -24,31 +27,37 @@ export const useSettingsStore = defineStore("settings", {
     unmute() {
       this.videoMuted = false;
     },
-    setVolume(volume: number) {
+    updateVolume(volume: number) {
+      if (volume < 0) {
+        volume = 0;
+      }
+      if (volume > 1) {
+        volume = 1;
+      }
       this.videoVolume = volume;
     },
     setChannelsLayout(layout: ChannelsViewLayout) {
-      this.channelsView = layout;
+      this.layout = layout;
     },
     setFilterViewPageSize(size: number) {
       this.filterViewPageSize = size;
-    }
+    },
   },
   getters: {
-    isMuted(state: SettingsState): boolean {
+    isMuted: (state: SettingsState): boolean => {
       return state.videoMuted;
     },
-    getVolume(state: SettingsState): number {
+    currentVolume: (state: SettingsState): number => {
       return state.videoVolume;
     },
     isChannelsGridLayout(state: SettingsState): boolean {
-      return state.channelsView === "grid";
+      return state.layout === ChannelsViewLayout.Grid;
     },
-    isChannelsListLayout(state: SettingsState): boolean {
-      return state.channelsView === "list";
+    isChannelsListLayout: (state: SettingsState): boolean => {
+      return state.layout === ChannelsViewLayout.List;
     },
-    filterPageSize(state: SettingsState): number {
+    filterPageSize: (state: SettingsState): number => {
       return state.filterViewPageSize;
-    }
+    },
   },
 });

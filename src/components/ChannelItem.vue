@@ -12,7 +12,6 @@
         :is-recording="props.channel.isRecording"
         :data="props.channel.channelId"
         :preview-image="previewImage"
-        class="card-img-top"
         @selected="viewFolder(props.channel.channelId!, props.channel.channelName)"/>
     </RouterLink>
     <div class="card-body">

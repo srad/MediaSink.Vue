@@ -6,7 +6,7 @@
   </div>
 
   <component :is="layoutComponent">
-    <RouterView :key="$route.fullPath"/>
+    <RouterView :key="$route.fullPath.split('?')[0]" />
   </component>
 </template>
 
@@ -28,12 +28,11 @@ const refreshApp = () => {
 const layouts = {
   default: DefaultLayout,
   auth: AuthLayout,
-  fullscreen: FullscreenLayout
+  fullscreen: FullscreenLayout,
 };
 
 //@ts-expect-error nonsense
 const layoutComponent = computed(() => layouts[route.meta.layout] || DefaultLayout);
-
 </script>
 
 <style lang="scss">

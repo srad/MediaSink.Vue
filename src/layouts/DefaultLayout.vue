@@ -1,27 +1,26 @@
 <template>
   <div>
-    <NavTop :routes="routes" :title="title" @add="showModal = true" :show-logout="true" @logout="logout"/>
+    <NavTop :routes="routes" :title="title" @add="showModal = true" :show-logout="true" @logout="logout" />
     <main class="container-fluid" style="margin-top: 4rem">
       <slot></slot>
-      <ChannelModal :clear="showModal" :show="showModal" :is-paused="false" :saving="false" title="Add Stream" @save="save" @close="showModal = false"/>
-      <AppToaster :toasts="toasts"/>
+      <ChannelModal :clear="showModal" :show="showModal" :is-paused="false" :saving="false" title="Add Stream" @save="save" @close="showModal = false" />
+      <AppToaster :toasts="toastStore.all" />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { type DatabaseJob, DatabaseJobOrder, DatabaseJobStatus, type RequestsChannelRequest as ChannelRequest } from "@/services/api/v1/StreamSinkClient";
+import { type DatabaseJob, type RequestsChannelRequest as ChannelRequest } from "@/services/api/v1/StreamSinkClient";
 import { MessageType, SocketManager } from "@/utils/socket";
 import ChannelModal from "@/components/modals/ChannelModal.vue";
 import NavTop from "@/components/navs/NavTop.vue";
 import { useChannelStore } from "@/stores/channel";
-import { useJobStore } from "@/stores/job";
+import { type JobMessage, type TaskComplete, type TaskInfo, type TaskProgress, useJobStore } from "@/stores/job";
 import { useToastStore } from "@/stores/toast";
-import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
+import { inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
-import { createClient } from "@/services/api/v1/ClientFactory";
 import AppToaster from "@/components/AppToaster.vue";
 
 // --------------------------------------------------------------------------------------
@@ -55,8 +54,6 @@ const routes = [
   { icon: "bi-eye-fill", url: "/admin", title: t("menu.admin") },
 ];
 
-const toasts = computed(() => toastStore.getToast);
-
 // --------------------------------------------------------------------------------------
 // Methods
 // --------------------------------------------------------------------------------------
@@ -67,7 +64,10 @@ const save = async (data: ChannelRequest) => {
     await channelStore.save(data);
     hideModal();
   } catch (e) {
-    toastStore.error(<{ title: string; message: string }>e);
+    toastStore.error({
+      title: "Save Error",
+      message: e instanceof Error ? e.message : "An unknown error occurred.",
+    });
   } finally {
     saving.value = false;
   }
@@ -112,18 +112,8 @@ onMounted(async () => {
     return;
   }
 
-  const client = createClient();
-  const data = await client.jobs.listCreate({
-    skip: 0,
-    take: 100,
-    states: [ DatabaseJobStatus.StatusJobOpen ],
-    sortOrder: DatabaseJobOrder.JobOrderASC,
-  });
 
-  if (data) {
-    jobStore.jobs = data.jobs!;
-    jobStore.jobsCount = data.totalCount;
-  }
+  await jobStore.load();
 
   await socketManager.connect();
 
@@ -134,7 +124,7 @@ onMounted(async () => {
 
   socketManager.on(MessageType.JobCreate, (data) => {
     const job = data as DatabaseJob;
-    jobStore.create(job);
+    jobStore.add(job);
     toastStore.success({
       title: "Job created",
       message: `File ${job.filename} in ${job.channelName}`,

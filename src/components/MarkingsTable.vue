@@ -35,6 +35,7 @@
 <script setup lang="ts">
 import { computed, defineEmits, defineProps } from "vue";
 import { useI18n } from "vue-i18n";
+import type { Marking } from "../components/VideoStripe.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations

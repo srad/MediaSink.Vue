@@ -18,14 +18,16 @@
 </template>
 
 <script setup lang="ts">
-import { useToastStore } from "../stores/toast";
+import { type Toast, ToastKind, useToastStore } from "../stores/toast";
 
 const store = useToastStore();
+
 const props = defineProps<{ toasts: Toast[] }>();
-const toastClass = {
-  info: "bg-primary",
-  warning: "bg-warning",
-  error: "bg-danger",
-  success: "bg-success",
+
+const toastClass: { [key in ToastKind]: string } = {
+  [ToastKind.Info]: "bg-primary",
+  [ToastKind.Warning]: "bg-warning",
+  [ToastKind.Error]: "bg-danger",
+  [ToastKind.Success]: "bg-success",
 };
 </script>

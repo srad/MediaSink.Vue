@@ -1,34 +1,16 @@
 <template>
-  <div class="position-relative">
+  <div class="position-relative preview-container">
     <span class="recording-indicator position-absolute">
       <i class="bi fs-4 text-danger blink bi-record-fill pulse" v-if="props.isRecording"></i>
     </span>
 
-    <img class="w-100 h-auto"
-         alt="preview"
-         loading="lazy"
-         :src="props.previewImage"
-         v-if="!props.previewVideo || props.previewVideo?.endsWith('null')"/>
+    <img class="w-100 h-auto" alt="preview" loading="lazy" :src="props.previewImage" v-if="!props.previewVideo || props.previewVideo?.endsWith('null')" />
 
-    <video v-else ref="video" loop muted playsinline
-           class="w-100 h-auto"
-           style="user-select: none; z-index: 0;"
-           :poster="props.previewImage"
-           @click="emit('selected', props.data)"
-           @contextmenu="context($event)"
-           @error="errorLoadImage"
-           @mouseleave="leaveVideo()"
-           @mouseover="hoverVideo()"
-           @touchend="leaveVideo()"
-           @touchstart="hoverVideo()">
-      <source :src="previewVideo">
+    <video v-else ref="video" loop muted playsinline class="w-100 h-auto" style="user-select: none; z-index: 0" :poster="props.previewImage" @click="emit('selected', props.data)" @contextmenu="context($event)" @error="errorLoadImage" @mouseleave="leaveVideo()" @mouseover="hoverVideo()" @touchend="leaveVideo()" @touchstart="hoverVideo()">
+      <source :src="previewVideo" />
     </video>
-    <span v-if="isRecording" class="recording-time-overlay bg-danger position-absolute badge rounded-2 opacity-75 text-white">
-      {{ minutes }}:{{ seconds }}min
-    </span>
-    <span class="channel-info-overlay bg-dark position-absolute badge rounded-2 opacity-75 text-white" v-if="props.recordingsSize && props.recordingsCount">
-    {{ (props.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ props.recordingsCount }})
-  </span>
+    <span v-if="isRecording" class="recording-time-overlay bg-danger position-absolute badge rounded-2 opacity-75 text-white"> {{ minutes }}:{{ seconds }}min </span>
+    <span class="channel-info-overlay bg-dark position-absolute badge rounded-2 opacity-75 text-white" v-if="props.recordingsSize && props.recordingsCount"> {{ (props.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ props.recordingsCount }}) </span>
   </div>
 </template>
 
@@ -47,9 +29,9 @@ const props = defineProps<{
   recordingsSize?: number;
   recordingsCount?: number;
   isRecording?: boolean;
-  data: string | number
-  previewImage?: string
-  previewVideo?: string
+  data: string | number;
+  previewImage?: string;
+  previewVideo?: string;
 }>();
 
 const secRecording = ref((props.minRecording || 0) * 60);
@@ -72,7 +54,7 @@ const hoverVideo = async () => {
 
 const leaveVideo = () => video.value?.pause();
 
-const errorLoadImage = () => errorLoad.value = true;
+const errorLoadImage = () => (errorLoad.value = true);
 
 // --------------------------------------------------------------------------------------
 // Hooks
@@ -95,7 +77,12 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.preview-container img, .preview-container video {
+.preview-container {
+  min-height: 100px;
+}
+
+.preview-container img,
+.preview-container video {
   width: 100%;
   height: auto;
   vertical-align: middle;

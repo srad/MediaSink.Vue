@@ -1,5 +1,11 @@
 import { useAuthStore } from "../stores/auth";
 
+declare global {
+  interface Window {
+    APP_SOCKETURL: string;
+  }
+}
+
 type ListenerType = (data: unknown) => void;
 
 type SocketMessage = { data: string };
@@ -10,9 +16,6 @@ export class SocketManager {
   private instanceListeners: { [key: string]: ListenerType[] } = {};
   private static pendingPromise: Promise<WebSocket> | null = null; // Track pending connection attempts
 
-  // The callee can optionally wait for the promise.
-  // Either, the socket is already open and the promise is resolved.
-  // Or the connection is created and resolved, once the websocket is open.
   connect(): Promise<WebSocket> {
     // If a connection is already open, return it.
     if (SocketManager.connection !== null && SocketManager.connection.readyState === WebSocket.OPEN) {

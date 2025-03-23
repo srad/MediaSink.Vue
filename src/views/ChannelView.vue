@@ -251,7 +251,7 @@ const destroyRecording = (recording: RecordingResponse) => {
   if (channel.value?.recordings) {
     for (let i = 0; i < channel.value.recordings.length; i += 1) {
       if (channel.value.recordings && channel.value?.recordings[i]!.recordingId === recording.recordingId) {
-        jobStore.deleteRecording(recording.recordingId);
+        jobStore.destroy(recording.recordingId);
         channel.value?.recordings?.splice(i, 1);
         break;
       }

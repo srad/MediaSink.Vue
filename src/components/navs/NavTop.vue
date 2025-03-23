@@ -128,7 +128,7 @@ const socketManager = new SocketManager();
 // Computes
 // --------------------------------------------------------------------------------------
 
-const jobs = computed(() => jobStore.getOpen);
+const jobs = computed(() => jobStore.open);
 const jobsCount = computed(() => jobStore.jobsCount);
 
 // --------------------------------------------------------------------------------------

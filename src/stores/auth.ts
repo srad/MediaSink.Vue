@@ -1,41 +1,46 @@
-//@ts-nocheck https://github.com/prazdevs/pinia-plugin-persistedstate/issues/373
+// --------------------------------------------------------
+// Use of Setup Store Instead of Object Store declaration
+// syntax here. For some bizarre reason Typescript is
+// getting a seizure with the regular Pinia declaration..
+// --------------------------------------------------------
 import { defineStore } from "pinia";
 import AuthService from "../services/auth.service";
-import type { RequestsAuthenticationRequest } from "../services/api/v1/StreamSinkClient.ts";
+import type { RequestsAuthenticationRequest } from "../services/api/v1/StreamSinkClient";
+import { ref, computed } from "vue";
 
-// --------------------------------------------------------------------------------------
-// The useAuthStore(). and arrow syntax is only for the TS type deduction, otherwise
-// it leads to compiler errors.
-// --------------------------------------------------------------------------------------
+export const useAuthStore = defineStore("auth", () => {
+  const token = ref<string | null>(localStorage.getItem("jwt"));
+  const loggedIn = ref<boolean>(localStorage.getItem("authenticated") === "1");
 
-const useAuthStore = defineStore("auth", {
-  persist: true,
-  state: (): AuthState => ({
-    loggedIn: localStorage.getItem("authenticated") === "1",
-    token: localStorage.getItem("jwt"),
-  }),
-  actions: {
-    login: async (user: RequestsAuthenticationRequest) => {
-      const token = await AuthService.login(user);
-      useAuthStore.token = token;
-      useAuthStore.loggedIn = true;
-      localStorage.setItem("jwt", token);
-      localStorage.setItem("authenticated", "1");
-    },
-    logout: () => {
-      useAuthStore.token = null;
-      useAuthStore.loggedIn = false;
-      localStorage.removeItem("jwt");
-      localStorage.removeItem("authenticated");
-    },
-    register: async (user: RequestsAuthenticationRequest) => {
-      await AuthService.signup(user);
-    }
-  },
-  getters: {
-    isLoggedIn: (state: AuthState) => localStorage.getItem("authenticated") === "1",
-    getToken: (state: AuthState): string | null => localStorage.getItem("jwt"),
-  }
+  const login = async (user: RequestsAuthenticationRequest) => {
+    const newToken = await AuthService.login(user);
+    token.value = newToken;
+    loggedIn.value = true;
+    localStorage.setItem("jwt", newToken);
+    localStorage.setItem("authenticated", "1");
+  };
+
+  const logout = () => {
+    token.value = null;
+    loggedIn.value = false;
+    localStorage.removeItem("jwt");
+    localStorage.removeItem("authenticated");
+  };
+
+  const register = async (user: RequestsAuthenticationRequest) => {
+    await AuthService.signup(user);
+  };
+
+  const isLoggedIn = computed(() => loggedIn.value);
+  const getToken = computed(() => token.value);
+
+  return {
+    token,
+    loggedIn,
+    login,
+    logout,
+    register,
+    isLoggedIn,
+    getToken,
+  };
 });
-
-export { useAuthStore };

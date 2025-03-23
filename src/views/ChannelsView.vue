@@ -2,10 +2,10 @@
   <LoadIndicator :busy="isLoading">
     <div class="mb-2">
       <div class="d-flex justify-content-end">
-        <button @click="() => settingsStore.setChannelsLayout('grid')" type="button" class="btn btn-sm me-2" :class="{ 'btn-success': settingsStore.isChannelsGridLayout, 'btn-secondary': settingsStore.isChannelsListLayout }">
+        <button @click="() => settingsStore.setChannelsLayout(ChannelsViewLayout.Grid)" type="button" class="btn btn-sm me-2" :class="{ 'btn-success': settingsStore.isChannelsGridLayout, 'btn-secondary': settingsStore.isChannelsListLayout }">
           <i class="bi bi-grid"></i>
         </button>
-        <button @click="() => settingsStore.setChannelsLayout('list')" type="button" class="btn btn-sm me-2" :class="{ 'btn-secondary': settingsStore.isChannelsGridLayout, 'btn-success': settingsStore.isChannelsListLayout }">
+        <button @click="() => settingsStore.setChannelsLayout(ChannelsViewLayout.List)" type="button" class="btn btn-sm me-2" :class="{ 'btn-secondary': settingsStore.isChannelsGridLayout, 'btn-success': settingsStore.isChannelsListLayout }">
           <i class="bi bi-list"></i>
         </button>
         <button @click="downloadChannelsAsJson" type="button" class="btn btn-sm btn-primary me-2">Export channels</button>
@@ -33,7 +33,7 @@ import type { DatabaseChannel } from "@/services/api/v1/StreamSinkClient";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import { downloadObjectAsJson } from "@/utils/file";
 import LoadIndicator from "@/components/LoadIndicator.vue";
-import { useSettingsStore } from "@/stores/settings.ts";
+import { ChannelsViewLayout, useSettingsStore } from "@/stores/settings.ts";
 import ChannelsGrid from "@/components/channels/ChannelsGrid.vue";
 import ChannelsList from "@/components/channels/ChannelsList.vue";
 import { useChannelStore } from "@/stores/channel.ts";

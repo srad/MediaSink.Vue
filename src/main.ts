@@ -5,12 +5,22 @@ import App from "./App.vue";
 import router from "./router";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 
+declare global {
+  interface Window {
+    APP_APIURL: string;
+    APP_BASE: string;
+    APP_NAME: string;
+    APP_SOCKETURL: string;
+    APP_FILEURL: string;
+    APP_BUILD: string;
+    APP_VERSION: string;
+  }
+}
+
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
-const app = createApp(App)
-  .use(pinia)
-  .use(i18n);
+const app = createApp(App).use(pinia).use(i18n);
 
 app.provide("appName", window.APP_NAME);
 app.provide("baseUrl", window.APP_BASE);
