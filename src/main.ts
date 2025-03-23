@@ -17,6 +17,22 @@ declare global {
   }
 }
 
+// Automatically register the service worker using virtual:pwa-register
+import { registerSW } from "virtual:pwa-register";
+
+const updateSW = registerSW({
+  onRegisteredSW() {
+    console.info("Service worker registration successfully");
+  },
+  onNeedRefresh() {
+    // This can be used to trigger a notification to show that a new version is available
+    console.log("New service worker version available.");
+  },
+  onOfflineReady() {
+    console.log("App is ready to work offline!");
+  },
+});
+
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
