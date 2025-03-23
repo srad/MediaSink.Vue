@@ -11,6 +11,13 @@ export default mergeConfig(
       exclude: [...configDefaults.exclude, "e2e/**"],
       root: fileURLToPath(new URL("./", import.meta.url)),
       setupFiles: ["./vitest.setup.ts"],
+
+      coverage: {
+        provider: "v8",
+        reporter: ["text", "text-summary"],
+        include: ["src/**"], // Only collect coverage for files inside "src/"
+        exclude: ["node_modules", "tests", "dist"], // Exclude unwanted folders
+      },
     },
   }),
 );
