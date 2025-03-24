@@ -112,12 +112,7 @@ onMounted(async () => {
     return;
   }
 
-  setInterval(() => {
-    toastStore[Math.random() > 0.5 ? 'warn' : 'info']({title: "Test", message: "adiopasjdoiasdjasiodj"});
-  }, 1500)
-
   await jobStore.load();
-
   await socketManager.connect();
 
   socketManager.on(MessageType.JobStart, (message) => {
