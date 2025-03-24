@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 
 export type ToastState = {
   toasts: Toast[];
+  total: number;
 };
 
 export enum ToastKind {
@@ -12,6 +13,7 @@ export enum ToastKind {
 }
 
 export type Toast = {
+  id: number;
   title: string;
   message: string;
   hide: boolean;
@@ -23,6 +25,7 @@ export type Toast = {
 export const useToastStore = defineStore("toast", {
   state: (): ToastState => ({
     toasts: [],
+    total: 0, // Is just incremented for each new incoming toast.
   }),
   actions: {
     info({ title, message }: { title: string; message: string }) {
@@ -40,6 +43,7 @@ export const useToastStore = defineStore("toast", {
     add({ title, message, kind }: { title: string; message: string; kind?: ToastKind }) {
       // The animation can also be implemented with pure CSS, but that free us from this state update logic.
       const toast: Toast = {
+        id: ++this.total,
         title,
         message,
         kind: kind || ToastKind.Info,
