@@ -4,6 +4,8 @@ import i18n from "./i18n/i18n";
 import App from "./App.vue";
 import router from "./router";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
+import PrimeVue from "primevue/config";
+import Aura from "@primeuix/themes/aura";
 
 declare global {
   interface Window {
@@ -36,7 +38,14 @@ const updateSW = registerSW({
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
-const app = createApp(App).use(pinia).use(i18n);
+const app = createApp(App)
+  .use(pinia)
+  .use(i18n)
+  .use(PrimeVue, {
+    theme: {
+      preset: Aura,
+    },
+  });
 
 app.provide("appName", window.APP_NAME);
 app.provide("baseUrl", window.APP_BASE);
