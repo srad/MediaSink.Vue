@@ -1,6 +1,6 @@
 <template>
   <div class="justify-content-between d-flex">
-    <JobStatus :jobs="jobs" :total-count="totalCount"/>
+    <JobStatus :jobs="jobs" :total-count="totalCount" @click="router.push('/jobs/general')" />
     <button v-if="!props.isRecording" class="btn btn-info d-flex" @click="emit('record', true)">
       <i class="bi bi-play-fill"></i>
       <span class="ms-1 d-none d-sm-inline">{{ t("navtop.startRecording") }}</span>
@@ -16,7 +16,7 @@
       </span>
     </button>
 
-    <button v-if="route.path.startsWith('/streams')" class="btn btn-lg btn-success shadow-sm border-success-subtle d-md-none position-fixed d-flex justify-content-center align-items-center" style="bottom: 5%; right: 10%; border-radius: 50%; width: 3.5rem; height: 3.5rem;" @click="emit('add')">
+    <button v-if="route.path.startsWith('/streams')" class="btn btn-lg btn-success shadow-sm border-success-subtle d-md-none position-fixed d-flex justify-content-center align-items-center" style="bottom: 5%; right: 10%; border-radius: 50%; width: 3.5rem; height: 3.5rem" @click="emit('add')">
       <i class="bi bi-plus-lg fw-bold"></i>
     </button>
 
@@ -30,26 +30,25 @@
 <script setup lang="ts">
 import JobStatus from "./JobStatus.vue";
 import type { DatabaseJob } from "../services/api/v1/StreamSinkClient";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 
 const emit = defineEmits<{
-  (e: "add"): void
-  (e: "logout"): void
-  (e: "record", value: boolean): void
+  (e: "add"): void;
+  (e: "logout"): void;
+  (e: "record", value: boolean): void;
 }>();
 
 const props = defineProps<{
-  jobs: DatabaseJob[],
+  jobs: DatabaseJob[];
   isRecording: boolean;
   showLogout: boolean;
   totalCount: number;
 }>();
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

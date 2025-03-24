@@ -32,7 +32,7 @@
       <div v-show="showTagInput" class="input-group input-group-sm">
         <form @submit.prevent="addTag">
           <div class="input-group">
-            <input :disabled="processingTag" ref="tagInput" class="form-control form-control-sm border-primary" v-model.lazy="tagVal" type="text" :name="`${channel.channelId}_tag`" autocapitalize="off" autocomplete="off"/>
+            <input :disabled="processingTag" ref="tagInput" class="form-control form-control-sm border-primary" v-model.lazy="tagVal" type="text" :name="`${channel.channelId}_tag`" autocapitalize="off" autocomplete="off" />
             <button type="submit" class="btn btn-sm btn-primary" :disabled="processingTag">save</button>
           </div>
         </form>
@@ -43,10 +43,10 @@
     <li class="list-group-item bg-info-light d-flex justify-content-between fs-6">
       <div class="d-flex w-75">
         <span class="form-check form-switch me-2">
-          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`"/>
+          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`" />
           <label class="form-check-label" :for="`${channel.channelId}_isPaused`">Record</label>
         </span>
-        <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)"/>
+        <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)" />
       </div>
 
       <div class="d-flex justify-content-evenly w-25 rounded-bottom-2">
@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { ServicesChannelInfo as ChannelResponse } from "../services/api/v1/StreamSinkClient";
 import { validTag } from "../utils/parser";
