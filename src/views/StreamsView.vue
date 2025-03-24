@@ -160,7 +160,6 @@ const tagTerms = computed(() =>
 
 const searchResults = computed(() =>
   channelStore.all
-    .slice()
     .filter((channel) => searchFilter(channel, searchTerms.value, tagTerms.value))
     .filter((channel) => (favs.value ? channel.fav : true)) // Only use, if defined.
     .sort(sortChannel),

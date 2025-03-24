@@ -1,5 +1,5 @@
 <template>
-  <div class="card bg-light mb-3 border shadow-sm position-relative border-primary" :class="{ 'animate__animated animate__zoomOut': destroyed, 'opacity-50': props.channel.isPaused, 'border-primary': !props.channel.isRecording }">
+  <div class="card rounded-2 bg-light mb-3 border shadow-sm position-relative border-primary" :class="{ 'animate__animated animate__zoomOut': destroyed, 'opacity-50': props.channel.isPaused, 'border-primary': !props.channel.isRecording }">
     <div v-if="busy" class="bg-dark opacity-50 position-absolute w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 100">
       <div class="loader"></div>
     </div>

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="h-100">
     <NavTop :routes="routes" :title="title" @add="showModal = true" :show-logout="true" @logout="logout"/>
     <main class="container-fluid" style="margin-top: 4rem">
       <slot></slot>

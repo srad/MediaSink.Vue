@@ -11,7 +11,7 @@
 
     <!-- tags -->
     <li class="list-group-item px-2 py-1">
-      <div class="d-flex">
+      <div class="d-flex overflow-scroll">
         <template v-if="!showTagInput && tagArray">
           <div v-for="tag in tagArray" class="d-flex badge bg-secondary text-dark rounded-1 me-1 user-select-none" :key="tag">
             <span @click="router.push({ query: { tag } })">{{ tag }}</span>
@@ -49,7 +49,7 @@
         <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)"/>
       </div>
 
-      <div class="d-flex justify-content-evenly w-25">
+      <div class="d-flex justify-content-evenly w-25 rounded-bottom-2">
         <a @click="emit('edit', channel)" class="me-2">
           <i class="bi bi-update"></i>
         </a>

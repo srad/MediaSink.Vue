@@ -1,16 +1,16 @@
 <template>
-  <div class="position-relative preview-container">
+  <div class="position-relative preview-container rounded-top-2">
     <span class="recording-indicator position-absolute">
       <i class="bi fs-4 text-danger blink bi-record-fill pulse" v-if="props.isRecording"></i>
     </span>
 
-    <img class="w-100 h-auto" alt="preview" loading="lazy" :src="props.previewImage" v-if="!props.previewVideo || props.previewVideo?.endsWith('null')" />
+    <img class="w-100 h-auto rounded-top-2" alt="preview" loading="lazy" :src="props.previewImage" v-if="!props.previewVideo || props.previewVideo?.endsWith('null')" />
 
     <video v-else ref="video" loop muted playsinline class="w-100 h-auto" style="user-select: none; z-index: 0" :poster="props.previewImage" @click="emit('selected', props.data)" @contextmenu="context($event)" @error="errorLoadImage" @mouseleave="leaveVideo()" @mouseover="hoverVideo()" @touchend="leaveVideo()" @touchstart="hoverVideo()">
       <source :src="previewVideo" />
     </video>
-    <span v-if="isRecording" class="recording-time-overlay bg-danger position-absolute badge rounded-2 opacity-75 text-white"> {{ minutes }}:{{ seconds }}min </span>
-    <span class="channel-info-overlay bg-dark position-absolute badge rounded-2 opacity-75 text-white" v-if="props.recordingsSize && props.recordingsCount"> {{ (props.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ props.recordingsCount }}) </span>
+    <div v-if="isRecording" class="recording-time-overlay bg-danger position-absolute badge rounded-2 opacity-75 text-white"> {{ minutes }}:{{ seconds }}min </div>
+    <div class="channel-info-overlay bg-dark position-absolute badge rounded-2 opacity-75 text-white" v-if="props.recordingsSize && props.recordingsCount"> {{ (props.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ props.recordingsCount }}) </div>
   </div>
 </template>
 
