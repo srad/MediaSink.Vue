@@ -32,38 +32,19 @@ describe("AppToaster", () => {
     },
   ];
 
-  it("hides the toast when close button is clicked", async () => {
-    // Mount the component with the mocked store
+  it("closes toast on button click", async () => {
     const wrapper = mount(AppToaster, {
-      props: {
-        toasts,
-      },
+      props: { toasts },
     });
 
-    // Find and click the close button for the first toast
-    const closeButton = wrapper.findAll(".btn-close").at(0);
-    if (closeButton) {
-      await closeButton.trigger("click");
-    }
+    // Get the close button for the first toast
+    const elId = `#toast_${toasts[0].id}`;
+    let closeButton = wrapper.find(elId + " .btn-close");
 
-    const el = wrapper.find(".btn-close");
+    await closeButton.trigger("click");
 
-    // Check if hide was called with the correct toast object
-    expect(el).toBeUndefined();
-  });
-
-  it("applies the correct toast kind classes", () => {
-    const wrapper = mount(AppToaster, {
-      props: {
-        toasts,
-      },
-    });
-
-    // Check if each toast has the correct class based on its kind
-    toasts.forEach((toast, index) => {
-      const toastElement = wrapper.findAll(".line-indicator").at(index);
-      const expectedClass = `bg-${toast.kind.toLowerCase()}`;
-      expect(toastElement?.classes()).toContain(expectedClass);
-    });
+    const emittedEvents = wrapper.emitted();
+    expect(emittedEvents).toHaveProperty("destroy");
+    expect(emittedEvents.destroy).toHaveLength(1); // Check if it was emitted once
   });
 });

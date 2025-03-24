@@ -70,9 +70,9 @@ export const useToastStore = defineStore("toast", {
       }
     },
     hide(toast: Toast) {
-      const foundToast = this.toasts.find((x: Toast) => x === toast);
-      if (foundToast) {
-        foundToast.hide = true;
+      const i = this.toasts.findIndex((x: Toast) => x === toast);
+      if (i !== -1) {
+        this.toasts[i] = { ...this.toasts[i]!, hide: true };
       }
     },
   },
