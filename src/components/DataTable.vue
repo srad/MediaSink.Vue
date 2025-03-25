@@ -157,6 +157,11 @@ const compareValues = (a: unknown, b: unknown): number => {
     return sortOrder.value === "asc" ? a - b : b - a;
   }
 
+  // Number comparison
+  if (typeof a === "boolean" && typeof b === "boolean") {
+    return sortOrder.value === "asc" ? Number(a) - Number(b) : Number(b) - Number(a);
+  }
+
   // Default case (string sorting)
   if (typeof a === "string" && typeof b === "string") {
     return sortOrder.value === "asc" ? a.localeCompare(b) : b.localeCompare(a);
