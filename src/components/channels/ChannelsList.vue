@@ -19,15 +19,15 @@
     <template #header-recordingsCount>Count ({{ totalCount }})</template>
 
     <template #cell-createdAt="{ row }">
-      {{ new Date(row.createdAt).toDateString() }}
+      {{ new Date(row.createdAt as Date).toDateString() }}
     </template>
 
     <template #cell-preview="{ row }">
-      <img alt="preview" :src="row.preview" class="rounded" loading="lazy" style="height: 50px; width: auto" />
+      <img alt="preview" :src="row.preview as string" class="rounded" loading="lazy" style="height: 50px; width: auto" />
     </template>
 
     <template #cell-url="{ row }">
-      <a target="_blank" :href="row.url">{{ row.url }}</a>
+      <a target="_blank" :href="row.url as string">{{ row.url }}</a>
     </template>
 
     <template #cell-displayName="{ row }">
@@ -37,7 +37,7 @@
     </template>
 
     <template #cell-fav="{ row }">
-      <ChannelFavButton :bookmarked="row.fav" :channel-id="row.channelId" />
+      <ChannelFavButton :bookmarked="row.fav as boolean" :channel-id="row.channelId as number" />
     </template>
 
     <template #cell-isRecording="{ row }">
@@ -51,7 +51,7 @@
 import ChannelFavButton from "../../components/controls/ChannelFavButton.vue";
 import type { ServicesChannelInfo } from "../../services/api/v1/StreamSinkClient";
 import { computed, inject } from "vue";
-import DataTable from "@/components/DataTable.vue";
+import DataTable from "../DataTable.vue";
 
 const props = defineProps<{
   channels: ServicesChannelInfo[];
@@ -77,6 +77,4 @@ const totalSize = computed(() => ((props.channels || []).map((x) => x.recordings
 const totalCount = computed(() => (props.channels || []).map((x) => x.recordingsCount).reduce((a, b) => a + b, 0));
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
