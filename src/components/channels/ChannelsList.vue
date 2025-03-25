@@ -1,52 +1,71 @@
 <template>
-  <table class="table table-bordered table-hover table-sm m-0">
-    <thead>
-    <tr class="align-middle text-center">
-      <th rowspan="2" style="width: 1%" class="bg-light p-2">Preview</th>
-      <th rowspan="2" style="width: 10%" class="bg-light p-2">Name</th>
-      <th rowspan="2" style="width: 20%" class="bg-light p-2">Link</th>
-      <th rowspan="2" style="width: 5%" class="bg-light p-2">Favourite?</th>
-      <th rowspan="2" style="width: 5%" class="bg-light p-2">Recording?</th>
-      <th style="width: 5%" class="bg-light text-center p-2">Count ({{ totalCount }})</th>
-      <th style="width: 5%" class="bg-light text-center p-2">Size ({{ totalSize.toFixed(1) }}GB)</th>
-      <th style="width: 10%" class="bg-light text-center p-2">Added</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr :key="channel.channelId" v-for="channel in channels" class="align-middle">
-      <td class="text-center p-0">
-        <img alt="preview" :src="`${fileUrl}/${channel.preview}`" class="rounded" loading="lazy" style="height: 50px; width: auto"/>
-      </td>
-      <td class="px-2">
-        <RouterLink class="text-decoration-none" :to="`/channel/${channel.channelId}/${channel.channelName}`">
-          <h6 class="m-0">{{ channel.channelName }}</h6>
-        </RouterLink>
-      </td>
-      <td>
-        <a :href="channel.url" target="_blank">{{ channel.url }}</a>
-      </td>
-      <td class="px-2 text-center">
-        <ChannelFavButton :bookmarked="channel.fav" :channel-id="channel.channelId"/>
-      </td>
-      <td class="px-2 text-center">
-        <div v-if="channel.isRecording"><i class="bi text-danger blink bi-record-fill pulse"></i> Recording</div>
-      </td>
-      <td class="px-2 text-center">{{ channel.recordingsCount }}</td>
-      <td class="px-2 text-center">{{ (channel.recordingsSize / 1024 / 1024 / 1024).toFixed(2) }} GB</td>
-      <td class="px-2 text-start">{{ new Date(channel.createdAt).toDateString() }}</td>
-    </tr>
-    </tbody>
-  </table>
+  <DataTable
+    default-sort-key="isRecording"
+    default-sort-order="desc"
+    sorted-class="bg-light"
+    :columns="[
+      { key: 'preview', label: 'Preview', sortable: false, width: '1%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
+      { key: 'displayName', label: 'Name', sortable: true, width: '10%', headerClass: 'text-center align-middle bg-light', rowClass: 'align-middle' },
+      { key: 'url', label: 'Link', sortable: false, width: '20%', headerClass: 'text-center align-middle bg-light', rowClass: 'align-middle' },
+      { key: 'fav', label: 'Favourite?', sortable: true, width: '5%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
+      { key: 'isRecording', label: 'Recording?', sortable: true, width: '5%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
+      { key: 'recordingsCount', label: 'Items', sortable: true, width: '5%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
+      { key: 'size', label: 'Size', sortable: true, width: '5%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
+      { key: 'createdAt', label: 'Added', sortable: true, width: '10%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
+    ]"
+    :data="channels">
+    <template #header-size> Size ({{ totalSize }})</template>
+
+    <template #header-recordingsCount>Count ({{ totalCount }})</template>
+
+    <template #cell-createdAt="{ row }">
+      {{ new Date(row.createdAt).toDateString() }}
+    </template>
+
+    <template #cell-preview="{ row }">
+      <img alt="preview" :src="row.preview" class="rounded" loading="lazy" style="height: 50px; width: auto" />
+    </template>
+
+    <template #cell-url="{ row }">
+      <a target="_blank" :href="row.url">{{ row.url }}</a>
+    </template>
+
+    <template #cell-displayName="{ row }">
+      <RouterLink class="text-decoration-none" :to="`/channel/${row.channelId}/${row.channelName}`">
+        <h6 class="m-0">{{ row.displayName }}</h6>
+      </RouterLink>
+    </template>
+
+    <template #cell-fav="{ row }">
+      <ChannelFavButton :bookmarked="row.fav" :channel-id="row.channelId" />
+    </template>
+
+    <template #cell-isRecording="{ row }">
+      <div v-if="row.isRecording"><i class="bi text-danger blink bi-record-fill pulse"></i> Recording</div>
+      <div v-else></div>
+    </template>
+  </DataTable>
 </template>
 
 <script setup lang="ts">
 import ChannelFavButton from "../../components/controls/ChannelFavButton.vue";
 import type { ServicesChannelInfo } from "../../services/api/v1/StreamSinkClient";
 import { computed, inject } from "vue";
+import DataTable from "@/components/DataTable.vue";
 
 const props = defineProps<{
-  channels: ServicesChannelInfo[]
+  channels: ServicesChannelInfo[];
 }>();
+
+const channels = computed(() =>
+  props.channels.map((channel: ServicesChannelInfo) => ({
+    ...channel,
+    preview: `${fileUrl}/${channel.preview}`,
+    link: `/channel/${channel.channelId}/${channel.channelName}`,
+    size: `${(channel.recordingsSize / 1024 / 1024 / 1024).toFixed(1)}GB`,
+    createdAt: new Date(channel.createdAt),
+  })),
+);
 
 const fileUrl = inject("fileUrl") as string;
 
@@ -54,9 +73,8 @@ const fileUrl = inject("fileUrl") as string;
 // Computes
 // --------------------------------------------------------------------------------------
 
-const totalSize = computed(() => (props.channels || []).map((x) => x.recordingsSize).reduce((a, b) => a + b, 0) / 1024 / 1024 / 1024);
+const totalSize = computed(() => ((props.channels || []).map((x) => x.recordingsSize).reduce((a, b) => a + b, 0) / 1024 / 1024 / 1024 / 1024).toFixed(2) + "TB");
 const totalCount = computed(() => (props.channels || []).map((x) => x.recordingsCount).reduce((a, b) => a + b, 0));
-
 </script>
 
 <style scoped>
