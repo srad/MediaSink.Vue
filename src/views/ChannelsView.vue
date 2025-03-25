@@ -1,28 +1,34 @@
 <template>
   <LoadIndicator :busy="isLoading">
-    <div class="mb-2">
-      <div class="d-flex justify-content-end">
-        <button @click="() => settingsStore.setChannelsLayout(ChannelsViewLayout.Grid)" type="button" class="btn btn-sm me-2" :class="{ 'btn-success': settingsStore.isChannelsGridLayout, 'btn-secondary': settingsStore.isChannelsListLayout }">
-          <i class="bi bi-grid"></i>
-        </button>
-        <button @click="() => settingsStore.setChannelsLayout(ChannelsViewLayout.List)" type="button" class="btn btn-sm me-2" :class="{ 'btn-secondary': settingsStore.isChannelsGridLayout, 'btn-success': settingsStore.isChannelsListLayout }">
-          <i class="bi bi-list"></i>
-        </button>
-        <button @click="downloadChannelsAsJson" type="button" class="btn btn-sm btn-primary me-2">Export channels</button>
-        <button @click="inputFileClick" type="button" class="btn btn-sm btn-primary">Import channels</button>
-        <input ref="channelsFile" accept="application/json" type="file" name="importChannels" hidden @change="inputFileChanged" />
-      </div>
-      <div v-if="isImporting">
-        <h6>Importing ...</h6>
-        <div class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
-          <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 75%"></div>
+    <div class="pb-2">
+      <div class="mb-2 px-0">
+        <div class="d-flex justify-content-between">
+          <div class="d-flex">
+            <button @click="() => settingsStore.setChannelsLayout(ChannelsViewLayout.Grid)" type="button" class="btn btn-sm me-2" :class="{ 'btn-success': settingsStore.isChannelsGridLayout, 'btn-secondary': settingsStore.isChannelsListLayout }">
+              <i class="bi bi-grid"></i>
+            </button>
+            <button @click="() => settingsStore.setChannelsLayout(ChannelsViewLayout.List)" type="button" class="btn btn-sm me-2" :class="{ 'btn-secondary': settingsStore.isChannelsGridLayout, 'btn-success': settingsStore.isChannelsListLayout }">
+              <i class="bi bi-list"></i>
+            </button>
+          </div>
+          <div class="d-flex">
+            <button @click="downloadChannelsAsJson" type="button" class="btn btn-sm btn-primary me-2">Export channels</button>
+            <button @click="inputFileClick" type="button" class="btn btn-sm btn-primary">Import channels</button>
+            <input ref="channelsFile" accept="application/json" type="file" name="importChannels" hidden @change="inputFileChanged" />
+          </div>
         </div>
-        <hr />
+        <div v-if="isImporting">
+          <h6>Importing ...</h6>
+          <div class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 75%"></div>
+          </div>
+          <hr />
+        </div>
       </div>
-    </div>
 
-    <ChannelsList v-if="settingsStore.isChannelsListLayout" :channels="channelStore.all" />
-    <ChannelsGrid v-else :channels="channelStore.all" />
+      <ChannelsList v-if="settingsStore.isChannelsListLayout" :channels="channelStore.all" />
+      <ChannelsGrid v-else :channels="channelStore.all" />
+    </div>
   </LoadIndicator>
 </template>
 

@@ -3,12 +3,13 @@
     default-sort-key="isRecording"
     default-sort-order="desc"
     sorted-class="bg-light"
+    :page-size="10"
     :columns="[
-      { key: 'preview', label: 'Preview', sortable: false, width: '1%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
-      { key: 'displayName', label: 'Name', sortable: true, width: '10%', headerClass: 'text-center align-middle bg-light', rowClass: 'align-middle' },
-      { key: 'url', label: 'Link', sortable: false, width: '20%', headerClass: 'text-center align-middle bg-light', rowClass: 'align-middle' },
-      { key: 'fav', label: 'Favourite?', sortable: true, width: '5%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
-      { key: 'isRecording', label: 'Recording?', sortable: true, width: '5%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
+      { key: 'preview', label: 'Preview', sortable: false, width: '1%', headerClass: 'text-center align-middle bg-light', rowClass: 'px-1 py-0 text-center align-middle' },
+      { key: 'displayName', label: 'Name', isSearchable: true, sortable: true, width: '10%', headerClass: 'text-center align-middle bg-light', rowClass: 'align-middle' },
+      { key: 'url', label: 'Link', sortable: false, isSearchable: true, width: '20%', headerClass: 'text-center align-middle bg-light', rowClass: 'align-middle' },
+      { key: 'fav', label: 'Favourite?', sortable: true, width: '5%', isSearchable: true, type: 'boolean', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
+      { key: 'isRecording', label: 'Recording?', sortable: true, isSearchable: true, type: 'boolean', width: '5%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
       { key: 'recordingsCount', label: 'Items', sortable: true, width: '5%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
       { key: 'size', label: 'Size', sortable: true, width: '5%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
       { key: 'createdAt', label: 'Added', sortable: true, width: '10%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
