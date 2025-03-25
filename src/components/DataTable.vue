@@ -2,53 +2,53 @@
   <div class="table-responsive">
     <table class="w-100 table table-bordered table-hover table-rounded">
       <thead>
-        <!-- Search Inputs/Checkboxes Row -->
-        <tr>
-          <th v-for="column in columns" :key="column.key" :rowspan="column.isSearchable ? 1 : 2" :style="{ width: column.width }" :class="[column.headerClass, column.isSearchable ? 'searchable-column' : '', column.sortable ? 'cursor-pointer' : 'user-select-none']">
-            <!-- Search input for searchable columns -->
-            <div v-if="column.isSearchable" class="search-container">
-              <!-- Checkbox for boolean columns -->
-              <input v-if="column.type === 'boolean'" type="checkbox" v-model="searchQueries[column.key]" @click.stop="handleCheckboxChange(column.key)" />
-              <!-- Input for non-boolean columns -->
-              <input v-if="column.type !== 'boolean'" v-model="searchQueries[column.key]" type="text" :placeholder="column.label" class="form-control border-primary-subtle" />
-            </div>
-            <div v-else>
-              <slot :name="`header-${column.key}`">
-                {{ column.label }}
-                <span v-if="sortKey === column.key">
-                  <span v-if="sortOrder === 'asc'">↑</span>
-                  <span v-if="sortOrder === 'desc'">↓</span>
-                </span>
-              </slot>
-            </div>
-          </th>
-        </tr>
+      <!-- Search Inputs/Checkboxes Row -->
+      <tr>
+        <th class="user-select-none" v-for="column in columns" :key="column.key" :rowspan="column.isSearchable ? 1 : 2" :style="{ width: column.width }" :class="[column.headerClass, column.isSearchable ? 'searchable-column' : '', column.sortable ? 'cursor-pointer' : 'user-select-none']">
+          <!-- Search input for searchable columns -->
+          <div v-if="column.isSearchable" class="search-container">
+            <!-- Checkbox for boolean columns -->
+            <input v-if="column.type === 'boolean'" type="checkbox" v-model="searchQueries[column.key]" @click.stop="handleCheckboxChange(column.key)"/>
+            <!-- Input for non-boolean columns -->
+            <input v-if="column.type !== 'boolean'" v-model="searchQueries[column.key]" type="text" :placeholder="column.label" class="form-control border-primary-subtle"/>
+          </div>
+          <div v-else @click="column.sortable && toggleSort(column.key)">
+            <slot :name="`header-${column.key}`">
+              {{ column.label }}
+            </slot>
+            <span v-if="sortKey === column.key">
+              <span v-if="sortOrder === 'asc'">↑</span>
+              <span v-if="sortOrder === 'desc'">↓</span>
+            </span>
+          </div>
+        </th>
+      </tr>
 
-        <!-- Column Titles Row -->
-        <tr>
-          <template v-for="column in columns" :key="`header-${column.key}`">
-            <th v-if="column.isSearchable" :style="{ width: column.width }" :class="[column.headerClass, column.sortable ? 'cursor-pointer' : 'user-select-none', sortKey === column.key && sortedClass]" @click="toggleSort(column.key)" :rowspan="column.sortable ? 1 : 2">
-              <!-- Set rowspan for sortable columns -->
-              <!-- Column title with sorting click event -->
-              <slot :name="`header-${column.key}`">
-                {{ column.label }}
-                <span v-if="sortKey === column.key">
-                  <span v-if="sortOrder === 'asc'">↑</span>
-                  <span v-if="sortOrder === 'desc'">↓</span>
-                </span>
-              </slot>
-            </th>
-          </template>
-        </tr>
+      <!-- Column Titles Row -->
+      <tr>
+        <template v-for="column in columns" :key="`header-${column.key}`">
+          <th class="user-select-none" v-if="column.isSearchable" :style="{ width: column.width }" :class="[column.headerClass, column.sortable ? 'cursor-pointer' : 'user-select-none', sortKey === column.key && sortedClass]" @click="toggleSort(column.key)" :rowspan="column.sortable ? 1 : 2">
+            <!-- Set rowspan for sortable columns -->
+            <!-- Column title with sorting click event -->
+            <slot :name="`header-${column.key}`">
+              {{ column.label }}
+            </slot>
+            <span v-if="sortKey === column.key">
+              <span v-if="sortOrder === 'asc'">↑</span>
+              <span v-if="sortOrder === 'desc'">↓</span>
+            </span>
+          </th>
+        </template>
+      </tr>
       </thead>
       <tbody>
-        <tr v-for="(row, rowIndex) in currentPageRows" :key="rowIndex">
-          <td v-for="column in columns" :key="column.key" :class="[column.rowClass, sortKey === column.key && sortedClass]">
-            <slot :name="`cell-${column.key}`" :value="row[column.key]" :row="row">
-              {{ row[column.key] }}
-            </slot>
-          </td>
-        </tr>
+      <tr v-for="(row, rowIndex) in currentPageRows" :key="rowIndex">
+        <td v-for="column in columns" :key="column.key" :class="[column.rowClass, sortKey === column.key && sortedClass]">
+          <slot :name="`cell-${column.key}`" :value="row[column.key]" :row="row">
+            {{ row[column.key] }}
+          </slot>
+        </td>
+      </tr>
       </tbody>
     </table>
 
@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineProps, defineEmits } from "vue";
+import { computed, defineEmits, defineProps, onMounted, ref } from "vue";
 
 export type Column = {
   key: string;
@@ -120,8 +120,9 @@ const sortOrder = ref<SortOrder>(props.defaultSortOrder ?? null);
 const searchQueries = ref<Record<string, unknown>>({});
 const currentPage = ref(1); // Track current page
 const pageSize = ref<number>(props.pageSize ?? 10); // Default page size to 10 if not provided
+const pageSizeToNumber = computed(() => Number(pageSize.value));
 
-const pageSizes = [10, 20, 50, 100]; // Options for page size
+const pageSizes = [ 10, 20, 50, 100 ]; // Options for page size
 
 onMounted(() => {
   if (sortKey.value && !sortOrder.value) {
@@ -130,20 +131,35 @@ onMounted(() => {
 });
 
 const compareValues = (a: unknown, b: unknown): number => {
+  // Convert date strings to Date objects if needed
+  if (typeof a === "string" && !isNaN(Date.parse(a))) {
+    a = new Date(a);
+  }
+  if (typeof b === "string" && !isNaN(Date.parse(b))) {
+    b = new Date(b);
+  }
+
+  // Date comparison
   if (a instanceof Date && b instanceof Date) {
     return sortOrder.value === "asc" ? a.getTime() - b.getTime() : b.getTime() - a.getTime();
   }
 
-  if (typeof a === "boolean" && typeof b === "boolean") {
-    return sortOrder.value === "asc" ? Number(a) - Number(b) : Number(b) - Number(a);
+  // Convert numeric strings to numbers if needed
+  if (typeof a === "string" && !isNaN(parseFloat(a))) {
+    a = parseFloat(a);
+  }
+  if (typeof b === "string" && !isNaN(parseFloat(b))) {
+    b = parseFloat(b);
   }
 
-  if (typeof a === "string" && typeof b === "string") {
-    return sortOrder.value === "asc" ? a.localeCompare(b) : b.localeCompare(a);
-  }
-
+  // Number comparison
   if (typeof a === "number" && typeof b === "number") {
     return sortOrder.value === "asc" ? a - b : b - a;
+  }
+
+  // Default case (string sorting)
+  if (typeof a === "string" && typeof b === "string") {
+    return sortOrder.value === "asc" ? a.localeCompare(b) : b.localeCompare(a);
   }
 
   return 0;
@@ -154,7 +170,7 @@ const sortedData = computed(() => {
     return props.data;
   }
 
-  return [...props.data].sort((a, b) => {
+  return [ ...props.data ].sort((a, b) => {
     const valueA = a[sortKey.value!] as unknown;
     const valueB = b[sortKey.value!] as unknown;
 
@@ -186,14 +202,14 @@ const filteredData = computed(() => {
 });
 
 const totalPages = computed(() => {
-  if (pageSize.value === -1) {
+  if (pageSizeToNumber.value === -1) {
     return 1; // All items fit in one page
   }
   return Math.ceil(filteredData.value.length / pageSize.value);
 });
 
 const currentPageRows = computed(() => {
-  if (pageSize.value === -1) {
+  if (pageSizeToNumber.value === -1) {
     return filteredData.value; // Show all rows
   }
   const start = (currentPage.value - 1) * pageSize.value;
@@ -229,7 +245,7 @@ const changePage = (page: number) => {
 };
 
 const onPageSizeChange = () => {
-  if (pageSize.value !== -1) {
+  if (pageSizeToNumber.value !== -1) {
     emit("page-size-change", pageSize.value); // Emit page size change event
     currentPage.value = 1; // Reset to page 1 when page size changes
   } else {
