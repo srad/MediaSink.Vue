@@ -74,7 +74,7 @@
       <div class="d-flex justify-content-center mt-3">
         <select class="form-select w-auto" v-model="pageSize" @change="onPageSizeChange">
           <option v-for="size in pageSizes" :key="size" :value="size">{{ size }} rows per page</option>
-          <option value="all">All</option>
+          <option value="-1">All</option>
           <!-- Add 'All' option -->
         </select>
       </div>
@@ -119,7 +119,7 @@ const sortKey = ref<string | null>(props.defaultSortKey ?? null);
 const sortOrder = ref<SortOrder>(props.defaultSortOrder ?? null);
 const searchQueries = ref<Record<string, unknown>>({});
 const currentPage = ref(1); // Track current page
-const pageSize = ref(props.pageSize ?? 10); // Default page size to 10 if not provided
+const pageSize = ref<number>(props.pageSize ?? 10); // Default page size to 10 if not provided
 
 const pageSizes = [10, 20, 50, 100]; // Options for page size
 
@@ -186,14 +186,14 @@ const filteredData = computed(() => {
 });
 
 const totalPages = computed(() => {
-  if (pageSize.value === "all") {
+  if (pageSize.value === -1) {
     return 1; // All items fit in one page
   }
   return Math.ceil(filteredData.value.length / pageSize.value);
 });
 
 const currentPageRows = computed(() => {
-  if (pageSize.value === "all") {
+  if (pageSize.value === -1) {
     return filteredData.value; // Show all rows
   }
   const start = (currentPage.value - 1) * pageSize.value;
@@ -229,11 +229,11 @@ const changePage = (page: number) => {
 };
 
 const onPageSizeChange = () => {
-  if (pageSize.value !== "all") {
+  if (pageSize.value !== -1) {
     emit("page-size-change", pageSize.value); // Emit page size change event
     currentPage.value = 1; // Reset to page 1 when page size changes
   } else {
-    emit("page-size-change", "all"); // Emit "all" for page size
+    emit("page-size-change", -1); // Emit "all" for page size
   }
 };
 </script>
