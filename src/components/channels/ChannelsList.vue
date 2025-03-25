@@ -1,6 +1,5 @@
 <template>
   <DataTable
-    @page-size-change="size => alert(size)"
     default-sort-key="isRecording"
     default-sort-order="desc"
     sorted-class="bg-light"
