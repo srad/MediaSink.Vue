@@ -24,7 +24,7 @@ export default {
     searchInput: "search ... #tag"
   },
   navtop: {
-    addStream: "Add Stream",
+    addStream: "Stream",
     stopRecording: "Stop",
     startRecording: "Start",
     jobsLoading: "Loading..."

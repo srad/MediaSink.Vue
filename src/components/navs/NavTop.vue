@@ -13,16 +13,16 @@
 
     <nav class="navbar navbar-dark navbar-expand-lg fixed-top shadow-sm border-bottom border-primary-subtle m-0 d-flex bg-primary">
       <div class="container-fluid">
-        <AppBrand class="mr-auto" :title="title"/>
+        <AppBrand class="mr-auto" :title="title" />
 
-        <span class="text-danger fw-bold d-none d-sm-inline">
-          <i v-if="heartBeatNextUpdate >= 0" class="bi blink bi-heart-pulse-fill"/>
+        <span class="mx-3 text-danger fw-bold d-none d-sm-inline">
+          <i v-if="heartBeatNextUpdate >= 0" class="bi blink bi-heart-pulse-fill" />
           <i v-else class="bi bi-heart-pulse"></i>
         </span>
 
         <div class="offcanvas offcanvas-end bg-dark" :class="{ show: showNav }" data-bs-backdrop="static" tabindex="-1" aria-labelledby="collapsibleNavbarLabel" id="collapsibleNavbar">
           <div class="offcanvas-header bg-primary text-white">
-            <AppBrand class="mr-auto" :title="title"/>
+            <AppBrand class="mr-auto" :title="title" />
             <button type="button" class="btn-close btn-close-white" @click="showNav = !showNav"></button>
           </div>
           <div class="offcanvas-body">
@@ -39,34 +39,33 @@
                   }
                 ">
                 <a :class="{ active: route.path === link.url }" @click="collapseNav = true" class="nav-link">
-                  <span data-bs-dismiss="offcanvas" data-bs-target="#collapsibleNavbar">{{
-                      link.title
-                    }}</span>
+                  <span data-bs-dismiss="offcanvas" data-bs-target="#collapsibleNavbar">{{ link.title }}</span>
                 </a>
               </li>
               <li class="nav-item d-flex align-items-center">
-                <DiskStatus :pcent="diskAvailablePercentage"/>
+                <DiskStatus :pcent="diskAvailablePercentage" />
               </li>
               <li class="nav-item d-none d-lg-block">
-                <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')"/>
+                <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')" />
               </li>
               <li class="nav-item d-none d-lg-block ms-2">
-                <DarkModelToggleButton/>
+                <DarkModelToggleButton />
               </li>
             </ul>
           </div>
         </div>
 
-        <div class="d-lg-none d-flex">
-          <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')"/>
-          <div class="ms-2">
-            <DarkModelToggleButton/>
-          </div>
-        </div>
+        <div class="d-lg-none d-flex align-items-center">
+          <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')" />
 
-        <button class="navbar-toggler d-l-none" type="button" @click="showNav = !showNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+          <div class="mx-2">
+            <DarkModelToggleButton />
+          </div>
+
+          <button class="navbar-toggler d-l-none" type="button" @click="showNav = !showNav">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        </div>
       </div>
     </nav>
   </div>
@@ -144,7 +143,7 @@ const jobsCount = computed(() => jobStore.jobsCount);
 
 const query = async () => {
   const client = createClient();
-  const [ recRes, diskRes ] = await Promise.all<[ Promise<boolean>, Promise<HelpersDiskInfo> ]>([ client.isRecording(), client.info.diskList() ]);
+  const [recRes, diskRes] = await Promise.all<[Promise<boolean>, Promise<HelpersDiskInfo>]>([client.isRecording(), client.info.diskList()]);
   isRecording.value = recRes;
   diskAvailablePercentage.value = diskRes.pcent;
 };
@@ -169,8 +168,8 @@ const record = async () => {
 
 const initialLoad = async () => {
   const client = createClient();
-  const res = await Promise.all<[ Promise<boolean>, Promise<HelpersDiskInfo> ]>([ client.isRecording(), client.info.diskList() ]);
-  const [ recRes, diskRes ] = res;
+  const res = await Promise.all<[Promise<boolean>, Promise<HelpersDiskInfo>]>([client.isRecording(), client.info.diskList()]);
+  const [recRes, diskRes] = res;
   diskAvailablePercentage.value = diskRes.pcent;
   isRecording.value = recRes;
 };
