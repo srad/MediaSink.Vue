@@ -201,10 +201,19 @@ const filteredData = computed(() => {
         return cellValue === searchQuery;
       }
 
-      return String(cellValue).toLowerCase().includes(String(searchQuery).toLowerCase());
+      return containsAllSubstrings(String(cellValue).trim().toLowerCase(), toSearchTermsArray(searchQuery as string));
     });
   });
 });
+
+const toSearchTermsArray = (str: string): string[] => str.trim().toLowerCase().split(/\s+/);
+
+/**
+ * Checks if a string A contains a list of all substrings.
+ * @param str
+ * @param substrings
+ */
+const containsAllSubstrings = (str: string, substrings: string[]): boolean => substrings.every(sub => str.indexOf(sub) !== -1);
 
 const totalPages = computed(() => {
   if (pageSizeToNumber.value === -1) {
