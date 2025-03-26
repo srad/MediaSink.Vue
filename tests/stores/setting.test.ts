@@ -13,6 +13,7 @@ describe("useSettingsStore", () => {
     expect(store.videoMuted).toBe(true);
     expect(store.layout).toBe(ChannelsViewLayout.Grid);
     expect(store.filterViewPageSize).toBe(100);
+    expect(store.theme).toBe("light");
   });
 
   it("should mute the video", () => {
@@ -47,6 +48,15 @@ describe("useSettingsStore", () => {
     store.setChannelsLayout(ChannelsViewLayout.Grid);
     expect(store.layout).toBe(ChannelsViewLayout.Grid);
   });
+
+  it("should update the theme", () => {
+    const store = useSettingsStore();
+    store.updateTheme("light");
+    expect(store.theme).toBe("light");
+
+    store.updateTheme("dark");
+    expect(store.theme).toBe("dark");
+  })
 
   it("should set filter view page size", () => {
     const store = useSettingsStore();

@@ -11,16 +11,15 @@
 
     <!-- tags -->
     <li class="list-group-item px-2 py-1">
-      <div class="d-flex overflow-scroll">
+      <div class="d-flex overflow-x-auto">
         <template v-if="!showTagInput && tagArray">
           <div v-for="tag in tagArray" class="d-flex badge bg-secondary text-dark rounded-1 me-1 user-select-none" :key="tag">
-            <span @click="router.push({ query: { tag } })">{{ tag }}</span>
-            <i @click="destroyTag(tag)" class="bi bi-x ms-1" style="z-index: 1"></i>
+            <span @click="router.push({ query: { tag } })">{{ tag }}+</span>
           </div>
         </template>
         <span
           v-show="!showTagInput"
-          class="badge bg-primary rounded-1"
+          class="badge bg-primary border-dark border rounded-1"
           @click="
             showTagInput = true;
             tagInput?.focus();
@@ -40,7 +39,7 @@
     </li>
     <!-- /tags -->
 
-    <li class="list-group-item bg-info-light d-flex justify-content-between fs-6">
+    <li class="list-group-item streaminfo-footer d-flex justify-content-between fs-6">
       <div class="d-flex w-75">
         <span class="form-check form-switch me-2">
           <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`" />
@@ -152,4 +151,25 @@ const addTag = async () => {
 };
 </script>
 
-<style scoped></style>
+<style scoped lang="scss">
+@use "@/assets/custom-bootstrap.scss" as bootstrap;
+
+[data-bs-theme="light"] {
+  .streaminfo-footer {
+    background: bootstrap.$secondary;
+  }
+}
+
+[data-bs-theme="dark"] {
+  .streaminfo-footer {
+    background: bootstrap.$primary;
+    color: bootstrap.$white;
+    .form-switch .form-check-input:checked {
+      background-color: bootstrap.$success;
+      border: none #30D158;
+    }
+    .form-switch .form-check-input:not(:checked) {
+    }
+  }
+}
+</style>

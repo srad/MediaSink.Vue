@@ -1,5 +1,5 @@
 <template>
-  <ul class="list-group list-group-flush">
+  <ul class="list-group list-group-flush videoinfo-list">
     <li class="list-group-item d-flex justify-content-center">
       <span>
         {{ t("recording.durationMinutes", [durationFormatted]) }}
@@ -11,18 +11,18 @@
       <span class="text-secondary px-2">/</span>
       <span class="text-cut">{{ ago }}</span>
     </li>
-    <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
+    <li v-if="expand" class="list-group-item d-flex justify-content-between">
       <span>{{ t("recording.bitRate") }}</span>
       <span>{{ (bitRate / 1024 / 1024).toFixed(2) }} MBit</span>
     </li>
-    <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
+    <li v-if="expand" class="list-group-item d-flex justify-content-between">
       <span>{{ t("recording.resolution") }}</span> <span>{{ width }}x{{ height }}</span>
     </li>
-    <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
+    <li v-if="expand" class="list-group-item d-flex justify-content-between">
       <span>{{ t("recording.started") }}</span>
       <span>{{ createdAtFormatted }}</span>
     </li>
-    <li v-if="expand" class="list-group-item d-flex justify-content-between bg-info-light-2">
+    <li v-if="expand" class="list-group-item d-flex justify-content-between">
       <div>{{ t("recording.convert") }}</div>
       <div class="btn-group">
         <button v-if="height !== 720" class="btn btn-light" @click="emit('convert', {recording: data, mediaType: '720'})">
@@ -34,16 +34,16 @@
         <!--<button class="btn btn-sm btn-warning" @click="emit('convert', {recording: data, mediaType: 'mp3'})">MP3</button>-->
       </div>
     </li>
-    <li @click="expand=!expand" class="expand p-0 list-group-item d-flex justify-content-center">
-      <i v-if="!expand" class="text-info bi bi-caret-down-fill"></i>
-      <i v-else class="text-info bi bi-caret-up-fill"></i>
+    <li @click="expand=!expand" class="expand p-0 list-group-item d-flex justify-content-center expand-control" :class="{'expanded' : expand}">
+      <i v-if="!expand" class="bi bi-caret-down-fill"></i>
+      <i v-else class="bi bi-caret-up-fill"></i>
     </li>
-    <li class="list-group-item bg-info-light fs-6" :style="{cursor: props.disableButtons ? 'not-allowed': '' }">
+    <li class="list-group-item fs-6 video-controls" :style="{cursor: props.disableButtons ? 'not-allowed': '' }">
       <div class="justify-content-between d-flex">
 
         <div class="d-flex">
           <button type="button" class="btn btn-sm p-0 px-2" :href="url + '/download'" :disabled="props.disableButtons">
-            <i class="bi bi-download text-dark"></i>
+            <i class="bi bi-download"></i>
           </button>
           <FavButton :data="data" :faved="bookmark" :disabled="props.disableButtons" @fav="emit('bookmarked', props.data, false)" @unfav="emit('bookmarked', props.data, true)"/>
         </div>
@@ -104,13 +104,27 @@ const ago = ref(fromNow(Date.parse(props.createdAt)));
 const expand = ref(false);
 </script>
 
-<style lang="scss" scoped>
-.expand {
-  background: ghostwhite;
+<style scoped lang="scss">
+@use "@/assets/custom-bootstrap.scss" as bootstrap;
+
+[data-bs-theme="light"] {
+  .video-controls {
+    background: bootstrap.$info-bg-subtle;
+  }
 }
 
-.expand:hover {
-  background: darken(ghostwhite, 1%);
+[data-bs-theme="dark"] {
+  .expand-control {
+    background: #4b4e6d;
+    color: bootstrap.$white;
+  }
+  .video-controls {
+    background: bootstrap.$primary;
+    color: bootstrap.$white;
+  }
+}
+.expand {
+  background: ghostwhite;
 }
 
 .btn:disabled {

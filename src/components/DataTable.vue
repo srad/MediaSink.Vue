@@ -101,12 +101,13 @@ export type TableRow = Record<string, unknown>;
 
 type SortOrder = "asc" | "desc" | null;
 
+const sortedClass = "col-sorted";
+
 const props = defineProps<{
   columns: Column[];
   data: TableRow[];
   defaultSortKey?: string;
   defaultSortOrder?: SortOrder;
-  sortedClass?: string;
   pageSize?: number; // Make pageSize optional
 }>();
 
@@ -268,7 +269,30 @@ const onPageSizeChange = () => {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@use "@/assets/custom-bootstrap.scss" as bootstrap;
+
+[data-bs-theme="light"] {
+  .table .col-sorted {
+    background-color: bootstrap.$light;
+  }
+}
+
+[data-bs-theme="dark"], .table-rounded th, .table-rounded td {
+  table, .table-rounded th,
+  .table-rounded td {
+    border: 1px solid bootstrap.$info;
+  }
+
+  .table .col-sorted {
+    background-color: bootstrap.$primary;
+  }
+
+  table th {
+    background-color: bootstrap.$primary !important;
+  }
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
@@ -282,7 +306,7 @@ const onPageSizeChange = () => {
 
 .table-rounded th,
 .table-rounded td {
-  border: 1px solid #dee2e6;
+  border: 1px solid bootstrap.$secondary;
 }
 
 .table-rounded thead tr:first-child th:first-child {

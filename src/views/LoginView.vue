@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex align-items-center justify-content-center vh-100">
-    <div class="card shadow-sm border border-primary" style="width: 400px">
+    <div class="card shadow-sm border" style="width: 400px">
       <h5 class="card-header p-3 bg-primary text-white">Login</h5>
       <div class="card-body p-4">
         <form @submit.prevent="login">
@@ -68,3 +68,23 @@ const login = async () => {
   }
 };
 </script>
+
+<style scoped lang="scss">
+@use "@/assets/custom-bootstrap.scss" as bootstrap;
+
+[data-bs-theme="light"] {
+  .card {
+    border-color: bootstrap.$primary !important;
+  }
+}
+
+[data-bs-theme="dark"] {
+  .card {
+    border-color: bootstrap.$info !important;
+  }
+
+  input {
+    color: bootstrap.$primary;
+  }
+}
+</style>

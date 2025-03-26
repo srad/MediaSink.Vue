@@ -1,14 +1,14 @@
 <template>
   <div class="container-fluid my-3">
     <div class="table-responsive border-secondary border m-0 p-0">
-      <table class="table table-bordered m-0">
+      <table class="table table-bordered m-0 border-primary-subtle">
         <thead>
         <tr style="visibility: collapse">
           <th style="width: 25%"></th>
           <th></th>
         </tr>
         <tr>
-          <th class="text-end bg-light" colspan="2">
+          <th class="text-end bg-primary-subtle" colspan="2">
             <div class="btn-group btn-group-sm">
               <button type="button" :disabled="isUpdating" class="btn btn-primary me-2" @click="updateInfo" :class="{ 'blink btn-danger': isUpdating }">
                 <span class="me-2">Update video metadata</span>

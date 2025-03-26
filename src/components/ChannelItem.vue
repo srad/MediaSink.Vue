@@ -1,5 +1,5 @@
 <template>
-  <div class="card rounded-2 bg-light mb-3 border shadow-sm position-relative border-primary" :class="{ 'animate__animated animate__zoomOut': destroyed, 'opacity-50': props.channel.isPaused, 'border-primary': !props.channel.isRecording }">
+  <div class="card rounded-2 bg-light mb-3 border shadow-sm position-relative" :class="{ 'animate__animated animate__zoomOut': destroyed, 'opacity-50 border-paused': props.channel.isPaused, 'border-recording': !props.channel.isRecording }">
     <div v-if="busy" class="bg-dark opacity-50 position-absolute w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 100">
       <div class="loader"></div>
     </div>
@@ -118,3 +118,20 @@ const pause = async (channel: ChannelInfo) => {
 
 const viewFolder = (id: number, name: string) => router.push(`/channel/${id}/${name}`);
 </script>
+
+<style scoped lang="scss">
+@use "@/assets/custom-bootstrap.scss" as bootstrap;
+@use "sass:color";
+
+[data-bs-theme="light"] {
+  .card {
+    border-color: bootstrap.$primary !important;
+  }
+}
+
+[data-bs-theme="dark"] {
+  .card {
+    border-color: color.mix(white, bootstrap.$primary, 30%) !important;
+  }
+}
+</style>

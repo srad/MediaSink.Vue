@@ -50,12 +50,18 @@
               <li class="nav-item d-none d-lg-block">
                 <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')"/>
               </li>
+              <li class="nav-item d-none d-lg-block ms-2">
+                <DarkModelToggleButton/>
+              </li>
             </ul>
           </div>
         </div>
 
-        <div class="d-lg-none">
+        <div class="d-lg-none d-flex">
           <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')"/>
+          <div class="ms-2">
+            <DarkModelToggleButton/>
+          </div>
         </div>
 
         <button class="navbar-toggler d-l-none" type="button" @click="showNav = !showNav">
@@ -79,6 +85,7 @@ import ModalConfirmDialog from "../modals/ModalConfirmDialog.vue";
 import type { HelpersDiskInfo } from "../../services/api/v1/StreamSinkClient";
 import { createClient } from "../../services/api/v1/ClientFactory";
 import { useAuthStore } from "../../stores/auth";
+import DarkModelToggleButton from "../DarkModelToggleButton.vue";
 
 // --------------------------------------------------------------------------------------
 // Props

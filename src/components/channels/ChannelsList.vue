@@ -2,7 +2,6 @@
   <DataTable
     default-sort-key="isRecording"
     default-sort-order="desc"
-    sorted-class="bg-light"
     :page-size="10"
     :columns="[
       { key: 'preview', label: 'Preview', sortable: false, width: '1%', headerClass: 'text-center align-middle bg-light', rowClass: 'px-1 py-0 text-center align-middle' },
