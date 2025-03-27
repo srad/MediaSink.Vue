@@ -6,7 +6,7 @@
     :columns="[
       { key: 'preview', label: 'Preview', sortable: false, width: '1%', headerClass: 'text-center align-middle bg-light', rowClass: 'px-1 py-0 text-center align-middle' },
       { key: 'displayName', label: 'Name', isSearchable: true, sortable: true, width: '10%', headerClass: 'text-center align-middle bg-light', rowClass: 'align-middle' },
-      { key: 'url', label: 'Link', sortable: false, isSearchable: true, width: '20%', headerClass: 'text-center align-middle bg-light', rowClass: 'align-middle' },
+      //{ key: 'url', label: 'Link', sortable: false, isSearchable: true, width: '20%', headerClass: 'text-center align-middle bg-light', rowClass: 'align-middle' },
       { key: 'fav', label: 'Favourite?', sortable: true, width: '5%', isSearchable: true, type: 'boolean', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
       { key: 'isRecording', label: 'Recording?', sortable: true, isSearchable: true, type: 'boolean', width: '5%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
       { key: 'recordingsCount', label: 'Items', sortable: true, width: '5%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
@@ -26,14 +26,13 @@
       <img alt="preview" :src="row.preview as string" class="rounded" loading="lazy" style="height: 50px; width: auto" />
     </template>
 
-    <template #cell-url="{ row }">
-      <a target="_blank" :href="row.url as string">{{ row.url }}</a>
-    </template>
-
     <template #cell-displayName="{ row }">
-      <RouterLink class="text-decoration-none" :to="`/channel/${row.channelId}/${row.channelName}`">
-        <h6 class="m-0">{{ row.displayName }}</h6>
-      </RouterLink>
+      <div class="d-flex justify-content-between fs-6">
+        <RouterLink :to="`/channel/${row.channelId}/${row.channelName}`">
+          <span>{{ row.displayName }}</span>
+        </RouterLink>
+        <a class="mx-2" :href="row.url as string" target="_blank"> Link <i class="bi bi-link"></i> </a>
+      </div>
     </template>
 
     <template #cell-fav="{ row }">

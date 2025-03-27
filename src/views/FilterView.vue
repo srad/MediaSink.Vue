@@ -3,37 +3,27 @@
     <div>
       <div class="row mb-2">
         <div class="col">
-          <div class="d-flex justify-content-end">
-            <div class="d-flex justify-content-center me-2">
-              <!-- filter row -->
-              <div class="row align-items-center">
-                <div class="col-auto">
-                  <select ref="filterColumnSelect" class="form-select form-select-sm" v-model="filterColumn" @change="filterChanged">
-                    <option value="" style="font-weight: bold" disabled>{{ t("filter.orderBy") }}</option>
-                    <option v-for="col in columns" :key="col[1]" :value="col[1]">{{ col[0] }}</option>
-                  </select>
-                </div>
-                <div class="col-auto">
-                  <select ref="sortOrderSelect" class="form-select form-select-sm text-capitalize" v-model="filterOrder" @input="filterChanged">
-                    <option value="" style="font-weight: bold" disabled>{{ t("filter.order") }}</option>
-                    <option v-for="o in order" :key="o" :value="o">{{ o }}</option>
-                  </select>
-                </div>
-                <div class="col-auto">
-                  <select ref="filterLimitSelect" id="limit" class="form-select form-select-sm" v-model="filterLimit" @change="filterChanged">
-                    <option value="" style="font-weight: bold" disabled>{{ t("filter.limit") }}</option>
-                    <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
-                  </select>
-                </div>
+          <div class="d-flex justify-content-center">
+            <!-- filter row -->
+            <div class="d-flex justify-content-evenly gap-1">
+              <select ref="filterColumnSelect" class="form-select" v-model="filterColumn" @change="filterChanged">
+                <option value="" style="font-weight: bold" disabled>{{ t("filter.orderBy") }}</option>
+                <option v-for="col in columns" :key="col[1]" :value="col[1]">{{ col[0] }}</option>
+              </select>
+              <select ref="sortOrderSelect" class="form-select text-capitalize" v-model="filterOrder" @input="filterChanged">
+                <option value="" style="font-weight: bold" disabled>{{ t("filter.order") }}</option>
+                <option v-for="o in order" :key="o" :value="o">{{ o }}</option>
+              </select>
+              <select ref="filterLimitSelect" id="limit" class="form-select" v-model="filterLimit" @change="filterChanged">
+                <option value="" style="font-weight: bold" disabled>{{ t("filter.limit") }}</option>
+                <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
+              </select>
 
-                <div class="col-auto">
-                  <button type="button" class="btn btn-primary" @click="resetFilters">
-                    {{ t("filter.reset") }}
-                  </button>
-                </div>
-              </div>
-              <!-- filter row -->
+              <button type="button" class="btn btn-primary" @click="resetFilters">
+                {{ t("filter.reset") }}
+              </button>
             </div>
+            <!-- filter row -->
             <button class="btn btn-primary btn-sm" @click="filterChanged" v-if="route.params.type === 'random'">Refresh</button>
           </div>
         </div>
@@ -41,7 +31,7 @@
     </div>
     <div class="row">
       <div v-for="video in videos" :key="video.video.recordingId" class="mb-3 col-lg-6 col-xl-4 col-xxl-3 col-md-8 col-sm-8">
-        <VideoItem :job="video.jobTask" :show-title="true" :recording="video.video" @destroyed="destroyRecording" :show-selection="false"/>
+        <VideoItem :job="video.jobTask" :show-title="true" :recording="video.video" @destroyed="destroyRecording" :show-selection="false" />
       </div>
     </div>
   </LoadIndicator>

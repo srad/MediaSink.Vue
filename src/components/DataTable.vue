@@ -1,57 +1,57 @@
 <template>
-  <div class="table-responsive">
-    <table class="w-100 table table-bordered table-hover table-rounded">
+  <div class="table-responsive table-container">
+    <table class="w-100 table table-hover table-rounded">
       <thead>
-      <!-- Search Inputs/Checkboxes Row -->
-      <tr>
-        <th class="user-select-none" v-for="column in columns" :key="column.key" :rowspan="column.isSearchable ? 1 : 2" :style="{ width: column.width }" :class="[column.headerClass, column.isSearchable ? 'searchable-column' : '', column.sortable ? 'cursor-pointer' : 'user-select-none']">
-          <!-- Search input for searchable columns -->
-          <div v-if="column.isSearchable" class="search-container">
-            <!-- Checkbox for boolean columns -->
-            <input v-if="column.type === 'boolean'" type="checkbox" v-model="searchQueries[column.key]" @click.stop="handleCheckboxChange(column.key)"/>
-            <!-- Input for non-boolean columns -->
-            <input v-if="column.type !== 'boolean'" v-model="searchQueries[column.key]" type="text" :placeholder="column.label" class="form-control border-primary-subtle"/>
-          </div>
-          <div v-else @click="column.sortable && toggleSort(column.key)">
-            <slot :name="`header-${column.key}`">
-              {{ column.label }}
-            </slot>
-            <span v-if="sortKey === column.key">
-              <span v-if="sortOrder === 'asc'">↑</span>
-              <span v-if="sortOrder === 'desc'">↓</span>
-            </span>
-          </div>
-        </th>
-      </tr>
-
-      <!-- Column Titles Row -->
-      <tr>
-        <template v-for="column in columns" :key="`header-${column.key}`">
-          <th class="user-select-none" v-if="column.isSearchable" :style="{ width: column.width }" :class="[column.headerClass, column.sortable ? 'cursor-pointer' : 'user-select-none', sortKey === column.key && sortedClass]" @click="toggleSort(column.key)" :rowspan="column.sortable ? 1 : 2">
-            <!-- Set rowspan for sortable columns -->
-            <!-- Column title with sorting click event -->
-            <slot :name="`header-${column.key}`">
-              {{ column.label }}
-            </slot>
-            <span v-if="sortKey === column.key">
-              <span v-if="sortOrder === 'asc'">↑</span>
-              <span v-if="sortOrder === 'desc'">↓</span>
-            </span>
+        <!-- Search Inputs/Checkboxes Row -->
+        <tr>
+          <th class="user-select-none" v-for="column in columns" :key="column.key" :rowspan="column.isSearchable ? 1 : 2" :style="{ width: column.width }" :class="[column.headerClass, column.isSearchable ? 'searchable-column' : '', column.sortable ? 'cursor-pointer' : 'user-select-none']">
+            <!-- Search input for searchable columns -->
+            <div v-if="column.isSearchable" class="search-container">
+              <!-- Checkbox for boolean columns -->
+              <input v-if="column.type === 'boolean'" type="checkbox" v-model="searchQueries[column.key]" @click.stop="handleCheckboxChange(column.key)" />
+              <!-- Input for non-boolean columns -->
+              <input v-if="column.type !== 'boolean'" v-model="searchQueries[column.key]" type="text" :placeholder="column.label" class="form-control border-primary-subtle" />
+            </div>
+            <div v-else @click="column.sortable && toggleSort(column.key)">
+              <slot :name="`header-${column.key}`">
+                {{ column.label }}
+              </slot>
+              <span v-if="sortKey === column.key">
+                <span v-if="sortOrder === 'asc'">↑</span>
+                <span v-if="sortOrder === 'desc'">↓</span>
+              </span>
+            </div>
           </th>
-        </template>
-      </tr>
+        </tr>
+
+        <!-- Column Titles Row -->
+        <tr>
+          <template v-for="column in columns" :key="`header-${column.key}`">
+            <th class="user-select-none" v-if="column.isSearchable" :style="{ width: column.width }" :class="[column.headerClass, column.sortable ? 'cursor-pointer' : 'user-select-none', sortKey === column.key && sortedClass]" @click="toggleSort(column.key)" :rowspan="column.sortable ? 1 : 2">
+              <!-- Set rowspan for sortable columns -->
+              <!-- Column title with sorting click event -->
+              <slot :name="`header-${column.key}`">
+                {{ column.label }}
+              </slot>
+              <span v-if="sortKey === column.key">
+                <span v-if="sortOrder === 'asc'">↑</span>
+                <span v-if="sortOrder === 'desc'">↓</span>
+              </span>
+            </th>
+          </template>
+        </tr>
       </thead>
       <tbody>
-      <tr v-if="currentPageRows.length === 0">
-        <td :colspan="columns.length">Empty</td>
-      </tr>
-      <tr v-else v-for="(row, rowIndex) in currentPageRows" :key="rowIndex">
-        <td v-for="column in columns" :key="column.key" :class="[column.rowClass, sortKey === column.key && sortedClass]">
-          <slot :name="`cell-${column.key}`" :value="row[column.key]" :row="row">
-            {{ row[column.key] }}
-          </slot>
-        </td>
-      </tr>
+        <tr v-if="currentPageRows.length === 0">
+          <td :colspan="columns.length">Empty</td>
+        </tr>
+        <tr v-else v-for="(row, rowIndex) in currentPageRows" :key="rowIndex">
+          <td v-for="column in columns" :key="column.key" :class="[column.rowClass, sortKey === column.key && sortedClass]">
+            <slot :name="`cell-${column.key}`" :value="row[column.key]" :row="row">
+              {{ row[column.key] }}
+            </slot>
+          </td>
+        </tr>
       </tbody>
     </table>
 
@@ -126,7 +126,7 @@ const currentPage = ref(1); // Track current page
 const pageSize = ref<number>(props.pageSize ?? 10); // Default page size to 10 if not provided
 const pageSizeToNumber = computed(() => Number(pageSize.value));
 
-const pageSizes = [ 10, 20, 50, 100 ]; // Options for page size
+const pageSizes = [10, 20, 50, 100]; // Options for page size
 
 onMounted(() => {
   if (sortKey.value && !sortOrder.value) {
@@ -179,7 +179,7 @@ const sortedData = computed(() => {
     return props.data;
   }
 
-  return [ ...props.data ].sort((a, b) => {
+  return [...props.data].sort((a, b) => {
     const valueA = a[sortKey.value!] as unknown;
     const valueB = b[sortKey.value!] as unknown;
 
@@ -217,7 +217,7 @@ const toSearchTermsArray = (str: string): string[] => str.trim().toLowerCase().s
  * @param str
  * @param substrings
  */
-const containsAllSubstrings = (str: string, substrings: string[]): boolean => substrings.every(sub => str.indexOf(sub) !== -1);
+const containsAllSubstrings = (str: string, substrings: string[]): boolean => substrings.every((sub) => str.indexOf(sub) !== -1);
 
 const totalPages = computed(() => {
   if (pageSizeToNumber.value === -1) {
@@ -276,15 +276,28 @@ const onPageSizeChange = () => {
 @use "@/assets/custom-bootstrap.scss" as bootstrap;
 
 [data-bs-theme="light"] {
-  .table .col-sorted {
+  table .col-sorted {
     background-color: bootstrap.$light;
+  }
+
+  table {
+    border: 1px solid bootstrap.$secondary;
+  }
+
+  table tbody td + td {
+    border-top: 1px solid bootstrap.$secondary;
+  }
+
+  table th + th, table td + td {
+    border-left: 1px solid bootstrap.$secondary;
   }
 }
 
-[data-bs-theme="dark"], .table-rounded th, .table-rounded td {
-  table, .table-rounded th,
-  .table-rounded td {
-    border: 1px solid bootstrap.$info;
+[data-bs-theme="dark"],
+.table-rounded th,
+.table-rounded td {
+  table tbody td {
+    border-top: 1px solid bootstrap.$info;
   }
 
   .table .col-sorted {
@@ -293,6 +306,19 @@ const onPageSizeChange = () => {
 
   table th {
     background-color: bootstrap.$primary !important;
+    border: none;
+  }
+
+  table th input {
+    border: 1px solid bootstrap.$info !important;
+  }
+
+  table {
+    border: 1px solid bootstrap.$info;
+  }
+
+  table th + th, table td + td {
+    border-left: 1px solid bootstrap.$info;
   }
 }
 
@@ -305,11 +331,6 @@ const onPageSizeChange = () => {
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
-}
-
-.table-rounded th,
-.table-rounded td {
-  border: 1px solid bootstrap.$secondary;
 }
 
 .table-rounded thead tr:first-child th:first-child {
