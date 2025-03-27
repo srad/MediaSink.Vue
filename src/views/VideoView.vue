@@ -4,19 +4,40 @@
       <span class="fs-5">Confirm your video cut</span>
     </template>
     <template v-slot:body>
-      <MarkingsTable v-if="showConfirmDialog" :show-destroy="false" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)" />
+      <MarkingsTable v-if="showConfirmDialog" :show-destroy="false" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)"/>
 
-      <hr />
+      <hr/>
 
       <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="deleteFileAfterCut" />
+        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="deleteFileAfterCut"/>
         <label class="form-check-label" for="flexSwitchCheckDefault">Delete file after cut?</label>
       </div>
     </template>
   </ModalConfirmDialog>
   <BusyOverlay :visible="busy"></BusyOverlay>
 
-  <div v-if="recording">
+  <template v-if="recording">
+    <SlidePanel label="Info" position="left" :opacity="0.9" width="220px">
+      <ul class="list-group m-0 mb-1" style="font-size: 0.9rem">
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <strong>Resolution</strong>
+          <span>{{ recording.width }}x{{ recording.height }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <strong>Duration</strong>
+          <span>{{ (recording.duration / 60).toFixed(1) }}min</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <strong>File Size</strong>
+          <span>{{ (recording.size / 1024 / 1024 / 1024).toFixed(1) }}GB</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <strong>Format</strong>
+          <span>{{ (recording.bitRate / 1024 / 1024).toFixed(2) }} MBit</span>
+        </li>
+      </ul>
+    </SlidePanel>
+
     <div class="d-flex flex-column bg-light w-100 vh-100">
       <!-- Main Row: Video & Sidebar -->
       <div class="d-flex flex-row w-100 flex-grow-1 overflow-hidden">
@@ -24,7 +45,7 @@
           <!-- Video Container: Takes remaining space -->
           <div class="d-flex flex-grow-1 overflow-hidden bg-dark">
             <video class="w-100 h-100" style="object-fit: contain; outline: none" ref="video" :muted="isMuted" @volumechange="volumeChanged($event)" @loadeddata="loadData" @timeupdate="timeupdate" @seeked="() => (seeked = video!.currentTime)" controls playsinline autoplay>
-              <source :src="videoUrl" type="video/mp4" />
+              <source :src="videoUrl" type="video/mp4"/>
               Your browser does not support the video tag.
             </video>
           </div>
@@ -63,7 +84,7 @@
 
         <!-- Sidebar -->
         <div v-if="editMode" class="d-none d-lg-flex flex-column p-1 bg-secondary" style="width: 350px; font-size: 0.85rem">
-          <MarkingsTable :show-destroy="true" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)" />
+          <MarkingsTable :show-destroy="true" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)"/>
 
           <!-- Play cut controls
           <button class="btn btn-primary btn-sm" @click="playCut" v-if="!playingCut">Play Cut <i class="bi bi-play-fill"></i></button>
@@ -76,16 +97,15 @@
 
       <!-- Video Stripe: Fixed height, always visible -->
       <div class="w-100 flex-shrink-0 bg-light position-relative" style="height: 20vh; max-height: 100px">
-        <VideoStripe :loaded="isLoaded" :src="stripeUrl" :disabled="playingCut" :seeked="seeked" :paused="pause" :timecode="timeCode" :duration="duration" :markings="markings" @selecting="() => (pause = true)" @marking="(m) => (markings = m)" @seek="seek" />
+        <VideoStripe :loaded="isLoaded" :src="stripeUrl" :disabled="playingCut" :seeked="seeked" :paused="pause" :timecode="timeCode" :duration="duration" :markings="markings" @selecting="() => (pause = true)" @marking="(m) => (markings = m)" @seek="seek"/>
       </div>
     </div>
-  </div>
+  </template>
 </template>
 
 <script setup lang="ts">
 import type { DatabaseRecording } from "@/services/api/v1/StreamSinkClient";
 import VideoStripe, { type Marking } from "@/components/VideoStripe.vue";
-import RecordingFavButton from "@/components/controls/RecordingFavButton.vue";
 import BusyOverlay from "@/components/BusyOverlay.vue";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
@@ -96,6 +116,7 @@ import { useToastStore } from "@/stores/toast";
 import { useJobStore } from "@/stores/job";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import { useSettingsStore } from "@/stores/settings.ts";
+import SlidePanel from "@/SlidePanel.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -248,7 +269,7 @@ const destroy = () => {
     return;
   }
 
-  if (!window.confirm(t("videoView.destroy", [recording.value.filename]))) {
+  if (!window.confirm(t("videoView.destroy", [ recording.value.filename ]))) {
     return;
   }
 
