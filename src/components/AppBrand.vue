@@ -1,7 +1,7 @@
 <template>
   <RouterLink class="navbar-brand text-white fw-bold d-flex p-0 m-0 align-items-center" to="/streams/live">
     <img class="icon" alt="icon" src="/icons2/icon.png" />
-    <div class="d-none d-sm-block ms-2git">{{ props.title }}</div>
+    <div class="d-none d-sm-block ms-2">{{ props.title }}</div>
   </RouterLink>
 </template>
 
@@ -24,7 +24,7 @@ const props = defineProps<{ title: string }>();
     transform: rotate(0deg);
   }
   100% {
-    transform: rotate(360deg);
+    transform: rotate(-360deg);
   }
 }
 </style>
