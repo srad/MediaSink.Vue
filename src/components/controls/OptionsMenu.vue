@@ -1,6 +1,6 @@
 <template>
   <div class="btn-group dropup">
-    <button id="optionsButton" type="button" class="btn btn-primary dropdown-toggle" :class="{ show: show }" data-bs-toggle="dropdown" :aria-expanded="show" @click="show = !show">Options</button>
+    <button id="optionsButton" type="button" class="btn btn-outline-secondary dropdown-toggle" :class="{ show: show }" data-bs-toggle="dropdown" :aria-expanded="show" @click="show = !show">Options</button>
     <ul class="dropdown-menu" :class="{ show: show }" data-bs-popper="static">
       <li>
         <button type="button" class="dropdown-item d-flex justify-content-between" @click="clickFile">
@@ -65,4 +65,22 @@ const fileChanged = () => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+@use "@/assets/custom-bootstrap.scss" as bootstrap;
+
+[data-bs-theme="light"] {
+  .card {
+    border-color: bootstrap.$primary !important;
+  }
+}
+
+[data-bs-theme="dark"] {
+  .card {
+    border-color: bootstrap.$info !important;
+  }
+
+  input {
+    color: bootstrap.$primary;
+  }
+}
+</style>

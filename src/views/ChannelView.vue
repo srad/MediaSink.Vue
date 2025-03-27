@@ -40,7 +40,7 @@
         </div>
       </div>
 
-      <nav class="navbar fixed-bottom navbar-light bg-light border-info border-top">
+      <nav class="navbar fixed-bottom border-info border-top">
         <div class="container-fluid justify-content-between">
           <OptionsMenu v-if="!areItemsSelected" :channel-paused="channel!.isPaused" :multi-select="selectedRecordings.length === 0" @file="fileSelected" @pause="pauseChannel" @delete="showConfirm = true" />
 
@@ -57,9 +57,9 @@
               <span class="me-2">Cancel</span>
               <i class="bi bi-stop-fill" />
             </button>
-            <button v-if="!areItemsSelected" type="button" class="btn d-flex justify-content-between" :style="{ background: channel!.fav ? 'deeppink' : 'lightgrey' }" @click="bookmark">
+            <button v-if="!areItemsSelected" type="button" class="btn btn-outline-light d-flex justify-content-between" @click="bookmark">
               <span class="me-2">Fav</span>
-              <i class="bi" :class="{ 'bi-heart-fill': channel!.fav, 'bi-heart': !channel!.fav }" />
+              <i class="bi" :style="{ color: channel!.fav ? 'deeppink' : 'black' }" :class="{ 'bi-heart-fill': channel!.fav, 'bi-heart': !channel!.fav }" />
             </button>
           </div>
         </div>

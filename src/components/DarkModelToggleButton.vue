@@ -1,5 +1,5 @@
 <template>
-  <button @click="toggleDarkMode" :class="classes" class="btn rounded-50%">
+  <button @click="toggleDarkMode" :class="classes" class="btn">
     <i class="bi bi-toggles"/>
   </button>
 </template>
@@ -9,7 +9,6 @@ import { computed, ref, watch } from "vue";
 import { useSettingsStore } from "../stores/settings";
 
 const settingsStore = useSettingsStore();
-
 
 const darkMode = ref(settingsStore.isDarkMode);
 
