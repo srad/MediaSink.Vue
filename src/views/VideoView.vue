@@ -4,12 +4,12 @@
       <span class="fs-5">Confirm your video cut</span>
     </template>
     <template v-slot:body>
-      <MarkingsTable v-if="showConfirmDialog" :show-destroy="false" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)"/>
+      <MarkingsTable v-if="showConfirmDialog" :show-destroy="false" :markings="markings" @destroy="(marking: Selection) => destroyMarking(marking)" @selected="(marking: Selection) => selectMarking(marking)" />
 
-      <hr/>
+      <hr />
 
       <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="deleteFileAfterCut"/>
+        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="deleteFileAfterCut" />
         <label class="form-check-label" for="flexSwitchCheckDefault">Delete file after cut?</label>
       </div>
     </template>
@@ -45,7 +45,7 @@
           <!-- Video Container: Takes remaining space -->
           <div class="d-flex flex-grow-1 overflow-hidden bg-dark">
             <video class="w-100 h-100" style="object-fit: contain; outline: none" ref="video" :muted="isMuted" @volumechange="volumeChanged($event)" @loadeddata="loadData" @timeupdate="timeupdate" @seeked="() => (seeked = video!.currentTime)" controls playsinline autoplay>
-              <source :src="videoUrl" type="video/mp4"/>
+              <source :src="videoUrl" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </div>
@@ -56,9 +56,7 @@
               <button class="btn btn-danger btn-sm me-1" @click="destroy">
                 <span>Delete</span>
               </button>
-              <RouterLink class="btn btn-sm btn-info" :to="`/channel/${recording.channelId}/${recording.channelName}`">
-                Show Channel
-              </RouterLink>
+              <RouterLink class="btn btn-sm btn-info" :to="`/channel/${recording.channelId}/${recording.channelName}`"> Show Channel</RouterLink>
             </div>
 
             <div class="d-flex">
@@ -84,7 +82,7 @@
 
         <!-- Sidebar -->
         <div v-if="editMode" class="d-none d-lg-flex flex-column p-1 bg-secondary" style="width: 350px; font-size: 0.85rem">
-          <MarkingsTable :show-destroy="true" :markings="markings" @destroy="(marking: Marking) => destroyMarking(marking)" @selected="(marking: Marking) => selectMarking(marking)"/>
+          <MarkingsTable :show-destroy="true" :markings="markings" @destroy="(marking: Selection) => destroyMarking(marking)" @selected="(marking: Selection) => selectMarking(marking)" />
 
           <!-- Play cut controls
           <button class="btn btn-primary btn-sm" @click="playCut" v-if="!playingCut">Play Cut <i class="bi bi-play-fill"></i></button>
@@ -97,7 +95,8 @@
 
       <!-- Video Stripe: Fixed height, always visible -->
       <div class="w-100 flex-shrink-0 bg-light position-relative" style="height: 20vh; max-height: 100px">
-        <VideoStripe :loaded="isLoaded" :src="stripeUrl" :disabled="playingCut" :seeked="seeked" :paused="pause" :timecode="timeCode" :duration="duration" :markings="markings" @selecting="() => (pause = true)" @marking="(m) => (markings = m)" @seek="seek"/>
+        <VideoSelector v-if="false" :image-src="stripeUrl" :duration="duration" />
+        <VideoStripe :loaded="isLoaded" :src="stripeUrl" :disabled="playingCut" :seeked="seeked" :paused="pause" :timecode="timeCode" :duration="duration" :markings="markings" @selecting="() => (pause = true)" @marking="(m) => (markings = m)" @seek="seek" />
       </div>
     </div>
   </template>
@@ -105,7 +104,7 @@
 
 <script setup lang="ts">
 import type { DatabaseRecording } from "@/services/api/v1/StreamSinkClient";
-import VideoStripe, { type Marking } from "@/components/VideoStripe.vue";
+import VideoStripe, { type Selection } from "@/components/VideoStripe.vue";
 import BusyOverlay from "@/components/BusyOverlay.vue";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
@@ -117,6 +116,7 @@ import { useJobStore } from "@/stores/job";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import { useSettingsStore } from "@/stores/settings.ts";
 import SlidePanel from "@/SlidePanel.vue";
+import VideoSelector from "@/VideoSelector.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -142,7 +142,7 @@ const pause = ref(false);
 const isLoaded = ref(false);
 const isShown = ref(false);
 const playbackSpeed = ref(1.0);
-const markings = ref<Marking[]>([]);
+const markings = ref<Selection[]>([]);
 const timeCode = ref<number>(0);
 const duration = ref<number>(0);
 const recording = ref<DatabaseRecording | null>(null);
@@ -249,13 +249,13 @@ const resetSelection = () => {
   }
 };
 
-const selectMarking = (marking: Marking) => {
+const selectMarking = (marking: Selection) => {
   resetSelection();
   video.value!.currentTime = marking.timestart;
   marking.selected = true;
 };
 
-const destroyMarking = (marking: Marking) => {
+const destroyMarking = (marking: Selection) => {
   for (let i = 0; i < markings.value.length; i++) {
     if (markings.value[i]!.timestart === marking.timestart && markings.value[i]!.timeend === marking.timeend) {
       markings.value.splice(i, 1);
@@ -269,7 +269,7 @@ const destroy = () => {
     return;
   }
 
-  if (!window.confirm(t("videoView.destroy", [ recording.value.filename ]))) {
+  if (!window.confirm(t("videoView.destroy", [recording.value.filename]))) {
     return;
   }
 
@@ -327,7 +327,8 @@ let lastUpdate = 0;
 const timeupdate = () => {
   if (isMounted.value && video.value) {
     const now = performance.now();
-    if (now - lastUpdate > 100) { // Update every 100ms instead of every frame
+    if (now - lastUpdate > 100) {
+      // Update every 100ms instead of every frame
       timeCode.value = video.value.currentTime;
       lastUpdate = now;
     }

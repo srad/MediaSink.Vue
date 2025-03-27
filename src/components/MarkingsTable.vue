@@ -3,8 +3,8 @@
     <table class="table table-sm bg-white table-bordered border-dark table-hover">
       <thead>
       <tr>
-        <th class="bg-light text-center px-2">{{ t("videoView.segment.start") }}</th>
-        <th class="bg-light text-center px-2">{{ t("videoView.segment.end") }}</th>
+        <th class="text-center px-2">{{ t("videoView.segment.start") }}</th>
+        <th class="text-center px-2">{{ t("videoView.segment.end") }}</th>
         <th class="bg-light text-center px-2">{{ t("videoView.segment.duration") }}</th>
         <th class="bg-light text-center px-2" v-if="showDestroy">
           <i class="bi bi-trash3 text-danger"></i>
@@ -35,7 +35,7 @@
 <script setup lang="ts">
 import { computed, defineEmits, defineProps } from "vue";
 import { useI18n } from "vue-i18n";
-import type { Marking } from "../components/VideoStripe.vue";
+import type { Selection } from "../components/VideoStripe.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -44,11 +44,11 @@ import type { Marking } from "../components/VideoStripe.vue";
 const { t } = useI18n();
 
 const emit = defineEmits<{
-  (e: "selected", value: Marking): void
-  (e: "destroy", value: Marking): void
+  (e: "selected", value: Selection): void
+  (e: "destroy", value: Selection): void
 }>();
 
-const props = defineProps<{ markings: Marking[], showDestroy: boolean }>();
+const props = defineProps<{ markings: Selection[], showDestroy: boolean }>();
 
 // --------------------------------------------------------------------------------------
 // Methods
@@ -89,3 +89,28 @@ const markingsDuration = computed(() => {
 });
 
 </script>
+
+<style scoped lang="scss">
+@use "@/assets/custom-bootstrap.scss" as bootstrap;
+
+[data-bs-theme="light"] {
+  .table .col-sorted {
+    background-color: bootstrap.$light;
+  }
+}
+
+[data-bs-theme="dark"], .table-rounded th, .table-rounded td {
+  table, .table-rounded th,
+  .table-rounded td {
+    border: 1px solid bootstrap.$info;
+  }
+
+  .table .col-sorted {
+    background-color: bootstrap.$primary;
+  }
+
+  table th {
+    background-color: bootstrap.$primary !important;
+  }
+}
+</style>
