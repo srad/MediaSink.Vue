@@ -42,7 +42,10 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="(row, rowIndex) in currentPageRows" :key="rowIndex">
+      <tr v-if="currentPageRows.length === 0">
+        <td :colspan="columns.length">Empty</td>
+      </tr>
+      <tr v-else v-for="(row, rowIndex) in currentPageRows" :key="rowIndex">
         <td v-for="column in columns" :key="column.key" :class="[column.rowClass, sortKey === column.key && sortedClass]">
           <slot :name="`cell-${column.key}`" :value="row[column.key]" :row="row">
             {{ row[column.key] }}

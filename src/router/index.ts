@@ -27,7 +27,9 @@ const routes = [
   },
   { path: "/channels", name: "Channels", component: ChannelsView, meta: { title: "Channels" } },
   { path: "/admin", name: "Admin", component: AdminView, meta: { title: "Admin" } },
-  { path: "/jobs/:tab?", name: "Job", component: JobView, meta: { title: "Jobs" } },
+
+  { path: "/jobs", redirect: "/jobs/open" },
+  { path: "/jobs/:tab", name: "Job", component: JobView, meta: { title: "Jobs" } },
   {
     path: "/streams/:tab/tab/:tag?",
     name: "Streams",

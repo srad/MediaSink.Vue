@@ -3,7 +3,7 @@
     <NavTop :routes="routes" :title="title" @add="showModal = true" :show-logout="true" @logout="logout"/>
     <main class="container-fluid" style="margin-top: 4rem">
       <slot></slot>
-      <ChannelModal :clear="showModal" :show="showModal" :is-paused="false" :saving="false" title="Add Stream" @save="save" @close="showModal = false"/>
+      <ChannelModal :clear="showModal" :show="showModal" :is-paused="false" :saving="false" title="Stream" @save="save" @close="showModal = false"/>
       <AppToaster :toasts="toastStore.all" @destroy="toast => toastStore.destroy(toast)"/>
     </main>
   </div>
