@@ -5,13 +5,13 @@
         <div class="mb-1 row">
           <label class="text-center col-3 col-form-label">Start</label>
           <div class="col">
-            <input type="text" v-model="start" disabled class="form-control form-control-sm">
+            <input type="text" v-model="start" disabled class="form-control form-control-sm" />
           </div>
         </div>
         <div class="mb-1 row">
           <label class="text-center col-3 col-form-label">End</label>
           <div class="col">
-            <input type="text" v-model="end" disabled class="form-control form-control-sm">
+            <input type="text" v-model="end" disabled class="form-control form-control-sm" />
           </div>
         </div>
 
@@ -32,14 +32,19 @@
           <button class="btn btn-outline-dark" @click="emit('end', time.end)">
             {{ time.end }}
           </button>
-          <button class="btn btn-danger" @click="destroy(time.id)">
-            x
-          </button>
+          <button class="btn btn-danger" @click="destroy(time.id)">x</button>
         </div>
       </li>
     </ul>
-    <hr/>
-    <button class="btn btn-primary btn-sm" @click="emit('data', timestamps.map(time => [time.start, time.end]))">
+    <hr />
+    <button
+      class="btn btn-primary btn-sm"
+      @click="
+        emit(
+          'data',
+          timestamps.map((time) => [time.start, time.end]),
+        )
+      ">
       Export
     </button>
   </div>
@@ -53,11 +58,11 @@ import { watch, computed, ref } from "vue";
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: "add", value: { id: number, start: number, end: number }): void
-  (e: "destroy", value: Timestamp): void
-  (e: "data", value: number[][]): void
-  (e: "start", value: number): void
-  (e: "end", value: number): void
+  (e: "add", value: { id: number; start: number; end: number }): void;
+  (e: "destroy", value: Timestamp): void;
+  (e: "data", value: number[][]): void;
+  (e: "start", value: number): void;
+  (e: "end", value: number): void;
 }>();
 
 /**
@@ -67,14 +72,14 @@ const emit = defineEmits<{
  *     event: 'change'
  *   },
  */
-  //const model = defineModel({
-  //  prop: 'timestamp',
-  //  event: 'change'
-  //});
+//const model = defineModel({
+//  prop: 'timestamp',
+//  event: 'change'
+//});
 
-  // --------------------------------------------------------------------------------------
-  // Props
-  // --------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------
+// Props
+// --------------------------------------------------------------------------------------
 
 const props = defineProps<{ timestamp: number }>();
 
@@ -127,8 +132,8 @@ const add = () => {
   emit("add", data);
 };
 
-const markStart = () => start.value = props.timestamp;
-const markEnd = () => end.value = props.timestamp;
+const markStart = () => (start.value = props.timestamp);
+const markEnd = () => (end.value = props.timestamp);
 
 const destroy = (id: number) => {
   for (let i = 0; i < timestamps.value.length; i += 1) {
@@ -141,5 +146,4 @@ const destroy = (id: number) => {
 };
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

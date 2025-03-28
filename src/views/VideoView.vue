@@ -1,3 +1,9 @@
+/**
+ * @file VideoView.vue
+ * @description This component serves as a video playback and editing interface,
+ * allowing users to view, cut, and manage recordings. Notice that this view uses a different layout than other routes.
+*/
+
 <template>
   <ModalConfirmDialog :show="showConfirmDialog" @cancel="showConfirmDialog = false" @confirm="cutVideo">
     <template v-slot:header>

@@ -1,33 +1,58 @@
 <template>
-  <div class="row my-2">
-    <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
-      <VideoItem :recording="recording" @destroyed="destroyRecording" @bookmark="bookmark" :show-selection="false" :show-title="false"/>
+  <div>
+    <div class="d-flex justify-content-center align-items-center mb-3">
+      <div>
+        <select class="form-select" v-model="filterChannel">
+          <option disabled readonly class="fw-bold">Filter channel</option>
+          <option value="">Show All</option>
+          <option :value="f" v-for="f in filter" :key="f">{{ f }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div v-for="recording in filteredVideos" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
+        <VideoItem :recording="recording" @destroyed="destroyRecording" @bookmark="bookmark" :show-selection="false" :show-title="false" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { DatabaseRecording } from "@/services/api/v1/StreamSinkClient";
+import type { DatabaseRecording } from "../services/api/v1/StreamSinkClient";
 import VideoItem from "../components/VideoItem.vue";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { createClient } from "@/services/api/v1/ClientFactory";
+import { createClient } from "../services/api/v1/ClientFactory";
 
 // --------------------------------------------------------------------------------------
 // Refs
 // --------------------------------------------------------------------------------------
 
 const { t } = useI18n();
-const recordings = ref<DatabaseRecording[]>([]);
+const videos = ref<DatabaseRecording[]>([]);
+const filterChannel = ref("");
+
+// --------------------------------------------------------------------------------------
+// Computes
+// --------------------------------------------------------------------------------------
+
+const filter = computed(() => Array.from(new Set(videos.value.map((x: DatabaseRecording) => x.channelName))));
+
+const filteredVideos = computed(() => {
+  if (filterChannel.value === "") {
+    return videos.value;
+  }
+  return videos.value.filter((x) => x.channelName === filterChannel.value);
+});
 
 // --------------------------------------------------------------------------------------
 // Functions
 // --------------------------------------------------------------------------------------
 
 const removeItem = (recording: DatabaseRecording) => {
-  const i = recordings.value.findIndex((r) => r.filename === recording.filename);
+  const i = videos.value.findIndex((r) => r.filename === recording.filename);
   if (i !== -1) {
-    recordings.value.splice(i, 1);
+    videos.value.splice(i, 1);
   }
 };
 
@@ -58,6 +83,6 @@ const destroyRecording = async (recording: DatabaseRecording) => {
 onMounted(async () => {
   const client = createClient();
   const data = await client.recordings.bookmarksList();
-  recordings.value = (data || []) as DatabaseRecording[];
+  videos.value = (data || []) as DatabaseRecording[];
 });
 </script>
