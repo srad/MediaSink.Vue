@@ -107,7 +107,7 @@ const load = async () => {
     const result = await client.jobs.listCreate({
       states: [tabToJobType[tab.value]],
       sortOrder: DatabaseJobOrder.JobOrderDESC,
-      take: 200,
+      take: 100,
     });
     if (result.jobs) {
       jobs.value = result.jobs.map((job: DatabaseJob) => ({

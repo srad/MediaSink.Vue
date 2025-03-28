@@ -1,19 +1,17 @@
 <template>
   <Transition name="modal">
-    <div v-if="props.show" ref="container" class="modal-mask d-flex align-items-center">
-      <div class="modal-container border border-dark">
-        <div class="modal-header d-flex justify-content-between px-4 py-2 bg-primary-subtle">
+    <div v-if="props.show" ref="container" class="modal-mask d-flex align-items-center p-3">
+      <div class="modal-container rounded-2">
+        <div class="modal-header d-flex justify-content-between px-4 py-2 rounded-top-2">
           <slot name="header">default header</slot>
-          <button type="button" class="m-0 p-0 btn" @click="emit('close')">
-            <i class="bi bi-x-lg text-dark"/>
-          </button>
+          <button type="button" class="btn-close" @click="emit('close')"></button>
         </div>
 
         <div class="modal-body px-4">
           <slot name="body">default body</slot>
         </div>
 
-        <div class="modal-footer bg-light p-3">
+        <div class="modal-footer p-3 rounded-bottom-2">
           <slot name="footer">
             <button class="modal-default-button" @click="emit('close')">OK</button>
           </slot>
@@ -31,8 +29,8 @@
 import { ref, watch } from "vue";
 
 const props = defineProps<{
-  show: boolean,
-  scrollTop?: boolean
+  show: boolean;
+  scrollTop?: boolean;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -51,18 +49,22 @@ const container = ref<HTMLDivElement | null>(null);
 // Watchers
 // --------------------------------------------------------------------------------------
 
-watch(() => props.scrollTop, (val) => {
-  if (val === true) {
-    container.value?.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
-  }
-});
-
+watch(
+  () => props.scrollTop,
+  (val) => {
+    if (val === true) {
+      container.value?.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  },
+);
 </script>
 
-<style>
+<style scoped lang="scss">
+@use "@/assets/custom-bootstrap.scss" as bootstrap;
+
 .modal-mask {
   position: fixed;
   z-index: 9998;
@@ -98,5 +100,33 @@ watch(() => props.scrollTop, (val) => {
 .modal-leave-to .modal-container {
   -webkit-transform: scale(1.1);
   transform: scale(1.1);
+}
+
+[data-bs-theme="light"] {
+  .modal-container {
+    border: 2px solid bootstrap.$primary;
+    background-color: bootstrap.$light;
+  }
+
+  .modal-header {
+    background-color: bootstrap.$info;
+    margin: 0;
+    padding: 0;
+    color: bootstrap.$light;
+  }
+}
+
+[data-bs-theme="dark"] {
+  .modal-container {
+    border: 1px solid bootstrap.$info;
+    background-color: bootstrap.$dark;
+  }
+
+  .modal-header {
+    background-color: bootstrap.$info;
+    margin: 0;
+    padding: 0;
+    color: bootstrap.$dark;
+  }
 }
 </style>

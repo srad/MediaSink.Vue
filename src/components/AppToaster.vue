@@ -1,15 +1,15 @@
 <template>
-  <div class="toast-container position-fixed top-0 end-0 p-3">
-    <div :id="`toast_${toast.id}`" v-for="toast in toasts" :key="toast.id" class="toast show rounded-2 border-1 bg-info shadow-sm border-dark" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="toast-header rounded-top-2" :class="toastHeaderClass[toast.kind]">
+  <div class="toast-container position-fixed top-0 end-0 p-2">
+    <div :id="`toast_${toast.id}`" v-for="toast in toasts" :key="toast.id" class="toast show rounded-3 border-1" :class="toastClass[toast.kind]" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header rounded-top-2">
         <strong class="me-auto">{{ toast.title }}</strong>
-        <button type="button" class="btn-close" @click="emit('destroy', toast);" aria-label="Close"></button>
+        <button type="button" class="btn-close" @click="emit('destroy', toast)" aria-label="Close"></button>
       </div>
-      <div class="toast-body bg-secondary-subtle text-dark rounded-bottom-2">
+      <div class="toast-body rounded-bottom-2">
         <div>
           {{ toast.message }}
         </div>
-        <div style="height: 3px" :style="{ width: toast.countdown + '%' }" class="mt-2 line-indicator" :class="toastLineClass[toast.kind]"></div>
+        <div style="height: 3px" :style="{ width: toast.countdown + '%' }" class="mt-2 line-indicator"></div>
       </div>
     </div>
   </div>
@@ -35,23 +35,40 @@ const props = defineProps<{ toasts: Toast[] }>();
 // Computes
 // --------------------------------------------------------------------------------------
 
-const toasts = computed(() => props.toasts.filter(toast => !toast.hide));
+const toasts = computed(() => props.toasts.filter((toast) => !toast.hide));
 
 // --------------------------------------------------------------------------------------
 // Declarations
 // --------------------------------------------------------------------------------------
 
-const toastLineClass: { [key in ToastKind]: string } = {
-  [ToastKind.Info]: "bg-info",
-  [ToastKind.Warning]: "bg-warning",
-  [ToastKind.Error]: "bg-danger",
-  [ToastKind.Success]: "bg-success",
-};
-
-const toastHeaderClass: { [key in ToastKind]: string } = {
-  [ToastKind.Info]: "bg-info-subtle",
-  [ToastKind.Warning]: "bg-warning-subtle",
-  [ToastKind.Error]: "bg-danger-subtle",
-  [ToastKind.Success]: "bg-success-subtle",
+const toastClass: { [key in ToastKind]: string } = {
+  [ToastKind.Info]: "info",
+  [ToastKind.Warning]: "warning",
+  [ToastKind.Error]: "danger",
+  [ToastKind.Success]: "success",
 };
 </script>
+
+<style scoped lang="scss">
+@use "@/assets/custom-bootstrap.scss" as bootstrap;
+
+@mixin toast-variant($name, $border-color, $bg-color, $text-color: bootstrap.$light) {
+  .toast.#{$name} {
+    border: 1px solid $border-color;
+
+    .toast-header {
+      background-color: $bg-color;
+      color: $text-color;
+    }
+
+    .line-indicator {
+      background-color: $bg-color;
+    }
+  }
+}
+
+@include toast-variant("info", bootstrap.$info, bootstrap.$info, bootstrap.$dark);
+@include toast-variant("warning", bootstrap.$warning, bootstrap.$warning, bootstrap.$dark);
+@include toast-variant("success", bootstrap.$success, bootstrap.$success, bootstrap.$light);
+@include toast-variant("danger", bootstrap.$danger, bootstrap.$danger, bootstrap.$light);
+</style>

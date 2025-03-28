@@ -10,12 +10,13 @@
       </template>
 
       <template #cell-channelName="{ value, row }">
-        <div class="d-flex">
+        <div class="d-flex gap-1 justify-content-between fs-6">
           <RouterLink :to="`/channel/${row.channelId}/${row.channelName}`">
             {{ value }}
           </RouterLink>
-          <span class="mx-1">/</span>
-          <RouterLink :to="'/recordings/' + row.recordingId">Video</RouterLink>
+          <RouterLink :to="'/recordings/' + row.recordingId">
+            <i class="bi bi-film"></i>
+          </RouterLink>
         </div>
       </template>
 

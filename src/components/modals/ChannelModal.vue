@@ -55,7 +55,7 @@
     </template>
 
     <template v-slot:footer>
-      <button class="btn btn-primary" @click="save" :disabled="isSaving">
+      <button class="btn btn-info" @click="save" :disabled="isSaving">
         <span class="spinner-border spinner-border-sm text-light" role="status" v-show="isSaving">
           <span class="visually-hidden">Loading...</span>
         </span>

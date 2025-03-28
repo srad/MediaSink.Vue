@@ -1,6 +1,6 @@
 <template>
   <div class="justify-content-between d-flex">
-    <JobStatus :jobs="jobs" :total-count="totalCount" @click="router.push('/jobs/general')" />
+    <JobStatus :jobs="jobs" :total-count="totalCount" @click="router.push('/jobs')" />
     <button v-if="!props.isRecording" class="btn btn-info d-flex" @click="emit('record', true)">
       <i class="bi bi-play-fill"></i>
       <span class="ms-1 d-none d-sm-inline">{{ t("navtop.startRecording") }}</span>
