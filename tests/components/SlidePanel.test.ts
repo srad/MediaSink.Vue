@@ -119,7 +119,7 @@ describe("SlidePanel.vue", () => {
 
     // Test default style and class
     const panel = wrapper.find(".slide-panel");
-    expect(panel.attributes().style).toContain("height: 40px");
+    expect(panel.attributes().style).toContain("height: 35px");
     expect(panel.classes()).toContain("slide-panel");
   });
 

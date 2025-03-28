@@ -1,5 +1,5 @@
 <template>
-  <div :class="[panelClass, 'slide-panel', positionClass]" :style="{ height: isOpen ? contentHeight : '40px', width , opacity}">
+  <div :class="[panelClass, 'slide-panel', positionClass]" :style="{ height: isOpen ? contentHeight : '35px', width , opacity}">
     <div ref="contentRef" class="panel-content" :style="{ maxHeight: isOpen ? contentRefHeight + 'px' : '0', opacity: isOpen ? 1 : 0, transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out' }">
       <slot></slot>
     </div>
@@ -32,7 +32,7 @@ const opacity = computed(() => props.opacity || "1");
 const props = defineProps<Props>();
 const isOpen = ref<boolean>(false);
 const contentRef = ref<HTMLElement | null>(null);
-const contentHeight = ref<string>("40px");
+const contentHeight = ref<string>("35px");
 const contentRefHeight = ref<number>(0);
 
 const togglePanel = async (): Promise<void> => {
@@ -40,7 +40,7 @@ const togglePanel = async (): Promise<void> => {
   await nextTick();
   if (contentRef.value) {
     contentRefHeight.value = contentRef.value.scrollHeight;
-    contentHeight.value = isOpen.value ? `${contentRefHeight.value + 40}px` : "40px";
+    contentHeight.value = isOpen.value ? `${contentRefHeight.value + 32}px` : "35px";
   }
 };
 
@@ -81,7 +81,8 @@ const positionClass = computed<string>(() => {
   width: 100%;
   color: white;
   border: none;
-  padding: 10px;
+  padding: 0px;
+  line-height: 35px;
   cursor: pointer;
   position: absolute;
   left: 0;

@@ -38,6 +38,10 @@
       </ul>
     </SlidePanel>
 
+    <div class="position-absolute fs-3" style="top: 10px; right: 20px;">
+      <RecordingFavButton :bookmarked="recording.bookmark" :recording-id="recording.recordingId"/>
+    </div>
+
     <div class="d-flex flex-column bg-light w-100 vh-100">
       <!-- Main Row: Video & Sidebar -->
       <div class="d-flex flex-row w-100 flex-grow-1 overflow-hidden">
@@ -117,6 +121,7 @@ import { createClient } from "@/services/api/v1/ClientFactory";
 import { useSettingsStore } from "@/stores/settings.ts";
 import SlidePanel from "@/SlidePanel.vue";
 import VideoSelector from "@/VideoSelector.vue";
+import RecordingFavButton from "@/components/controls/RecordingFavButton.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations

@@ -6,7 +6,7 @@
         <span class="badge me-2 user-select-none" :class="{ 'bg-danger text-white border border-danger blink': channel.isRecording, 'bg-light text-primary border-info border': !channel.isRecording }">Recording</span>
         <span class="badge user-select-none" :class="{ 'bg-success text-white border border-success': channel.isOnline, 'bg-light text-primary border-info border': !channel.isOnline }">Online</span>
       </div>
-    </li>
+    </li v-if="false">
     -->
 
     <!-- tags -->
@@ -41,16 +41,16 @@
 
     <li class="list-group-item streaminfo-footer d-flex justify-content-between fs-6">
       <div class="d-flex w-75">
-        <span class="form-check form-switch me-2">
+        <span class="form-check form-switch">
           <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`" />
           <label class="form-check-label" :for="`${channel.channelId}_isPaused`">Record</label>
         </span>
         <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)" />
       </div>
 
-      <div class="d-flex justify-content-evenly w-25 rounded-bottom-2">
-        <a @click="emit('edit', channel)" class="me-2">
-          <i class="bi bi-update"></i>
+      <div class="d-flex justify-content-evenly w-25 rounded-bottom-2 gap-2">
+        <a @click="emit('edit', channel)">
+          <i class="bi bi-arrow-clockwise"></i>
         </a>
         <a class="text-danger" @click="emit('destroy', channel)">
           <i class="bi bi-trash-fill"></i>

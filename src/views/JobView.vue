@@ -16,9 +16,9 @@
     </ModalConfirmDialog>
     <div class="row mb-2">
       <div class="col">
-        <div class="d-flex justify-content-between">
-          <div class="d-flex">
-            <select class="form-control form-select" v-model="tab">
+        <div class="d-flex justify-content-center gap-2">
+          <div>
+            <select class="form-select border-info rounded-3" v-model="tab">
               <option class="fw-bold" disabled readonly value="">Job types</option>
               <option v-for="tab in tabs" :value="tab.key" :key="tab.key">
                 {{ tab.value }}
@@ -28,7 +28,7 @@
 
           <div class="d-flex justify-content-center">
             <div class="col-auto">
-              <button type="button" class="btn me-2" :class="{ 'btn-success': !processingJobs, 'btn-danger': processingJobs }" @click="showConfirmToggleWorkerDialog = true">
+              <button type="button" class="btn" :class="{ 'btn-success': !processingJobs, 'btn-danger rounded-3': processingJobs }" @click="showConfirmToggleWorkerDialog = true">
                 <span v-if="processingJobs"><i class="bi bi-pause-fill blink" /> <span class="ms-1 d-none d-sm-inline-flex">Pause</span></span>
                 <span v-else><i class="bi bi-play-fill" /> <span class="ms-1 d-none d-sm-inline-flex">Resume</span></span>
               </button>

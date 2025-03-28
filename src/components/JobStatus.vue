@@ -1,6 +1,7 @@
 <template>
-  <button type="button" class="d-flex position-relative me-2 btn btn-info" @click="emit('click')">
-    <span class="me-2">{{ props.totalCount }}</span> <span class="me-2">{{ t("menu.jobs") }}</span>
+  <button type="button" class="d-flex position-relative gap-2 btn btn-info" @click="emit('click')">
+    <span>{{ props.totalCount }}</span>
+    <span>{{ t("menu.jobs") }}</span>
   </button>
 </template>
 

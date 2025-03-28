@@ -1,33 +1,22 @@
 <template>
-  <div class="btn-group dropup">
-    <button id="optionsButton" type="button" class="btn btn-outline-secondary dropdown-toggle" :class="{ show: show }" data-bs-toggle="dropdown" :aria-expanded="show" @click="show = !show">Options</button>
-    <ul class="dropdown-menu" :class="{ show: show }" data-bs-popper="static">
-      <li>
-        <button type="button" class="dropdown-item d-flex justify-content-between" @click="clickFile">
-          <input ref="file" name="file" v-show="false" accept="video/mp4" @change="fileChanged" type="file"/>
-          <span>Upload video</span>
-          <i class="bi text-primary bi-upload"/>
-        </button>
-      </li>
-      <li>
-        <button type="button" class="dropdown-item d-flex justify-content-between">
-          <span>Edit channel</span>
-          <i class="bi bi-pencil text-info"/>
-        </button>
-      </li>
-      <li>
-        <button type="button" class="dropdown-item d-flex justify-content-between" @click="emit('delete')">
-          <span class="me-2">Delete channel</span>
-          <i class="bi text-danger bi-trash3-fill"/>
-        </button>
-      </li>
-      <li>
-        <div class="dropdown-item form-check form-switch d-flex justify-content-between" v-if="multiSelect">
-          <label class="form-check-label m-0 p-0 me-2" for="flexSwitchCheckDefault">Enabled?</label>
-          <input class="form-check-input m-0 my-1 p-0" type="checkbox" role="switch" id="flexSwitchCheckDefault" :checked="!props.channelPaused" @change="emit('pause', $event.target as HTMLInputElement)"/>
-        </div>
-      </li>
-    </ul>
+  <div class="d-flex gap-2 align-items-center">
+    <button type="button" class="btn btn-info btn-sm d-flex gap-2" @click="clickFile">
+      <input ref="file" name="file" v-show="false" accept="video/mp4" @change="fileChanged" type="file" />
+      <span class="d-none d-sm-inline">Upload video</span>
+      <i class="bi bi-upload" />
+    </button>
+    <button type="button" class="btn btn-info btn-sm d-flex gap-2">
+      <span class="d-none d-sm-inline">Edit channel</span>
+      <i class="bi bi-pencil" />
+    </button>
+    <button type="button" class="btn btn-danger btn-sm d-flex gap-2" @click="emit('delete')">
+      <span class="d-none d-sm-inline">Delete channel</span>
+      <i class="bi bi-trash3-fill" />
+    </button>
+    <div class="form-check form-switch d-flex justify-content-between" v-if="multiSelect">
+      <label class="form-check-label m-0 p-0 me-2" for="flexSwitchCheckDefault">Enabled?</label>
+      <input class="form-check-input bg-info border-info m-0 my-1 p-0" type="checkbox" role="switch" id="flexSwitchCheckDefault" :checked="!props.channelPaused" @change="emit('pause', $event.target as HTMLInputElement)" />
+    </div>
   </div>
 </template>
 

@@ -3,7 +3,7 @@
     <table class="w-100 table table-hover table-rounded">
       <thead>
         <!-- Search Inputs/Checkboxes Row -->
-        <tr>
+        <tr class="align-middle">
           <th class="user-select-none" v-for="column in columns" :key="column.key" :rowspan="column.isSearchable ? 1 : 2" :style="{ width: column.width }" :class="[column.headerClass, column.isSearchable ? 'searchable-column' : '', column.sortable ? 'cursor-pointer' : 'user-select-none']">
             <!-- Search input for searchable columns -->
             <div v-if="column.isSearchable" class="search-container">
@@ -42,10 +42,10 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-if="currentPageRows.length === 0">
+        <tr class="align-middle" v-if="currentPageRows.length === 0">
           <td :colspan="columns.length">Empty</td>
         </tr>
-        <tr v-else v-for="(row, rowIndex) in currentPageRows" :key="rowIndex">
+        <tr class="align-middle" v-else v-for="(row, rowIndex) in currentPageRows" :key="rowIndex">
           <td v-for="column in columns" :key="column.key" :class="[column.rowClass, sortKey === column.key && sortedClass]">
             <slot :name="`cell-${column.key}`" :value="row[column.key]" :row="row">
               {{ row[column.key] }}
@@ -277,6 +277,10 @@ const onPageSizeChange = () => {
 
 [data-bs-theme="light"] {
   table .col-sorted {
+    background-color: bootstrap.$light;
+  }
+
+  table th {
     background-color: bootstrap.$light;
   }
 

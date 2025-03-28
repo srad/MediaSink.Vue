@@ -3,7 +3,7 @@
     <!-- DataTable Component -->
     <DataTable :columns="columns" :data="props.jobs as unknown as TableRow[]" :pageSize="pageSize" :showPagination="true" :showPageSizeSelector="true" @page-change="handlePageChange" @page-size-change="handlePageSizeChange">
       <template v-slot:cell-pid="{ value, row }">
-        <div v-if="row.isActive" style="width: 1rem; height: 1rem" class="spinner-border text-success" role="status">
+        <div v-if="row.active" style="width: 1rem; height: 1rem" class="spinner-border text-success" role="status">
           <span class="visually-hidden">{{ t("jobTable.loading") }}</span>
         </div>
         {{ value }}

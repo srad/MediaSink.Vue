@@ -40,39 +40,37 @@
         </div>
       </div>
 
-      <nav class="navbar fixed-bottom border-info border-top">
-        <div class="container-fluid justify-content-between">
+      <div class="d-flex align-items-center mb-3 justify-content-between border-bottom pb-2">
+        <div class="text-info fs-5 fw-bolder d-none d-sm-inline">{{ channel!.displayName }}</div>
+
+        <div class="d-flex gap-2 align-items-center">
           <OptionsMenu v-if="!areItemsSelected" :channel-paused="channel!.isPaused" :multi-select="selectedRecordings.length === 0" @file="fileSelected" @pause="pauseChannel" @delete="showConfirm = true" />
 
-          <div class="btn-group">
-            <button v-if="areItemsSelected" type="button" class="btn btn-danger justify-content-between me-2" @click="showDeleteSelectedRecordings = true">
-              <span class="me-2">Delete selection</span>
+          <div class="d-flex gap-2 align-items-center">
+            <button v-if="areItemsSelected" type="button" class="btn btn-sm btn-danger d-flex gap-2 justify-content-between" @click="showDeleteSelectedRecordings = true">
+              <span>Delete selection</span>
               <i class="bi bi-trash3-fill" />
             </button>
-            <button v-if="selectedRecordings.length > 1" type="button" class="btn btn-primary justify-content-between me-2" @click="mergeVideos">
-              <span class="me-2">Merge</span>
+            <button v-if="selectedRecordings.length > 1" type="button" class="btn d-flex gap-2 btn-sm btn-info justify-content-between" @click="mergeVideos">
+              <span>Merge</span>
               <i class="bi bi-sign-merge-left" />
             </button>
-            <button v-if="areItemsSelected" type="button" class="btn btn-primary justify-content-between me-2" @click="cancelSelection">
-              <span class="me-2">Cancel</span>
+            <button v-if="areItemsSelected" type="button" class="btn gap-2 d-flex btn-sm btn-info justify-content-between" @click="cancelSelection">
+              <span>Cancel</span>
               <i class="bi bi-stop-fill" />
             </button>
-            <button v-if="!areItemsSelected" type="button" class="btn btn-outline-light d-flex justify-content-between" @click="bookmark">
-              <span class="me-2">Fav</span>
-              <i class="bi" :style="{ color: channel!.fav ? 'deeppink' : 'black' }" :class="{ 'bi-heart-fill': channel!.fav, 'bi-heart': !channel!.fav }" />
-            </button>
+            <FavButton v-if="!areItemsSelected" :faved="channel!.fav" :data="channel" @fav="bookmark" @unfav="bookmark" />
           </div>
         </div>
-      </nav>
 
-      <div class="d-flex align-items-center mb-3 justify-content-between pb-2 border-bottom">
-        <div class="text-primary fs-5 fw-bolder">{{ channel!.displayName }}</div>
-        <div class="d-flex align-items-center fs-5">
-          <button type="button" class="btn btn-secondary" disabled>
-            Count:
-            {{ channel!.recordingsCount }}
+        <div class="d-flex gap-2 align-items-center fs-5 d-none d-sm-inline">
+          <button type="button" class="btn btn-sm me-1 btn-secondary" disabled>
+            <span>Count:</span>
+            <span>{{ channel!.recordingsCount }}</span>
           </button>
-          <button type="button" class="btn btn-secondary ms-2" disabled>Size: {{ (channel!.recordingsSize! / 1024 / 1024 / 1024).toFixed(1) }}GB</button>
+          <button type="button" class="btn btn-sm btn-secondary" disabled>
+            Size: {{ (channel!.recordingsSize! / 1024 / 1024 / 1024).toFixed(1) }}GB
+          </button>
         </div>
       </div>
 
@@ -100,6 +98,7 @@ import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import LoadIndicator from "@/components/LoadIndicator.vue";
 import JsConfirmDialog from "@/components/modals/JsConfirmDialog.vue";
+import FavButton from "@/components/controls/FavButton.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations
