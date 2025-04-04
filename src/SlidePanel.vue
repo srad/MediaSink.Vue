@@ -3,7 +3,7 @@
     <div ref="contentRef" class="panel-content" :style="{ maxHeight: isOpen ? contentRefHeight + 'px' : '0', opacity: isOpen ? 1 : 0, transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out' }">
       <slot></slot>
     </div>
-    <button class="toggle-button" :class="[buttonClass]" @click="togglePanel">
+    <button class="toggle-button rounded-bottom-3" :class="[buttonClass]" @click="togglePanel">
       {{ label }} <i :class="isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
     </button>
   </div>
@@ -24,8 +24,8 @@ interface Props {
 }
 
 const label = computed(() => props.label || (isOpen.value ? "Close" : "Open"));
-const panelClass = computed(() => props.panelClass || "bg-dark border-light shadow-sm p-0");
-const buttonClass = computed(() => props.buttonClass || "btn btn-info text-dark border-secondary border-start border-end border-bottom");
+const panelClass = computed(() => props.panelClass || "bg-dark border-primary shadow-sm p-0");
+const buttonClass = computed(() => props.buttonClass || "btn btn-info text-dark border-primary border-start border-end border-bottom");
 const width = computed(() => props.width || "300px");
 const opacity = computed(() => props.opacity || "1");
 

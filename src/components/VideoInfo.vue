@@ -41,7 +41,7 @@
     <li class="list-group-item fs-6 video-controls" :style="{cursor: props.disableButtons ? 'not-allowed': '' }">
       <div class="justify-content-between d-flex">
 
-        <div class="d-flex">
+        <div class="d-flex gap-2">
           <button type="button" class="btn btn-sm p-0 px-2" :href="url + '/download'" :disabled="props.disableButtons">
             <i class="bi bi-download"></i>
           </button>

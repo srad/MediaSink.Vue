@@ -23,8 +23,8 @@
   <BusyOverlay :visible="busy"></BusyOverlay>
 
   <template v-if="recording">
-    <SlidePanel label="Info" position="left" :opacity="0.9" width="220px">
-      <ul class="list-group m-0 mb-1" style="font-size: 0.9rem">
+    <SlidePanel label="Info" position="left" :opacity="0.7  " width="250px">
+      <ul class="list-group m-0 mb-1" style="font-size: 0.8rem">
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <strong>Resolution</strong>
           <span>{{ recording.width }}x{{ recording.height }}</span>
@@ -38,8 +38,13 @@
           <span>{{ (recording.size / 1024 / 1024 / 1024).toFixed(1) }}GB</span>
         </li>
         <li class="list-group-item d-flex justify-content-between align-items-center">
-          <strong>Format</strong>
+          <strong>Bitrate</strong>
           <span>{{ (recording.bitRate / 1024 / 1024).toFixed(2) }} MBit</span>
+        </li>
+        <li class="list-group-item d-flex gap-2 justify-content-between align-items-center">
+          <strong>File</strong>
+          <br/>
+          <div class="text-truncate">{{recording.filename}}</div>
         </li>
       </ul>
     </SlidePanel>

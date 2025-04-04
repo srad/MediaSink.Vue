@@ -40,7 +40,7 @@
     <!-- /tags -->
 
     <li class="list-group-item streaminfo-footer d-flex justify-content-between fs-6">
-      <div class="d-flex w-75">
+      <div class="d-flex w-75 gap-2">
         <span class="form-check form-switch">
           <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`" />
           <label class="form-check-label" :for="`${channel.channelId}_isPaused`">Record</label>

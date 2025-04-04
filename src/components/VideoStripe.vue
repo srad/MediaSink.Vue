@@ -1,10 +1,10 @@
 <template>
-  <div ref="stripeContainer" class="position-relative h-100 whitespace-nowrap overflow-x-scroll user-select-none" draggable="false" style="min-height: 100px">
+  <div ref="stripeContainer" @mousedown.stop="startSelection" class="position-relative h-100 whitespace-nowrap overflow-x-scroll user-select-none" draggable="false" style="min-height: 100px">
     <div class="position-absolute bottom-0">
       <VideoTimeIndex v-if="imageLoaded && props.loaded" :duration="props.duration" :width="stripeImage!.width" />
     </div>
 
-    <img draggable="false" alt="stripe" class="stripe position-absolute" ref="stripeImage" :src="src" style="height: 100%" @mousedown.stop="startSelection" />
+    <img draggable="false" alt="stripe" class="stripe position-absolute" ref="stripeImage" :src="src" style="height: 100%" />
 
     <div :key="selection.start" @click="select(i)" class="marking position-absolute" v-for="(selection, i) in drawSelections" :style="{ transform: `translateX(${selection.start}px)`, width: selection.end - selection.start + 'px' }">
       <div class="selection w-100 h-100" style="pointer-events: none" :class="{ selected: selection.selected }"></div>

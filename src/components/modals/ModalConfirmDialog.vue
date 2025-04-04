@@ -7,9 +7,9 @@
       <slot name="body"/>
     </template>
     <template v-slot:footer>
-      <div class="modal-footer w-100 bg-light d-flex justify-content-between">
+      <div class="modal-footer w-100 d-flex justify-content-between">
         <button class="btn btn-danger" @click="cancel">Cancel</button>
-        <button class="btn btn-primary" @click="ok" :disabled="working">
+        <button class="btn btn-info" @click="ok" :disabled="working">
           <span class="spinner-border spinner-border-sm text-light" role="status" v-show="working">
             <span class="visually-hidden">Loading...</span>
           </span>
