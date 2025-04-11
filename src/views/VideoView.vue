@@ -49,20 +49,19 @@
       </ul>
     </SlidePanel>
 
-    <div class="position-absolute fs-3" style="top: 10px; right: 20px;">
-      <RecordingFavButton :bookmarked="recording.bookmark" :recording-id="recording.recordingId"/>
-    </div>
-
     <div class="d-flex flex-column bg-light w-100 vh-100">
       <!-- Main Row: Video & Sidebar -->
       <div class="d-flex flex-row w-100 flex-grow-1 overflow-hidden">
         <div class="w-100 d-flex flex-column">
           <!-- Video Container: Takes remaining space -->
-          <div class="d-flex flex-grow-1 overflow-hidden bg-dark">
+          <div class="d-flex flex-grow-1 overflow-hidden bg-dark position-relative">
             <video class="w-100 h-100" style="object-fit: contain; outline: none" ref="video" :muted="isMuted" @volumechange="volumeChanged($event)" @loadeddata="loadData" @timeupdate="timeupdate" @seeked="() => (seeked = video!.currentTime)" controls playsinline autoplay>
               <source :src="videoUrl" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
+            <div class="position-absolute fs-2" style="top: 10px; right: 20px;">
+              <RecordingFavButton :bookmarked="recording.bookmark" :recording-id="recording.recordingId"/>
+            </div>
           </div>
 
           <!-- Controls: Fixed height -->
@@ -87,9 +86,15 @@
 
               <!-- back forth buttons -->
               <div class="d-flex">
-                <button class="btn btn-info btn-sm me-1" @click="back" type="button">-{{ skipSeconds }}s<i class="bi bi-chevron-left"></i></button>
+                <button class="btn btn-info btn-sm me-1" @click="back" type="button">
+                  <i class="bi bi-arrow-counterclockwise"></i>
+                  {{ skipSeconds }}
+                </button>
 
-                <button class="btn btn-info btn-sm" @click="forward" type="button"><i class="bi bi-chevron-right"></i>{{ skipSeconds }}s+</button>
+                <button class="btn btn-info btn-sm" @click="forward" type="button">
+                  {{ skipSeconds }}
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
               </div>
             </div>
           </div>
