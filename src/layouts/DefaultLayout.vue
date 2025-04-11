@@ -97,7 +97,7 @@ watch(
 
 watch(showModal, (val) => {
   if (val) {
-    router.push({ query: { channel: "add" } });
+    router.push({ query: { channel: "add", ...route.query } });
   } else {
     hideModal();
   }

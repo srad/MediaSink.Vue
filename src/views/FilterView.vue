@@ -38,95 +38,108 @@
 </template>
 
 <script setup lang="ts">
-import type { DatabaseRecording as RecordingResponse } from "@/services/api/v1/StreamSinkClient";
-import VideoItem from "../components/VideoItem.vue";
-import { onMounted, ref, useTemplateRef, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
-import { createClient } from "@/services/api/v1/ClientFactory";
-import LoadIndicator from "@/components/LoadIndicator.vue";
-import { useJobStore } from "@/stores/job.ts";
-import { useSettingsStore } from "@/stores/settings.ts";
+  import type {DatabaseRecording as RecordingResponse} from "@/services/api/v1/StreamSinkClient";
+  import VideoItem from "../components/VideoItem.vue";
+  import {ref, useTemplateRef, watch, watchEffect} from "vue";
+  import {useRoute, useRouter} from "vue-router";
+  import {useI18n} from "vue-i18n";
+  import {createClient} from "@/services/api/v1/ClientFactory";
+  import LoadIndicator from "@/components/LoadIndicator.vue";
+  import {useJobStore} from "@/stores/job.ts";
+  import {useSettingsStore} from "@/stores/settings.ts";
 
-const { t } = useI18n();
-const route = useRoute();
-const router = useRouter();
-const jobStore = useJobStore();
-const settingsStore = useSettingsStore();
+  const {t} = useI18n();
+  const router = useRouter();
+  const route = useRoute();
+  const jobStore = useJobStore();
+  const settingsStore = useSettingsStore();
 
-const isLoading = ref(true);
+  const isLoading = ref(true);
 
-watch(
-  () => route.query,
-  () => fetch(),
-);
+  const sortOrderSelect = useTemplateRef<HTMLSelectElement>("sortOrderSelect");
+  const filterColumnSelect = useTemplateRef<HTMLSelectElement>("filterColumnSelect");
+  const filterLimitSelect = useTemplateRef<HTMLSelectElement>("filterLimitSelect");
 
-const sortOrderSelect = useTemplateRef<HTMLSelectElement>("sortOrderSelect");
-const filterColumnSelect = useTemplateRef<HTMLSelectElement>("filterColumnSelect");
-const filterLimitSelect = useTemplateRef<HTMLSelectElement>("filterLimitSelect");
+  const filterOrder = ref("desc");
+  const filterColumn = ref("created_at");
+  const filterLimit = ref("100");
 
-let filterOrder: string = (route.query.order as string) || "desc";
-let filterColumn: string = (route.query.column as string) || "created_at";
-let filterLimit: string = (route.query.limit as string) || settingsStore.filterPageSize.toString();
-
-const limits = [25, 50, 100, 200, 500, 1000];
-
-const columns = [
-  ["Created at", "created_at"],
-  ["Filesize", "size"],
-  ["Video duration", "duration"],
-];
-
-const order: string[] = ["asc", "desc"];
-
-interface VideoResult {
-  video: RecordingResponse;
-  jobTask: string | null;
-}
-
-const videos = ref<VideoResult[]>([]);
-
-const filterChanged = () => {
-  const query = {
-    order: sortOrderSelect.value?.value,
-    column: filterColumnSelect.value?.value,
-    limit: filterLimitSelect.value?.value,
+  const fetch = async (column?: string, order?: string, limit?: string) => {
+    isLoading.value = true;
+    const client = createClient();
+    const data = await client.recordings.filterDetail(column || "created_at", order || "desc", limit || "100");
+    videos.value = data.map((rec: RecordingResponse) => ({video: rec, jobTask: jobStore.isProcessing(rec.recordingId)})) || [];
+    isLoading.value = false;
   };
 
-  if (query.limit) {
-    settingsStore.setFilterViewPageSize(parseInt(query.limit));
-  }
-
-  router.replace({
-    path: route.path,
-    query,
-    force: true,
-  });
-};
-
-const resetFilters = () => {
-  filterOrder = order[1]!;
-  filterColumn = columns[0]![1]!;
-  filterLimit = settingsStore.filterPageSize.toString();
-  filterChanged();
-};
-
-const destroyRecording = (recording: RecordingResponse) => {
-  for (let i = 0; i < videos.value.length; i += 1) {
-    if (videos.value[i]!.video.filename === recording.filename) {
-      videos.value.splice(i, 1);
-      break;
+  watch(
+    [
+      () => route.query.column,
+      () => route.query.order,
+      () => route.query.limit, // Watch limit directly too
+    ],
+    async () => {
+      const column = route.query.column as string;
+      const order = route.query.order as string;
+      const limit = (route.query.limit as string) || settingsStore.filterPageSize.toString();
+      await fetch(column, order, limit);
+    },
+    {
+      immediate: true // Set to true if you want the fetch function to run
+                      // immediately when the component mounts, using the
+                      // initial values from the URL query parameters.
+                      // This mimics the initial run behavior of watchEffect.
     }
+  );
+
+  const limits = [25, 50, 100, 200, 500, 1000];
+
+  const columns = [
+    ["Created at", "created_at"],
+    ["Filesize", "size"],
+    ["Video duration", "duration"],
+  ];
+
+  const order: string[] = ["asc", "desc"];
+
+  interface VideoResult {
+    video: RecordingResponse;
+    jobTask: string | null;
   }
-};
 
-const fetch = async () => {
-  isLoading.value = true;
-  const client = createClient();
-  const data = await client.recordings.filterDetail((route.query.column as string) || "created_at", (route.query.order as string) || "desc", (route.query.limit as string) || settingsStore.filterPageSize.toString());
-  videos.value = data.map((rec: RecordingResponse) => ({ video: rec, jobTask: jobStore.isProcessing(rec.recordingId) })) || [];
-  isLoading.value = false;
-};
+  const videos = ref<VideoResult[]>([]);
 
-onMounted(fetch);
+  const filterChanged = () => {
+    const query = {
+      order: sortOrderSelect.value?.value,
+      column: filterColumnSelect.value?.value,
+      limit: filterLimitSelect.value?.value,
+    };
+
+    if (query.limit) {
+      settingsStore.setFilterViewPageSize(parseInt(query.limit));
+    }
+
+    router.replace({
+      path: route.path,
+      query,
+      force: true,
+    });
+  };
+
+  const resetFilters = () => {
+    filterOrder.value = order[1]!;
+    filterColumn.value = columns[0]![1]!;
+    filterLimit.value = settingsStore.filterPageSize.toString();
+    filterChanged();
+  };
+
+  const destroyRecording = (recording: RecordingResponse) => {
+    for (let i = 0; i < videos.value.length; i += 1) {
+      if (videos.value[i]!.video.filename === recording.filename) {
+        videos.value.splice(i, 1);
+        break;
+      }
+    }
+  };
 </script>
