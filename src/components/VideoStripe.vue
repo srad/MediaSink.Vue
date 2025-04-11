@@ -20,9 +20,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { BigNumber } from "bignumber.js";
 import { animateScrollLeft } from "../utils/animations";
 import VideoTimeIndex from "./VideoTimeIndex.vue";
+import BigNumber from "bignumber.js";
 
 export type Selection = {
   selected?: boolean;
