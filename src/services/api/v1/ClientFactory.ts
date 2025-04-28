@@ -2,7 +2,7 @@ import { ContentType, type DatabaseRecording, type DatabaseRecording as Recordin
 import { useAuthStore } from "../../../stores/auth";
 
 const checkResponseStatus = (response: Response) => {
-  if ([500, 401].includes(response.status) && !["/login", "/register"].includes(window.location.pathname)) {
+  if ([401].includes(response.status) && !["/login", "/register"].includes(window.location.pathname)) {
     const authStore = useAuthStore();
     authStore.logout();
     // Unauthorized: Redirect to login page

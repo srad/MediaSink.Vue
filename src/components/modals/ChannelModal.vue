@@ -108,7 +108,7 @@ const formState = reactive({
   myDisplayName: props.displayName || "",
   myChannelName: props.channelName || "",
   mySkipStart: props.skipStart || 0,
-  myMinDuration: props.minDuration || 0,
+  myMinDuration: props.minDuration || 10,
 });
 
 const isSaving = ref(false);

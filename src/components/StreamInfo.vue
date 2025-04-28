@@ -13,25 +13,23 @@
     <li class="list-group-item px-2 py-1">
       <div class="d-flex overflow-x-auto">
         <template v-if="!showTagInput && tagArray">
-          <div v-for="tag in tagArray" class="d-flex badge bg-secondary text-dark rounded-1 me-1 user-select-none" :key="tag">
-            <span @click="router.push({ query: { tag } })">{{ tag }}+</span>
+          <div v-for="tag in tagArray" class="d-flex gap-1 badge align-items-center bg-secondary text-dark rounded-1 me-1 user-select-none" :key="tag">
+            <span @click="router.push({ query: { tag } })">{{ tag }}</span>
+            <i class="bi bi-x" @click="destroyTag(tag)"></i>
           </div>
         </template>
-        <span
-          v-show="!showTagInput"
-          class="badge bg-primary border-dark border rounded-1"
-          @click="
-            showTagInput = true;
-            tagInput?.focus();
-          ">
-          Tag<span class="bi bi-plus"></span>
-        </span>
+        <div v-if="!showTagInput"
+             style="cursor: pointer"
+             class="badge bg-primary border-dark border rounded-1 d-flex gap-1 align-items-center"
+             @click="showTagInput = true">
+          <span>Tag</span><span>+</span>
+        </div>
       </div>
 
       <div v-show="showTagInput" class="input-group input-group-sm">
         <form @submit.prevent="addTag">
           <div class="input-group">
-            <input :disabled="processingTag" ref="tagInput" class="form-control form-control-sm border-primary" v-model.lazy="tagVal" type="text" :name="`${channel.channelId}_tag`" autocapitalize="off" autocomplete="off" />
+            <input :disabled="processingTag" ref="tagInput" class="form-control form-control-sm border-primary" v-model.lazy="tagVal" type="text" :name="`${channel.channelId}_tag`" autocapitalize="off" autocomplete="off"/>
             <button type="submit" class="btn btn-sm btn-primary" :disabled="processingTag">save</button>
           </div>
         </form>
@@ -42,10 +40,10 @@
     <li class="list-group-item streaminfo-footer d-flex justify-content-between fs-6">
       <div class="d-flex w-75 gap-2">
         <span class="form-check form-switch">
-          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`" />
+          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`"/>
           <label class="form-check-label" :for="`${channel.channelId}_isPaused`">Record</label>
         </span>
-        <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)" />
+        <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)"/>
       </div>
 
       <div class="d-flex justify-content-evenly w-25 rounded-bottom-2 gap-2">
@@ -106,7 +104,7 @@ const router = useRouter();
 
 watch(showTagInput, (val) => {
   if (val) {
-    tagInput.value!.focus();
+    tagInput.value?.focus();
   }
 });
 
@@ -164,10 +162,12 @@ const addTag = async () => {
   .streaminfo-footer {
     background: bootstrap.$primary;
     color: bootstrap.$white;
+
     .form-switch .form-check-input:checked {
       background-color: bootstrap.$success;
       border: none #30D158;
     }
+
     .form-switch .form-check-input:not(:checked) {
     }
   }

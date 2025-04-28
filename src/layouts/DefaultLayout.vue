@@ -1,10 +1,10 @@
 <template>
   <div class="h-100">
-    <NavTop :routes="routes" :title="title" @add="showModal = true" :show-logout="true" @logout="logout" />
+    <NavTop :routes="routes" :title="title" @add="showModal = true" :show-logout="true" @logout="logout"/>
     <main class="container-fluid" style="margin-top: 4rem">
       <slot></slot>
-      <ChannelModal :clear="showModal" :show="showModal" :is-paused="false" :saving="false" title="Stream" @save="save" @close="showModal = false" />
-      <AppToaster :toasts="toastStore.all" @destroy="(toast) => toastStore.destroy(toast)" />
+      <ChannelModal :clear="showModal" :show="showModal" :is-paused="false" :saving="false" title="Stream" @save="save" @close="showModal = false"/>
+      <AppToaster :toasts="toastStore.all" @destroy="(toast) => toastStore.destroy(toast)"/>
     </main>
   </div>
 </template>
@@ -63,11 +63,9 @@ const save = async (data: ChannelRequest) => {
     saving.value = true;
     await channelStore.save(data);
     hideModal();
-  } catch (e) {
-    toastStore.error({
-      title: "Save Error",
-      message: e instanceof Error ? e.message : "An unknown error occurred.",
-    });
+  } catch (e: unknown) {
+    const err = (e as { error?: string }).error
+    alert(err);
   } finally {
     saving.value = false;
   }
