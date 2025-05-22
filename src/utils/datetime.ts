@@ -59,7 +59,7 @@ export function fromNow(date: number): string {
     return "an hour ago";
   }
   if (seconds >= 90 && minutes <= 44) {
-    return minutes + " minutes ago";
+    return minutes + "min ago";
   }
   if (seconds >= 45 && seconds <= 89) {
     return "a minute ago";

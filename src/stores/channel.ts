@@ -1,4 +1,4 @@
-import type { DatabaseChannel as ChannelResponse, DatabaseChannel, DatabaseRecording, RequestsChannelRequest as ChannelRequest, ServicesChannelInfo as ChannelInfo } from "../services/api/v1/StreamSinkClient";
+import type { DatabaseChannel as ChannelResponse, DatabaseChannel, DatabaseRecording, RequestsChannelRequest, RequestsChannelRequest as ChannelRequest, ServicesChannelInfo as ChannelInfo } from "../services/api/v1/StreamSinkClient";
 import { defineStore } from "pinia";
 import { createClient } from "../services/api/v1/ClientFactory";
 import { useJobStore } from "../stores/job";
@@ -43,13 +43,15 @@ export const useChannelStore = defineStore("channel", {
       const data = await client.channels.channelsList();
       this.channels = (data || []).sort(sortChannel);
     },
-    save(channel: ChannelRequest): Promise<ChannelInfo> {
-      return createClient()
-        .channels.channelsCreate(channel)
-        .then((res) => {
-          this.add(res);
-          return res;
-        });
+    async create(channel: ChannelRequest): Promise<ChannelInfo> {
+      const res = await createClient().channels.channelsCreate(channel);
+      this.add(res);
+      return res;
+    },
+    async save(id: number, channel: RequestsChannelRequest): Promise<DatabaseChannel> {
+      const update = await createClient().channels.channelsPartialUpdate(id, channel);
+      this.update(update);
+      return update;
     },
     online(channelId: number) {
       const channel = this.channels.find((ch) => ch.channelId === channelId);

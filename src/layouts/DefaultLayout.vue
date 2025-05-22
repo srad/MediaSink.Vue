@@ -61,7 +61,7 @@ const routes = [
 const save = async (data: ChannelRequest) => {
   try {
     saving.value = true;
-    await channelStore.save(data);
+    await channelStore.create(data);
     hideModal();
   } catch (e: unknown) {
     const err = (e as { error?: string }).error

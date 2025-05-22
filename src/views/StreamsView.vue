@@ -1,5 +1,19 @@
 <template>
-  <ChannelModal @save="save" @close="showModal = false" title="Edit Stream" :saving="saving" :is-paused="isPaused" :channel-disabled="true" :clear="false" :channel-id="channelId" :show="showModal" :channel-name="channelName" :display-name="displayName" :url="url" :min-duration="minDuration" :skip-start="skipStart" />
+  <ChannelModal
+    @save="save"
+    @close="showModal = false"
+    title="Edit Stream"
+    :saving="saving"
+    :is-paused="isPaused"
+    :channel-disabled="true"
+    :clear="false"
+    :channel-id="channelId"
+    :show="showModal"
+    :channel-name="channelName"
+    :display-name="displayName"
+    :url="url"
+    :min-duration="minDuration"
+    :skip-start="skipStart" />
 
   <!-- Search bar -->
   <div class="row">
@@ -176,7 +190,7 @@ const searchFilter = (channel: ChannelResponse, search: string, tag: string): bo
 const save = async (channel: ChannelUpdate) => {
   try {
     saving.value = true;
-    await channelStore.save(channel);
+    await channelStore.save(channel.channelId, channel);
     showModal.value = false;
   } catch (e) {
     alert(e);
