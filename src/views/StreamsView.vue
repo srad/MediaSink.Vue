@@ -18,8 +18,7 @@
   <!-- Search bar -->
   <div class="row">
     <div class="col">
-      <!--<div class="d-flex rounded-2 border mb-3 p-0 bg-light border-info p-1">-->
-      <div class="input-group mb-3 align-middle">
+      <div class="input-group mb-2 align-middle">
         <input ref="searchField" autocapitalize="off" autocomplete="off" class="form-control border-secondary" type="text" name="search" placeholder="search ... #tag" v-model="searchVal" />
         <span class="input-group-text bg-danger-subtle" v-if="searchVal != ''">
           <i class="bi bi-x-lg text-danger fs-4" @click="searchVal = ''" />
