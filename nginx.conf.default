@@ -19,7 +19,7 @@ http {
     sendfile            on;
     sendfile_max_chunk  512k;
 
-    #auth_basic  "StreamSink Login";
+    #auth_basic  "MediaSink Login";
     #auth_basic_user_file /etc/nginx/.htpasswd;
 
     server {

@@ -36,24 +36,24 @@
         <!--<button class="btn btn-sm btn-warning" @click="emit('convert', {recording: data, mediaType: 'mp3'})">MP3</button>-->
       </div>
     </li>
-    <li @click="expand = !expand" class="expand p-0 list-group-item d-flex justify-content-center expand-control" :class="{expanded: expand}">
+    <li v-if="false" @click="expand = !expand" class="expand p-0 list-group-item d-flex justify-content-center expand-control" :class="{expanded: expand}">
       <i v-if="!expand" class="bi bi-caret-down-fill"></i>
       <i v-else class="bi bi-caret-up-fill"></i>
     </li>
-    <li class="list-group-item fs-6 video-controls" :style="{cursor: props.disableButtons ? 'not-allowed' : ''}">
+    <li class="list-group-item fs-6 video-controls rounded-bottom-2">
       <div class="justify-content-between d-flex">
         <div class="d-flex gap-2">
-          <button type="button" class="btn btn-sm p-0 px-2" :href="url + '/download'" :disabled="props.disableButtons">
+          <button type="button" class="btn btn-sm p-0 px-2" :href="url + '/download'">
             <i class="bi bi-download"></i>
           </button>
-          <FavButton :data="data" :faved="bookmark" :disabled="props.disableButtons" @fav="emit('bookmarked', props.data, false)" @unfav="emit('bookmarked', props.data, true)" />
+          <FavButton :data="data" :faved="bookmark" @fav="emit('bookmarked', props.data, false)" @unfav="emit('bookmarked', props.data, true)" />
         </div>
 
         <div class="d-flex">
-          <button type="button" class="btn btn-sm p-0 px-2" @click="emit('preview', data)" :disabled="props.disableButtons">
+          <button type="button" class="btn btn-sm p-0 px-2" @click="emit('preview', data)">
             <i class="bi bi-film"></i>
           </button>
-          <button type="button" class="btn btn-sm p-0 px-2" @click="emit('destroy', data)" :disabled="props.disableButtons">
+          <button type="button" class="btn btn-sm p-0 px-2" @click="emit('destroy', data)">
             <i class="bi bi-trash3-fill text-danger" />
           </button>
         </div>

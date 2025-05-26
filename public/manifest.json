@@ -1,6 +1,6 @@
 {
-  "name": "StreamSink",
-  "short_name": "StreamSink",
+  "name": "MediaSink",
+  "short_name": "MediaSink",
   "start_url": "/",
   "display": "standalone",
   "description": "Media library with integrated video editor and stream recording automation",

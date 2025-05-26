@@ -11,22 +11,24 @@
       </template>
     </ModalConfirmDialog>
 
-    <nav class="navbar navbar-dark navbar-expand-lg fixed-top shadow-sm border-bottom border-primary-subtle m-0 d-flex bg-primary">
+    <nav class="navbar navbar-dark navbar-expand-lg fixed-top d-flex bg-primary shadow-sm" style="opacity: 0.9">
       <div class="container-fluid">
-        <AppBrand class="mr-auto" :title="title" />
+        <div class="d-flex align-items-center">
+          <AppBrand class="mr-auto" :title="title" />
 
-        <span class="mx-3 text-danger fw-bold d-none d-sm-inline">
-          <i v-if="heartBeatNextUpdate >= 0" class="bi blink bi-heart-pulse-fill" />
-          <i v-else class="bi bi-heart-pulse"></i>
-        </span>
+          <span class="mx-3 text-danger fw-bold">
+            <i v-if="heartBeatNextUpdate >= 0" class="bi blink bi-heart-pulse-fill" />
+            <i v-else class="bi bi-heart-pulse"></i>
+          </span>
+        </div>
 
-        <div class="offcanvas offcanvas-end bg-dark" :class="{ show: showNav }" data-bs-backdrop="static" tabindex="-1" aria-labelledby="collapsibleNavbarLabel" id="collapsibleNavbar">
+        <div class="offcanvas offcanvas-end bg-dark" :class="{show: showNav}" data-bs-backdrop="static" tabindex="-1" aria-labelledby="collapsibleNavbarLabel" id="collapsibleNavbar">
           <div class="offcanvas-header bg-primary text-white">
             <AppBrand class="mr-auto" :title="title" />
             <button type="button" class="btn-close btn-close-white" @click="showNav = !showNav"></button>
           </div>
           <div class="offcanvas-body">
-            <ul class="navbar-nav justify-content-end flex-grow-1">
+            <ul class="navbar-nav flex-grow-1">
               <li
                 class="nav-item"
                 style="cursor: pointer"
@@ -38,31 +40,56 @@
                     router.push(link.url);
                   }
                 ">
-                <a :class="{ active: route.path === link.url }" @click="collapseNav = true" class="nav-link">
+                <a :class="{active: route.path === link.url}" @click="collapseNav = true" class="nav-link d-flex gap-2">
+                  <i class="bi" :class="link.icon"></i>
                   <span data-bs-dismiss="offcanvas" data-bs-target="#collapsibleNavbar">{{ link.title }}</span>
                 </a>
+              </li>
+              <li class="dropdown-item d-inline d-lg-none">
+                <RouterLink to="/admin" class="nav-link d-flex gap-2 bg-transparent">
+                  <i class="bi bi-sliders"></i>
+                  <span>Admin</span>
+                </RouterLink>
+              </li>
+              <li class="dropdown-item d-inline d-lg-none">
+                <RouterLink to="/info" class="nav-link d-flex gap-2 bg-transparent">
+                  <i class="bi bi-info-circle-fill"></i>
+                  <span>System Info</span>
+                </RouterLink>
+              </li>
+              <li class="dropdown-item d-inline d-lg-none">
+                <RouterLink to="/monitoring" class="nav-link d-flex gap-2 bg-transparent">
+                  <i class="bi bi-binoculars-fill"></i>
+                  <span>Monitoring</span>
+                </RouterLink>
+              </li>
+              <li class="dropdown-item  d-inline d-lg-none">
+                <a href="#" class="nav-link d-flex gap-2 bg-transparent" @click="emit('logout')">
+                  <i class="bi bi-door-open-fill"></i>
+                  <span>Logout</span>
+                </a>
+              </li>
+            </ul>
+            <ul class="navbar-nav">
+              <li class="dropdown-item d-inline d-lg-none my-1">
               </li>
               <li class="nav-item d-flex align-items-center">
                 <DiskStatus :pcent="diskAvailablePercentage" />
               </li>
-              <li class="nav-item d-none d-lg-block">
-                <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')" />
+              <li class="nav-item d-none d-lg-inline">
+                <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" />
               </li>
-              <li class="nav-item d-none d-lg-block ms-2">
-                <DarkModelToggleButton />
+              <li class="nav-item d-flex align-content-center px-2 d-none d-lg-inline">
+                <UserDropDown @logout="emit('logout')" />
               </li>
             </ul>
           </div>
         </div>
 
         <div class="d-lg-none d-flex align-items-center">
-          <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" :show-logout="showLogout" @logout="emit('logout')" />
+          <VideoControls :jobs="jobs" :total-count="jobsCount" :is-recording="isRecording" @add="emit('add')" @record="showConfirmRecording = true" />
 
-          <div class="mx-2">
-            <DarkModelToggleButton />
-          </div>
-
-          <button class="navbar-toggler d-l-none" type="button" @click="showNav = !showNav">
+          <button class="navbar-toggler d-l-none ms-2" type="button" @click="showNav = !showNav">
             <span class="navbar-toggler-icon"></span>
           </button>
         </div>
@@ -72,142 +99,142 @@
 </template>
 
 <script setup lang="ts">
-import { MessageType, SocketManager } from "../../utils/socket";
-import { useChannelStore } from "../../stores/channel";
-import { useJobStore } from "../../stores/job";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import DiskStatus from "../DiskStatus.vue";
-import VideoControls from "../VideoControls.vue";
-import AppBrand from "../AppBrand.vue";
-import ModalConfirmDialog from "../modals/ModalConfirmDialog.vue";
-import type { HelpersDiskInfo } from "../../services/api/v1/StreamSinkClient";
-import { createClient } from "../../services/api/v1/ClientFactory";
-import { useAuthStore } from "../../stores/auth";
-import DarkModelToggleButton from "../DarkModelToggleButton.vue";
+  import {MessageType, SocketManager} from "../../utils/socket";
+  import {useChannelStore} from "../../stores/channel";
+  import {useJobStore} from "../../stores/job";
+  import {computed, onMounted, onUnmounted, ref, watch} from "vue";
+  import {useRoute, useRouter} from "vue-router";
+  import DiskStatus from "../DiskStatus.vue";
+  import VideoControls from "../VideoControls.vue";
+  import AppBrand from "../AppBrand.vue";
+  import ModalConfirmDialog from "../modals/ModalConfirmDialog.vue";
+  import type {HelpersDiskInfo} from "../../services/api/v1/StreamSinkClient";
+  import {createClient} from "../../services/api/v1/ClientFactory";
+  import {useAuthStore} from "../../stores/auth";
+  import UserDropDown from "../navs/UserDropDown.vue";
 
-// --------------------------------------------------------------------------------------
-// Props
-// --------------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------------
+  // Props
+  // --------------------------------------------------------------------------------------
 
-const props = defineProps<{
-  routes: { icon: string; url: string; title: string }[];
-  title: string;
-  showLogout: boolean;
-}>();
+  const props = defineProps<{
+    routes: {icon: string; url: string; title: string}[];
+    title: string;
+    showLogout: boolean;
+  }>();
 
-// --------------------------------------------------------------------------------------
-// Emits
-// --------------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------------
+  // Emits
+  // --------------------------------------------------------------------------------------
 
-const emit = defineEmits<{
-  (e: "add"): void;
-  (e: "logout"): void;
-}>();
+  const emit = defineEmits<{
+    (e: "add"): void;
+    (e: "logout"): void;
+  }>();
 
-// --------------------------------------------------------------------------------------
-// Declarations
-// --------------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------------
+  // Declarations
+  // --------------------------------------------------------------------------------------
 
-// Stores
-const channelStore = useChannelStore();
-const jobStore = useJobStore();
+  // Stores
+  const channelStore = useChannelStore();
+  const jobStore = useJobStore();
 
-// Refs
-const diskAvailablePercentage = ref(0);
-const collapseNav = ref(true);
-const isRecording = ref(false);
-const heartBeatNextUpdate = ref<number>(-1);
-const route = useRoute();
-const showNav = ref(false);
-const showConfirmRecording = ref(false);
+  // Refs
+  const diskAvailablePercentage = ref(0);
+  const collapseNav = ref(true);
+  const isRecording = ref(false);
+  const heartBeatNextUpdate = ref<number>(-1);
+  const route = useRoute();
+  const showNav = ref(false);
+  const showConfirmRecording = ref(false);
 
-const router = useRouter();
+  const router = useRouter();
 
-const authStore = useAuthStore();
+  const authStore = useAuthStore();
 
-let thread: undefined | ReturnType<typeof setInterval> = undefined;
+  let thread: undefined | ReturnType<typeof setInterval> = undefined;
 
-const socketManager = new SocketManager();
+  const socketManager = new SocketManager();
 
-// --------------------------------------------------------------------------------------
-// Computes
-// --------------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------------
+  // Computes
+  // --------------------------------------------------------------------------------------
 
-const jobs = computed(() => jobStore.open);
-const jobsCount = computed(() => jobStore.jobsCount);
+  const jobs = computed(() => jobStore.open);
+  const jobsCount = computed(() => jobStore.jobsCount);
 
-// --------------------------------------------------------------------------------------
-// Functions
-// --------------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------------
+  // Functions
+  // --------------------------------------------------------------------------------------
 
-const query = async () => {
-  const client = createClient();
-  const [recRes, diskRes] = await Promise.all<[Promise<boolean>, Promise<HelpersDiskInfo>]>([client.isRecording(), client.info.diskList()]);
-  isRecording.value = recRes;
-  diskAvailablePercentage.value = diskRes.pcent;
-};
-
-const record = async () => {
-  try {
+  const query = async () => {
     const client = createClient();
-    if (isRecording.value) {
-      await client.recorder.pauseCreate();
-      channelStore.stop();
-      isRecording.value = false;
-    } else {
-      await client.recorder.resumeCreate();
-      isRecording.value = true;
-    }
-  } catch (err) {
-    console.error(err);
-  } finally {
-    showConfirmRecording.value = false;
-  }
-};
+    const [recRes, diskRes] = await Promise.all<[Promise<boolean>, Promise<HelpersDiskInfo>]>([client.isRecording(), client.info.diskList()]);
+    isRecording.value = recRes;
+    diskAvailablePercentage.value = diskRes.pcent;
+  };
 
-const initialLoad = async () => {
-  const client = createClient();
-  const res = await Promise.all<[Promise<boolean>, Promise<HelpersDiskInfo>]>([client.isRecording(), client.info.diskList()]);
-  const [recRes, diskRes] = res;
-  diskAvailablePercentage.value = diskRes.pcent;
-  isRecording.value = recRes;
-};
-
-// --------------------------------------------------------------------------------------
-// Watchers
-// --------------------------------------------------------------------------------------
-
-watch(route, () => (collapseNav.value = true));
-
-// --------------------------------------------------------------------------------------
-// Hooks
-// --------------------------------------------------------------------------------------
-
-onMounted(async () => {
-  if (!authStore.isLoggedIn) {
-    return;
-  }
-
-  await initialLoad();
-
-  await socketManager.connect();
-
-  socketManager.on(MessageType.HeartBeat, (nextUpdate) => {
-    heartBeatNextUpdate.value = nextUpdate as number;
-    const id = setInterval(() => {
-      heartBeatNextUpdate.value -= 1;
-      if (heartBeatNextUpdate.value <= 0) {
-        clearInterval(id);
+  const record = async () => {
+    try {
+      const client = createClient();
+      if (isRecording.value) {
+        await client.recorder.pauseCreate();
+        channelStore.stop();
+        isRecording.value = false;
+      } else {
+        await client.recorder.resumeCreate();
+        isRecording.value = true;
       }
-    }, 1000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      showConfirmRecording.value = false;
+    }
+  };
+
+  const initialLoad = async () => {
+    const client = createClient();
+    const res = await Promise.all<[Promise<boolean>, Promise<HelpersDiskInfo>]>([client.isRecording(), client.info.diskList()]);
+    const [recRes, diskRes] = res;
+    diskAvailablePercentage.value = diskRes.pcent;
+    isRecording.value = recRes;
+  };
+
+  // --------------------------------------------------------------------------------------
+  // Watchers
+  // --------------------------------------------------------------------------------------
+
+  watch(route, () => (collapseNav.value = true));
+
+  // --------------------------------------------------------------------------------------
+  // Hooks
+  // --------------------------------------------------------------------------------------
+
+  onMounted(async () => {
+    if (!authStore.isLoggedIn) {
+      return;
+    }
+
+    await initialLoad();
+
+    await socketManager.connect();
+
+    socketManager.on(MessageType.HeartBeat, (nextUpdate) => {
+      heartBeatNextUpdate.value = nextUpdate as number;
+      const id = setInterval(() => {
+        heartBeatNextUpdate.value -= 1;
+        if (heartBeatNextUpdate.value <= 0) {
+          clearInterval(id);
+        }
+      }, 1000);
+    });
+
+    thread = setInterval(query, 1000 * 10);
   });
 
-  thread = setInterval(query, 1000 * 10);
-});
-
-onUnmounted(() => {
-  socketManager.close();
-  clearInterval(thread);
-});
+  onUnmounted(() => {
+    socketManager.close();
+    clearInterval(thread);
+  });
 </script>

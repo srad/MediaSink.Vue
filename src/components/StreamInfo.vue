@@ -37,7 +37,7 @@
     </li>
     <!-- /tags -->
 
-    <li class="list-group-item streaminfo-footer d-flex justify-content-between fs-6">
+    <li class="list-group-item streaminfo-footer d-flex justify-content-between fs-6 rounded-bottom-2">
       <div class="d-flex w-75 gap-2">
         <span class="form-check form-switch">
           <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`"/>
@@ -46,7 +46,7 @@
         <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)"/>
       </div>
 
-      <div class="d-flex justify-content-evenly w-25 rounded-bottom-2 gap-2">
+      <div class="d-flex justify-content-evenly w-25 gap-2">
         <a @click="emit('edit', channel)">
           <i class="bi bi-arrow-clockwise"></i>
         </a>

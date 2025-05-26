@@ -1,24 +1,15 @@
 <template>
-  <div class="text-white d-flex justify-content-between align-middle me-3">
-          <span class="fw-bold me-2 ">
-            {{ props.pcent }}%
-            <i class="bi bi-hdd"></i>
-          </span>
-    <span class="progress m-1" style="min-width: 120px">
-            <span class="progress-bar bg-info progress-bar-striped"
-                  role="progressbar"
-                  :style="{width: props.pcent + '%'}"
-                  :aria-valuenow="props.pcent"
-                  aria-valuemin="0"
-                  aria-valuemax="100">
-            </span>
-          </span>
+  <div class="text-white d-flex gap-2 justify-content-between justify-content-center mx-2">
+    <i class="bi bi-sd-card-fill text-info"></i>
+    <span class="progress my-1 position-relative" style="min-width: 80px">
+      <span class="progress-bar bg-info progress-bar-striped" role="progressbar" :style="{width: props.pcent + '%'}" :aria-valuenow="props.pcent" aria-valuemin="0" aria-valuemax="100"></span>
+    </span>
+    <span style="font-size: 90%">{{ props.pcent }}%</span>
   </div>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ pcent: number }>();
+  const props = defineProps<{pcent: number}>();
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -24,8 +24,8 @@ export default defineConfig({
         enabled: true,
       },
       manifest: {
-        name: "StreamSink",
-        short_name: "StreamSink",
+        name: "MediaSink",
+        short_name: "MediaSink",
         description: "Media library with integrated video editor and stream recording automation",
         theme_color: "#301240",
         icons: [

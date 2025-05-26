@@ -24,7 +24,7 @@
       </div>
     </div>
     <div class="row">
-      <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
+      <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-6 col-xl-4 col-xxl-4 col-md-6 col-sm-8">
         <VideoItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false"/>
       </div>
     </div>

@@ -12,6 +12,8 @@ import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
 import { useAuthStore } from "../stores/auth";
 import ChannelsView from "../views/ChannelsView.vue";
+import InfoView from "@/views/InfoView.vue";
+import MonitoringView from "@/views/MonitoringView.vue";
 
 const routes = [
   { path: "", redirect: "/streams" },
@@ -27,6 +29,8 @@ const routes = [
   },
   { path: "/channels", name: "Channels", component: ChannelsView, meta: { title: "Channels" } },
   { path: "/admin", name: "Admin", component: AdminView, meta: { title: "Admin" } },
+  { path: "/info", name: "Info", component: InfoView, meta: { title: "Info" } },
+  { path: "/monitoring", name: "Monitoring", component: MonitoringView, meta: { title: "Monitoring" } },
 
   { path: "/jobs", redirect: "/jobs/open" },
   { path: "/jobs/:tab", name: "Job", component: JobView, meta: { title: "Jobs" } },

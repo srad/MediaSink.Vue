@@ -40,8 +40,8 @@ const createCustomOperationId = (method, route, moduleName) => {
 
 /* NOTE: all fields are optional expect one of `input`, `url`, `spec` */
 await generateApi({
-  name: "StreamSinkClient.ts",
-  apiClassName: "StreamSinkClient",
+  name: "MediaSinkClient.ts",
+  apiClassName: "MediaSinkClient",
   // set to `false` to prevent the tool from writing to disk
   output: path.join(process.cwd(), "services", "api", "v1"),
   url: "http://localhost:3000/swagger/doc.json",
