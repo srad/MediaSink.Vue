@@ -117,7 +117,7 @@
   import {createClient} from "../../services/api/v1/ClientFactory";
   import {useAuthStore} from "../../stores/auth";
   import UserDropDown from "../navs/UserDropDown.vue";
-  import DarkModelToggleButton from "@/components/DarkModelToggleButton.vue";
+  import DarkModelToggleButton from "../DarkModelToggleButton.vue";
 
   // --------------------------------------------------------------------------------------
   // Props
