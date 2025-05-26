@@ -16,7 +16,7 @@
         <div class="d-flex align-items-center">
           <AppBrand class="mr-auto" :title="title" />
 
-          <span class="mx-3 text-danger fw-bold">
+          <span class="mx-3 text-danger fw-bold d-none d-sm-none d-md-block">
             <i v-if="heartBeatNextUpdate >= 0" class="bi blink bi-heart-pulse-fill" />
             <i v-else class="bi bi-heart-pulse"></i>
           </span>
