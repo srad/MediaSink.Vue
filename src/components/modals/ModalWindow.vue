@@ -1,10 +1,10 @@
 <template>
   <Transition name="modal">
     <div v-if="props.show" ref="container" class="modal-mask d-flex align-items-center p-3">
-      <div class="modal-container rounded-2">
-        <div class="modal-header d-flex justify-content-between px-4 py-2 rounded-top-2">
+      <div class="modal-container">
+        <div class="modal-header d-flex justify-content-between px-4 py-2">
           <slot name="header">default header</slot>
-          <button type="button" class="btn-close" @click="emit('close')"></button>
+          <button type="button" class="btn-close btn-close-white" @click="emit('close')"></button>
         </div>
 
         <div class="modal-body px-4">
@@ -109,7 +109,7 @@ watch(
   }
 
   .modal-header {
-    background-color: bootstrap.$info;
+    background-color: bootstrap.$primary;
     margin: 0;
     padding: 0;
     color: bootstrap.$light;
@@ -118,12 +118,12 @@ watch(
 
 [data-bs-theme="dark"] {
   .modal-container {
-    border: 1px solid bootstrap.$info;
+    border: 1px solid bootstrap.$primary;
     background-color: bootstrap.$dark;
   }
 
   .modal-header {
-    background-color: bootstrap.$info;
+    background-color: bootstrap.$primary;
     margin: 0;
     padding: 0;
     color: bootstrap.$dark;

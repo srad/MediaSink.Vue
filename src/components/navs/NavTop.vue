@@ -69,6 +69,11 @@
                   <span>Logout</span>
                 </a>
               </li>
+              <li class="dropdown-item  d-inline d-lg-none">
+                <a href="#" class="nav-link d-flex gap-2 bg-transparent">
+                  <DarkModelToggleButton :checkbox="true"/>
+                </a>
+              </li>
             </ul>
             <ul class="navbar-nav">
               <li class="dropdown-item d-inline d-lg-none my-1">
@@ -112,6 +117,7 @@
   import {createClient} from "../../services/api/v1/ClientFactory";
   import {useAuthStore} from "../../stores/auth";
   import UserDropDown from "../navs/UserDropDown.vue";
+  import DarkModelToggleButton from "@/components/DarkModelToggleButton.vue";
 
   // --------------------------------------------------------------------------------------
   // Props

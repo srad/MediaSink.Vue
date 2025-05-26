@@ -55,8 +55,8 @@
     </template>
 
     <template v-slot:footer>
-      <button class="btn btn-info" @click="save" :disabled="isSaving">
-        <span class="spinner-border spinner-border-sm text-light" role="status" v-show="isSaving">
+      <button class="btn btn-primary" @click="save" :disabled="isSaving">
+        <span class="spinner-border spinner-border-sm text-light" role="status" v-if="isSaving">
           <span class="visually-hidden">Loading...</span>
         </span>
         Save
@@ -253,27 +253,35 @@ const formValid = (): { validations: ValidationMessage[]; isValid: boolean } => 
 };
 
 const save = () => {
-  validations.value = [];
-  const validationResult = formValid();
+  try {
+    isSaving.value = true;
+    validations.value = [];
+    const validationResult = formValid();
 
-  if (!validationResult.isValid) {
-    validations.value = validationResult.validations.map(({ message, isValid }) => ({
-      message: message,
-      checked: isValid,
-    }));
-    return;
+    if (!validationResult.isValid) {
+      validations.value = validationResult.validations.map(({ message, isValid }) => ({
+        message: message,
+        checked: isValid,
+      }));
+      return;
+    }
+
+    // Valid
+    emit("save", {
+      isPaused: formState.myIsPaused,
+      channelId: props.channelId!,
+      channelName: formState.myChannelName,
+      url: formState.myUrl,
+      displayName: formState.myDisplayName,
+      skipStart: formState.mySkipStart,
+      minDuration: formState.myMinDuration,
+    });
+    isSaving.value = false;
+  } catch (error) {
+    console.error(error);
+    alert(error);
+    isSaving.value = false;
   }
-
-  // Valid
-  emit("save", {
-    isPaused: formState.myIsPaused,
-    channelId: props.channelId!,
-    channelName: formState.myChannelName,
-    url: formState.myUrl,
-    displayName: formState.myDisplayName,
-    skipStart: formState.mySkipStart,
-    minDuration: formState.myMinDuration,
-  });
 };
 </script>
 
