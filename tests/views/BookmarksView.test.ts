@@ -1,5 +1,5 @@
-import { mount, flushPromises } from "@vue/test-utils";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import BookmarksView from "../../src/views/BookmarksView.vue";
 import VideoItem from "../../src/components/VideoItem.vue";
 import { createTestingPinia } from "@pinia/testing";
@@ -18,17 +18,47 @@ type BookmarksViewInstance = ComponentPublicInstance<{
 
 // Mock API client
 const mockBookmarksList = vi.fn().mockResolvedValue([
-  { filename: "video1.mp4", channelName: "Channel 1", recordingId: 1, bookmark: true },
-  { filename: "video2.mp4", channelName: "Channel 2", recordingId: 2, bookmark: true },
+  {
+    bitRate: 1,
+    bookmark: true,
+    channelId: 1,
+    channelName: "Channel 1",
+    createdAt: Date.now().toFixed(),
+    duration: 1,
+    filename: "video1.mp4",
+    height: 1,
+    packets: 0,
+    pathRelative: "",
+    recordingId: 1,
+    size: 0,
+    videoType: "video",
+    width: 0,
+  },
+  {
+    bitRate: 1,
+    bookmark: true,
+    channelId: 1,
+    channelName: "Channel 2",
+    createdAt: Date.now().toFixed(),
+    duration: 1,
+    filename: "video2.mp4",
+    height: 1,
+    packets: 0,
+    pathRelative: "",
+    recordingId: 2,
+    size: 0,
+    videoType: "video",
+    width: 0,
+  },
 ]);
 
 const mockRecordingsDelete = vi.fn().mockResolvedValue(true);
 
 vi.mock("@/services/api/v1/ClientFactory", () => ({
   createClient: () => ({
-    recordings: {
+    videos: {
       bookmarksList: mockBookmarksList,
-      recordingsDelete: mockRecordingsDelete,
+      videosDelete: mockRecordingsDelete,
     },
   }),
 }));
@@ -100,14 +130,24 @@ describe("BookmarksView.vue", () => {
 
     const vm = wrapper.vm as unknown as BookmarksViewInstance;
 
-    await vm.bookmark({
-      filename: "video1.mp4",
-      channelName: "Channel 1",
-      recordingId: 1,
+    vm.bookmark({
+      bitRate: 1,
       bookmark: false,
+      channelId: 1,
+      channelName: "Channel 1",
+      createdAt: Date.now().toFixed(),
+      duration: 1,
+      filename: "video1.mp4",
+      height: 1,
+      packets: 0,
+      pathRelative: "",
+      recordingId: 1,
+      size: 0,
+      videoType: "video",
+      width: 0,
     });
 
-    expect(wrapper.findAllComponents(VideoItem)).toHaveLength(1);
+    expect(vm.videos).toHaveLength(1);
   });
 
   it("confirms before deleting a recording", async () => {
@@ -120,12 +160,23 @@ describe("BookmarksView.vue", () => {
     });
 
     await flushPromises();
+    const vm = wrapper.vm as unknown as BookmarksViewInstance;
 
-    await wrapper.vm.destroyRecording({
-      filename: "video1.mp4",
+    await vm.destroyRecording({
+      bitRate: 1,
+      bookmark: false,
+      channelId: 1,
       channelName: "Channel 1",
+      createdAt: Date.now().toFixed(),
+      duration: 1,
+      filename: "video1.mp4",
+      height: 1,
+      packets: 0,
+      pathRelative: "",
       recordingId: 1,
-      bookmark: true,
+      size: 0,
+      videoType: "video",
+      width: 0,
     });
 
     expect(global.confirm).toHaveBeenCalledWith("Are you sure you want to delete video1.mp4?");
