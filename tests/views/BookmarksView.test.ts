@@ -5,7 +5,7 @@ import VideoItem from "../../src/components/VideoItem.vue";
 import { createTestingPinia } from "@pinia/testing";
 import { createI18n } from "vue-i18n";
 import { ComponentPublicInstance } from "vue";
-import { DatabaseRecording } from "../../src/services/api/v1/StreamSinkClient";
+import { DatabaseRecording } from "../../src/services/api/v1/MediaSinkClient";
 
 // Define the component instance type
 type BookmarksViewInstance = ComponentPublicInstance<{

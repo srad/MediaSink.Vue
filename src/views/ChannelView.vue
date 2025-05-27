@@ -5,7 +5,7 @@
     <JsConfirmDialog :show="showConfirm" @cancel="showConfirm = false" @confirm="deleteChannel" text="Are you sure you want to delete this channel?" />
 
     <ModalConfirmDialog :show="showDeleteSelectedRecordings" @cancel="showDeleteSelectedRecordings = false" @confirm="destroySelection">
-      <template v-slot:header> Confirm selection</template>
+      <template v-slot:header>Confirm selection</template>
       <template v-slot:body>
         <ul class="list-unstyled">
           <li :key="recording.recordingId" v-for="recording in selectedRecordings" class="list-group-item d-flex justify-content-between mb-2">
@@ -68,14 +68,12 @@
             <span>Count:</span>
             <span>{{ channel!.recordingsCount }}</span>
           </button>
-          <button type="button" class="btn btn-sm btn-secondary" disabled>
-            Size: {{ (channel!.recordingsSize! / 1024 / 1024 / 1024).toFixed(1) }}GB
-          </button>
+          <button type="button" class="btn btn-sm btn-secondary" disabled>Size: {{ (channel!.recordingsSize! / 1024 / 1024 / 1024).toFixed(1) }}GB</button>
         </div>
       </div>
 
       <div class="row mb-5">
-        <div v-for="recording in recordings" :key="recording.recordingId" class="mb-3 col-lg-6 col-xl-4 col-xxl-3 col-md-6">
+        <div v-for="recording in recordings" :key="recording.recordingId" class="mb-3 col-lg-6 col-xl-6 col-xxl-4 col-md-8 col-sm-8">
           <VideoItem :job="jobStore.isProcessing(recording.recordingId)" @destroyed="destroyRecording" :check="selectedRecordings.some((x: RecordingResponse) => x.recordingId === recording.recordingId)" @checked="selectRecording" :show-selection="true" :recording="recording" :show-title="false" />
         </div>
       </div>
@@ -85,7 +83,7 @@
 
 <script setup lang="ts">
 import VideoItem from "../components/VideoItem.vue";
-import type { DatabaseRecording, DatabaseRecording as RecordingResponse, ServicesChannelInfo } from "../services/api/v1/StreamSinkClient";
+import type { DatabaseRecording, DatabaseRecording as RecordingResponse, ServicesChannelInfo } from "../services/api/v1/MediaSinkClient";
 import { computed, inject, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { MessageType, SocketManager } from "../utils/socket";
@@ -176,7 +174,7 @@ const destroySelection = async () => {
 
     for (let i = 0; i < selectedRecordings.value.length; i++) {
       const rec = selectedRecordings.value[i] as RecordingResponse;
-      await client.recordings.recordingsDelete(rec.recordingId);
+      await client.videos.videosDelete(rec.recordingId);
       const index = channel.value?.recordings?.findIndex((x: DatabaseRecording) => x.recordingId === rec.recordingId);
       if (index && index !== -1) {
         channel.value?.recordings?.splice(index, 1);

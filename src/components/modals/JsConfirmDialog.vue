@@ -16,21 +16,24 @@ const props = defineProps<{
 // --------------------------------------------------------------------------------------
 
 const emit = defineEmits<{
-  (e: "confirm"): void
-  (e: "cancel"): void
+  (e: "confirm"): void;
+  (e: "cancel"): void;
 }>();
 
 // --------------------------------------------------------------------------------------
 // Watchers
 // --------------------------------------------------------------------------------------
 
-watch(() => props.show, (val) => {
-  if (val === true) {
-    if (window.confirm(props.text)) {
-      emit("confirm");
-    } else {
-      emit("cancel");
+watch(
+  () => props.show,
+  (val) => {
+    if (val === true) {
+      if (window.confirm(props.text)) {
+        emit("confirm");
+      } else {
+        emit("cancel");
+      }
     }
-  }
-});
+  },
+);
 </script>

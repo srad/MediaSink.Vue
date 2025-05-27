@@ -18,18 +18,16 @@
             <i class="bi bi-x" @click="destroyTag(tag)"></i>
           </div>
         </template>
-        <div v-if="!showTagInput"
-             style="cursor: pointer"
-             class="badge bg-primary border-dark border rounded-1 d-flex gap-1 align-items-center"
-             @click="showTagInput = true">
-          <span>Tag</span><span>+</span>
+        <div v-if="!showTagInput" style="cursor: pointer" class="badge bg-primary border-dark border rounded-1 d-flex gap-1 align-items-center" @click="showTagInput = true">
+          <span>Tag</span>
+          <span>+</span>
         </div>
       </div>
 
       <div v-show="showTagInput" class="input-group input-group-sm">
         <form @submit.prevent="addTag">
           <div class="input-group">
-            <input :disabled="processingTag" ref="tagInput" class="form-control form-control-sm border-primary" v-model.lazy="tagVal" type="text" :name="`${channel.channelId}_tag`" autocapitalize="off" autocomplete="off"/>
+            <input :disabled="processingTag" ref="tagInput" class="form-control form-control-sm border-primary" v-model.lazy="tagVal" type="text" :name="`${channel.channelId}_tag`" autocapitalize="off" autocomplete="off" />
             <button type="submit" class="btn btn-sm btn-primary" :disabled="processingTag">save</button>
           </div>
         </form>
@@ -40,15 +38,15 @@
     <li class="list-group-item streaminfo-footer d-flex justify-content-between fs-6 rounded-bottom-2">
       <div class="d-flex w-75 gap-2">
         <span class="form-check form-switch">
-          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`"/>
+          <input @click="emit('pause', channel)" class="form-check-input" type="checkbox" :checked="!channel.isPaused" :id="`${channel.channelId}_isPaused`" :name="`${channel.channelId}_isPaused`" />
           <label class="form-check-label" :for="`${channel.channelId}_isPaused`">Record</label>
         </span>
-        <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)"/>
+        <FavButton :data="channel" :faved="fav" @fav="emit('unfav', channel)" @unfav="emit('fav', channel)" />
       </div>
 
       <div class="d-flex justify-content-evenly w-25 gap-2">
         <a @click="emit('edit', channel)">
-          <i class="bi bi-arrow-clockwise"></i>
+          <i class="bi bi-pencil-fill"></i>
         </a>
         <a class="text-danger" @click="emit('destroy', channel)">
           <i class="bi bi-trash-fill"></i>
@@ -61,7 +59,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import type { ServicesChannelInfo as ChannelResponse } from "../services/api/v1/StreamSinkClient";
+import type { ServicesChannelInfo as ChannelResponse } from "../services/api/v1/MediaSinkClient";
 import { validTag } from "../utils/parser";
 import FavButton from "./controls/FavButton.vue";
 import { createClient } from "../services/api/v1/ClientFactory";
@@ -165,7 +163,7 @@ const addTag = async () => {
 
     .form-switch .form-check-input:checked {
       background-color: bootstrap.$success;
-      border: none #30D158;
+      border: none #30d158;
     }
 
     .form-switch .form-check-input:not(:checked) {

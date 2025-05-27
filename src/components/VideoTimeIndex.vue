@@ -1,6 +1,6 @@
 <template>
-  <div class="position-relative time-index-container user-select-none" :style="{width: props.width + 'px'}">
-    <div class="position-absolute time-index" :key="marker.time" v-for="marker in timeMarkers" :style="{transform: `translateX(${marker.left}px)` }">
+  <div class="position-relative time-index-container user-select-none" :style="{ width: props.width + 'px' }">
+    <div class="position-absolute time-index" :key="marker.time" v-for="marker in timeMarkers" :style="{ transform: `translateX(${marker.left}px)` }">
       <div class="position-relative">
         <div class="position-relative">
           <div class="position-absolute" style="transform: translateX(-50%)">{{ marker.time }}</div>
@@ -14,19 +14,19 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { secondsToMMSS } from "../utils/time";
-import { throttle } from 'lodash';
+import { throttle } from "lodash";
 
 // --------------------------------------------------------------------------------------
 // Props
 // --------------------------------------------------------------------------------------
 
-const props = defineProps<{ duration: number, width: number }>();
+const props = defineProps<{ duration: number; width: number }>();
 
 // --------------------------------------------------------------------------------------
 // refs
 // --------------------------------------------------------------------------------------
 
-type TimeMarker = { left: number, time: string };
+type TimeMarker = { left: number; time: string };
 
 const timeMarkers = ref<TimeMarker[]>([]);
 
@@ -42,18 +42,20 @@ const updateTimeMarkers = throttle(() => {
   const pixelsPerMinute = Math.floor(props.width / (props.duration / segmentDensity));
   const segmentCount = Math.floor(props.width / pixelsPerMinute);
 
-  const result: TimeMarker[] = new Array(segmentCount)
-    .fill(0)
-    .map((_, i) => ({ left: i * pixelsPerMinute, time: secondsToMMSS(segmentDensity * i) }));
+  const result: TimeMarker[] = new Array(segmentCount).fill(0).map((_, i) => ({ left: i * pixelsPerMinute, time: secondsToMMSS(segmentDensity * i) }));
 
   result.push({ left: props.width - 30, time: secondsToMMSS(props.duration) });
 
   timeMarkers.value = result;
 }, 100);
 
-watch([() => props.width, () => props.duration], () => {
-  updateTimeMarkers();
-}, {immediate: true});
+watch(
+  [() => props.width, () => props.duration],
+  () => {
+    updateTimeMarkers();
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>

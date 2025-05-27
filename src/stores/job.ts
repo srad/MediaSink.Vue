@@ -1,5 +1,5 @@
-import { type DatabaseJob as Job, DatabaseJobOrder } from "../services/api/v1/StreamSinkClient";
-import { DatabaseJobStatus } from "../services/api/v1/StreamSinkClient";
+import { type DatabaseJob as Job, DatabaseJobOrder } from "../services/api/v1/MediaSinkClient";
+import { DatabaseJobStatus } from "../services/api/v1/MediaSinkClient";
 import { defineStore } from "pinia";
 import { createClient } from "../services/api/v1/ClientFactory";
 

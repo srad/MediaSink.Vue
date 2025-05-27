@@ -1,19 +1,5 @@
 <template>
-  <ChannelModal
-    @save="save"
-    @close="showModal = false"
-    title="Edit Stream"
-    :saving="saving"
-    :is-paused="isPaused"
-    :channel-disabled="true"
-    :clear="false"
-    :channel-id="channelId"
-    :show="showModal"
-    :channel-name="channelName"
-    :display-name="displayName"
-    :url="url"
-    :min-duration="minDuration"
-    :skip-start="skipStart" />
+  <ChannelModal @save="save" @close="showModal = false" title="Edit Stream" :saving="saving" :is-paused="isPaused" :channel-disabled="true" :clear="false" :channel-id="channelId" :show="showModal" :channel-name="channelName" :display-name="displayName" :url="url" :min-duration="minDuration" :skip-start="skipStart" />
 
   <!-- Search bar -->
   <div class="row">
@@ -62,7 +48,8 @@
             <button class="nav-link d-flex justify-content-between" @click="() => show('offline')" :class="{ active: tab === 'offline' }" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
               <span class="d-none d-lg-inline">Offline</span>
               <span class="d-flex justify-content-between">
-                <span class="d-lg-none">Off</span><span class="recording-number">{{ channelStore.notRecordingStreams.length }}</span>
+                <span class="d-lg-none">Off</span>
+                <span class="recording-number">{{ channelStore.notRecordingStreams.length }}</span>
               </span>
             </button>
           </li>
@@ -70,7 +57,8 @@
             <button class="nav-link d-flex justify-content-between" @click="() => show('disabled')" :class="{ active: tab === 'disabled' }" id="disabled-tab" data-bs-toggle="tab" data-bs-target="#disabled" type="button" role="tab" aria-controls="disabled" aria-selected="false">
               <span class="d-none d-lg-inline">Disabled</span>
               <span class="d-flex justify-content-between">
-                <span class="d-lg-none">Disabled</span><span class="recording-number">{{ channelStore.disabledStreams.length }}</span>
+                <span class="d-lg-none">Disabled</span>
+                <span class="recording-number">{{ channelStore.disabledStreams.length }}</span>
               </span>
             </button>
           </li>
@@ -111,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import type { DatabaseChannel as ChannelResponse } from "@/services/api/v1/StreamSinkClient";
+import type { DatabaseChannel as ChannelResponse } from "@/services/api/v1/MediaSinkClient";
 import ChannelItem from "@/components/ChannelItem.vue";
 import ChannelModal from "@/components/modals/ChannelModal.vue";
 import { computed, onMounted, ref, watch } from "vue";

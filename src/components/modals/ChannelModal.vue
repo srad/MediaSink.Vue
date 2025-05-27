@@ -28,7 +28,15 @@
         <div class="mb-3">
           <label :for="`${id}_channel`" class="form-label fw-bold">Channel name</label>
           <input :id="`${id}_channel`" pattern="^[_a-z0-9]+$" type="text" required autocapitalize="off" autocomplete="off" class="form-control" :name="`${id}_channel`" :disabled="channelDisabled" v-model="formState.myChannelName" />
-          <div v-if="!channelDisabled" class="fs-6 my-2">Only letters <span class="badge bg-info">a-z</span>, numbers <span class="badge bg-info">a-z</span>, and underscores <span class="badge bg-info">_</span> is allowed as channel name. This will also be the parent folder name for all recordings of this service.</div>
+          <div v-if="!channelDisabled" class="fs-6 my-2">
+            Only letters
+            <span class="badge bg-info">a-z</span>
+            , numbers
+            <span class="badge bg-info">a-z</span>
+            , and underscores
+            <span class="badge bg-info">_</span>
+            is allowed as channel name. This will also be the parent folder name for all recordings of this service.
+          </div>
           <div v-else class="fs-6 my-2">This field is the file system folder name and cannot be changed.</div>
         </div>
 
@@ -276,10 +284,10 @@ const save = () => {
       skipStart: formState.mySkipStart,
       minDuration: formState.myMinDuration,
     });
-    isSaving.value = false;
   } catch (error) {
     console.error(error);
     alert(error);
+  } finally {
     isSaving.value = false;
   }
 };

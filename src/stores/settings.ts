@@ -53,16 +53,20 @@ export const useSettingsStore = defineStore("settings", () => {
   const theme = ref(savedState.theme);
 
   // Watch for changes to the state and save to localStorage
-  watch([ videoVolume, videoMuted, layout, filterViewPageSize, theme ], () => {
-    const newState = {
-      videoVolume: videoVolume.value,
-      videoMuted: videoMuted.value,
-      layout: layout.value,
-      filterViewPageSize: filterViewPageSize.value,
-      theme: theme.value,
-    };
-    saveStateToLocalStorage(newState); // Save the entire state back to localStorage
-  }, { deep: true });
+  watch(
+    [videoVolume, videoMuted, layout, filterViewPageSize, theme],
+    () => {
+      const newState = {
+        videoVolume: videoVolume.value,
+        videoMuted: videoMuted.value,
+        layout: layout.value,
+        filterViewPageSize: filterViewPageSize.value,
+        theme: theme.value,
+      };
+      saveStateToLocalStorage(newState); // Save the entire state back to localStorage
+    },
+    { deep: true },
+  );
 
   // Actions
   const mute = () => {

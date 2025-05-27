@@ -30,11 +30,11 @@ $secondary: #dcdcdd;
 $info: #a49cd7;
 //$warning: #e9c46a;
 $danger: #cc2255;
-$light: #F1F2F3;
+$light: #f1f2f3;
 //$dark: #180f1d;
 
 $grid-columns: 24 !default;
-$grid-gutter-width: 1.0rem !default;
+$grid-gutter-width: 1rem !default;
 
 $nav-tabs-link-active-color: $white;
 $nav-tabs-link-active-bg: $primary;
@@ -45,20 +45,20 @@ $nav-tabs-link-active-border-color: $primary;
 // -----------------------------------------------------------
 
 $grid-breakpoints: (
-        xs: 0,
-        sm: 576px,
-        md: 768px,
-        lg: 992px,
-        xl: 1200px,
-        xxl: 1600px
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1600px,
 ) !default;
 
 $container-max-widths: (
-        sm: 540px,
-        md: 720px,
-        lg: 960px,
-        xl: 1140px,
-        xxl: 1520px
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1520px,
 ) !default;
 
 // -----------------------------------------------------------
@@ -74,4 +74,3 @@ $container-max-widths: (
 .bg-info-light-2 {
   background: tint-color($primary, 98%);
 }
-

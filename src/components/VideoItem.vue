@@ -5,23 +5,22 @@
     </div>
     <div class="position-relative">
       <div class="position-absolute" style="padding: 10px; right: 0; top: 0; z-index: 10">
-        <input v-if="props.showSelection" v-model="checked" type="checkbox" :checked="checked" style="width: 20px; height: 20px"/>
+        <input v-if="props.showSelection" v-model="checked" type="checkbox" :checked="checked" style="width: 20px; height: 20px" />
       </div>
-      <span class="badge bg-success position-absolute rounded-2" style="user-select: none; z-index: 10; top: 10px; left: 10px">
+      <span class="badge bg-success position-absolute rounded-2" style="user-select: none; z-index: 10; top: 10px; left: 10px; opacity: 0.6">
         <span v-if="props.recording.width === 1920">1080p</span>
         <span v-else-if="props.recording.width === 2560">1440p</span>
         <span v-else-if="props.recording.width === 1280">720p</span>
         <span v-else-if="props.recording.width === 3840">4k</span>
         <span v-else>{{ props.recording.width }}x{{ props.recording.height }}</span>
       </span>
-      <div class="position-absolute badge bg-danger" v-if="props.job" style="user-select: none; z-index: 10; bottom: 10px; left: 10px">
-        <span class="me-1 spinner-border spinner-border-sm" style="height: 0.6rem; width: 0.6rem" role="status">
-        </span>
+      <div class="position-absolute badge bg-danger" v-if="props.job" style="user-select: none; z-index: 10; bottom: 10px; left: 10px; opacity: 0.7">
+        <span class="me-1 spinner-border spinner-border-sm" style="height: 0.6rem; width: 0.6rem" role="status"></span>
         <span>Job active</span>
       </div>
       <span v-if="props.recording.videoType === 'cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
       <RouterLink class="d-flex" :to="link">
-        <VideoPreview class="card-img-top" :data="recording.recordingId" :preview-video="previewVideoUrl" :preview-image="previewCoverUrl"/>
+        <VideoPreview class="card-img-top" :data="recording.recordingId" :preview-video="previewVideoUrl" :preview-image="previewCoverUrl" />
       </RouterLink>
     </div>
     <div v-if="props.showTitle" class="card-body">
@@ -33,14 +32,28 @@
         </h6>
       </div>
     </div>
-    <VideoInfo :disable-buttons="props.job !== null" :url="recordingUrl" :duration="props.recording.duration" :size="props.recording.size" :bit-rate="props.recording.bitRate" :bookmark="props.recording.bookmark" :created-at="props.recording.createdAt" :data="recording" :width="props.recording.width" :height="props.recording.height" @convert="convert" @bookmarked="bookmark" @preview="generatePreview" @destroy="destroyRecording"/>
+    <VideoInfo
+      :disable-buttons="props.job !== null"
+      :duration="props.recording.duration"
+      :size="props.recording.size"
+      :url="downloadUrl"
+      :bit-rate="props.recording.bitRate"
+      :bookmark="props.recording.bookmark"
+      :created-at="props.recording.createdAt"
+      :data="recording"
+      :width="props.recording.width"
+      :height="props.recording.height"
+      @convert="convert"
+      @bookmarked="bookmark"
+      @preview="generatePreview"
+      @destroy="destroyRecording" />
   </div>
 </template>
 
 <script setup lang="ts">
 import VideoInfo from "./VideoInfo.vue";
 import VideoPreview from "./VideoPreview.vue";
-import type { DatabaseRecording as RecordingResponse } from "../services/api/v1/StreamSinkClient";
+import type { DatabaseRecording as RecordingResponse } from "../services/api/v1/MediaSinkClient";
 import { watch, ref, inject } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
@@ -83,7 +96,7 @@ const fileUrl = inject("fileUrl") as string;
 const previewVideoUrl = `${fileUrl}/${props.recording.previewVideo}`;
 // TODO: Pass a default image from the server, if the preview image is missing.
 const previewCoverUrl = `${fileUrl}/${props.recording.previewCover || props.recording.channelName + "/.previews/live.jpg"}`;
-const recordingUrl = `${apiUrl + props.recording.channelName}/${props.recording.filename}`;
+const downloadUrl = `${fileUrl}/${props.recording.pathRelative}`;
 
 const { t } = useI18n();
 
@@ -95,9 +108,12 @@ const router = useRouter();
 // Watchers
 // --------------------------------------------------------------------------------------
 
-watch(() => props.check, (isChecked: boolean) => {
-  checked.value = isChecked;
-});
+watch(
+  () => props.check,
+  (isChecked: boolean) => {
+    checked.value = isChecked;
+  },
+);
 
 watch(checked, (val) => {
   emit("checked", { checked: val, recording: props.recording });
@@ -111,7 +127,7 @@ const bookmark = async (recording: RecordingResponse, yesNo: boolean) => {
   try {
     busy.value = true;
     const client = createClient();
-    const method = yesNo ? client.recordings.favPartialUpdate : client.recordings.unfavPartialUpdate;
+    const method = yesNo ? client.videos.favPartialUpdate : client.videos.unfavPartialUpdate;
     await method(recording.recordingId);
     recording.bookmark = yesNo;
     emit("bookmark", recording);
@@ -127,7 +143,7 @@ const generatePreview = async (recording: RecordingResponse) => {
     try {
       busy.value = true;
       const client = createClient();
-      await client.recordings.previewCreate(recording.recordingId);
+      await client.videos.previewCreate(recording.recordingId);
     } catch (ex) {
       alert(ex);
     } finally {
@@ -144,7 +160,7 @@ const convert = async ({ recording, mediaType }: { recording: RecordingResponse;
   try {
     busy.value = true;
     const client = createClient();
-    await client.recordings.convertCreate(recording.recordingId, mediaType);
+    await client.videos.convertCreate(recording.recordingId, mediaType);
   } catch (ex) {
     alert(ex);
   } finally {
@@ -160,7 +176,7 @@ const destroyRecording = async (recording: RecordingResponse) => {
   try {
     busy.value = true;
     const client = createClient();
-    await client.recordings.recordingsDelete(recording.recordingId);
+    await client.videos.videosDelete(recording.recordingId);
     destroyed.value = true;
     setTimeout(() => emit("destroyed", recording), 1000);
   } catch (ex) {

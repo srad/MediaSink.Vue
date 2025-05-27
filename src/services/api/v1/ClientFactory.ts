@@ -1,4 +1,4 @@
-import { ContentType, type DatabaseRecording, type DatabaseRecording as RecordingResponse, HttpClient, StreamSinkClient } from "./StreamSinkClient";
+import { ContentType, type DatabaseRecording, type DatabaseRecording as RecordingResponse, HttpClient, MediaSinkClient } from "./MediaSinkClient";
 import { useAuthStore } from "../../../stores/auth";
 
 const checkResponseStatus = (response: Response) => {
@@ -11,16 +11,20 @@ const checkResponseStatus = (response: Response) => {
   }
 };
 
-export class MyClient extends StreamSinkClient<unknown> {
+export class MyClient extends MediaSinkClient<unknown> {
   constructor(token: string | null | undefined, apiUrl: string) {
     let auth = {};
     if (token) {
       auth = { Authorization: `Bearer ${token}` };
     }
+
     const client = new HttpClient({
       baseUrl: apiUrl,
       baseApiParams: {
-        headers: { ...auth },
+        headers: {
+          ...auth,
+          "X-API-Version": window.APP_API_VERSION,
+        },
       },
       /**
        * Redirect
@@ -34,8 +38,9 @@ export class MyClient extends StreamSinkClient<unknown> {
               checkResponseStatus(response);
               resolve(response);
             })
-            .catch(err => {
+            .catch((err) => {
               checkResponseStatus(err);
+              reject(err);
             });
         });
       },

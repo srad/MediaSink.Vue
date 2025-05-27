@@ -5,33 +5,26 @@
     </div>
 
     <RouterLink class="text-decoration-none" :to="`/channel/${props.channel.channelId}/${props.channel.channelName}`">
-      <VideoPreview
-        :min-recording="props.channel.minRecording"
-        :recordings-count="props.channel.recordingsCount"
-        :recordings-size="props.channel.recordingsSize"
-        :is-recording="props.channel.isRecording"
-        :data="props.channel.channelId"
-        :preview-image="previewImage"
-        @selected="viewFolder(props.channel.channelId!, props.channel.channelName)"/>
+      <VideoPreview :min-recording="props.channel.minRecording" :recordings-count="props.channel.recordingsCount" :recordings-size="props.channel.recordingsSize" :is-recording="props.channel.isRecording" :data="props.channel.channelId" :preview-image="previewImage" @selected="viewFolder(props.channel.channelId!, props.channel.channelName)" />
     </RouterLink>
     <div class="card-body">
-      <div class="card-title py-2 px-3 m-0" :class="{'bg-primary': !props.channel.isRecording, 'bg-danger': props.channel.isRecording}">
+      <div class="card-title py-2 px-3 m-0" :class="{ 'bg-primary': !props.channel.isRecording, 'bg-danger': props.channel.isRecording }">
         <h6 class="p-0 m-0 text-white">
           <a class="text-white" target="_blank" :href="props.channel.url">
             {{ props.channel.displayName }}
-            <i class="bi bi-link"/>
+            <i class="bi bi-link" />
           </a>
         </h6>
       </div>
     </div>
-    <StreamInfo :channel="props.channel" :fav="props.channel.fav" @edit="(data) => emit('edit', data)" @fav="fav" @unfav="unfav" @pause="pause" @destroy="destroyChannel"/>
+    <StreamInfo :channel="props.channel" :fav="props.channel.fav" @edit="(data) => emit('edit', data)" @fav="fav" @unfav="unfav" @pause="pause" @destroy="destroyChannel" />
   </div>
 </template>
 
 <script setup lang="ts">
 import StreamInfo from "./StreamInfo.vue";
 import VideoPreview from "./VideoPreview.vue";
-import type { ServicesChannelInfo as ChannelInfo } from "../services/api/v1/StreamSinkClient";
+import type { ServicesChannelInfo as ChannelInfo } from "../services/api/v1/MediaSinkClient";
 import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useChannelStore } from "../stores/channel";

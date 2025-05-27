@@ -1,16 +1,16 @@
 <template>
   <div class="h-100">
-    <NavTop :routes="routes" :title="title" @add="showModal = true" :show-logout="true" @logout="logout"/>
+    <NavTop :routes="routes" :title="title" @add="showModal = true" :show-logout="true" @logout="logout" />
     <main class="container-fluid" style="margin-top: 4rem">
       <slot></slot>
-      <ChannelModal :clear="showModal" :show="showModal" :is-paused="false" :saving="false" title="Stream Data" @save="save" @close="showModal = false"/>
-      <AppToaster :toasts="toastStore.all" @destroy="(toast) => toastStore.destroy(toast)"/>
+      <ChannelModal :clear="showModal" :show="showModal" :is-paused="false" :saving="false" title="Stream Data" @save="save" @close="showModal = false" />
+      <AppToaster :toasts="toastStore.all" @destroy="(toast) => toastStore.destroy(toast)" />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { type DatabaseJob, type RequestsChannelRequest as ChannelRequest } from "@/services/api/v1/StreamSinkClient";
+import { type DatabaseJob, type RequestsChannelRequest as ChannelRequest } from "@/services/api/v1/MediaSinkClient";
 import { MessageType, SocketManager } from "@/utils/socket";
 import ChannelModal from "@/components/modals/ChannelModal.vue";
 import NavTop from "@/components/navs/NavTop.vue";
@@ -63,7 +63,7 @@ const save = async (data: ChannelRequest) => {
     await channelStore.create(data);
     hideModal();
   } catch (e: unknown) {
-    const err = (e as { error?: string }).error
+    const err = (e as { error?: string }).error;
     alert(err);
   } finally {
     saving.value = false;

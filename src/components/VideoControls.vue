@@ -21,25 +21,25 @@
 </template>
 
 <script setup lang="ts">
-  import JobStatus from "./JobStatus.vue";
-  import type {DatabaseJob} from "../services/api/v1/StreamSinkClient";
-  import {useRoute, useRouter} from "vue-router";
-  import {useI18n} from "vue-i18n";
+import JobStatus from "./JobStatus.vue";
+import type { DatabaseJob } from "../services/api/v1/MediaSinkClient";
+import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 
-  const {t} = useI18n();
-  const route = useRoute();
-  const router = useRouter();
+const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
 
-  const emit = defineEmits<{
-    (e: "add"): void;
-    (e: "record", value: boolean): void;
-  }>();
+const emit = defineEmits<{
+  (e: "add"): void;
+  (e: "record", value: boolean): void;
+}>();
 
-  const props = defineProps<{
-    jobs: DatabaseJob[];
-    isRecording: boolean;
-    totalCount: number;
-  }>();
+const props = defineProps<{
+  jobs: DatabaseJob[];
+  isRecording: boolean;
+  totalCount: number;
+}>();
 </script>
 
 <style scoped></style>

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useChannelStore } from "../../src/stores/channel";
 import { createPinia, setActivePinia } from "pinia";
-import type { DatabaseRecording } from "../../src/services/api/v1/StreamSinkClient";
+import type { DatabaseRecording } from "../../src/services/api/v1/MediaSinkClient";
 
 describe("Channel Store", () => {
   beforeEach(() => {

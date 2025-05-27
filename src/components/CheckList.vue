@@ -11,9 +11,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ items: { message: string, checked: boolean }[] }>();
+const props = defineProps<{ items: { message: string; checked: boolean }[] }>();
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -3,18 +3,61 @@ import { useAuthStore } from "../stores/auth";
 declare global {
   interface Window {
     APP_SOCKETURL: string;
+    APP_API_VERSION: string;
   }
 }
 
-type ListenerType = (data: unknown) => void;
+type ListenerType<T = unknown> = (data: T) => void;
 
-type SocketMessage = { data: string };
+interface SocketPayload<T = unknown> {
+  name: MessageTypeKey;
+  data: T;
+}
 
 export class SocketManager {
   private static connection: WebSocket | null = null;
-  private static listeners: { [key: string]: ListenerType[] } = {};
-  private instanceListeners: { [key: string]: ListenerType[] } = {};
-  private static pendingPromise: Promise<WebSocket> | null = null; // Track pending connection attempts
+
+  private static listeners: Record<MessageTypeKey, ListenerType[]> = {
+    "channel:offline": [],
+    "channel:online": [],
+    "channel:start": [],
+    "channel:thumbnail": [],
+    "job:activate": [],
+    "job:create": [],
+    "job:deactivate": [],
+    "job:delete": [],
+    "job:deleted": [],
+    "job:done": [],
+    "job:preview:done": [],
+    "job:preview:progress": [],
+    "job:progress": [],
+    "job:start": [],
+    "recording:add": [],
+    pong: [],
+  };
+
+  private instanceListeners: Record<MessageTypeKey, ListenerType[]> = {
+    "channel:offline": [],
+    "channel:online": [],
+    "channel:start": [],
+    "channel:thumbnail": [],
+    "job:activate": [],
+    "job:create": [],
+    "job:deactivate": [],
+    "job:delete": [],
+    "job:deleted": [],
+    "job:done": [],
+    "job:preview:done": [],
+    "job:preview:progress": [],
+    "job:progress": [],
+    "job:start": [],
+    "recording:add": [],
+    pong: [],
+  };
+  private static pendingPromise: Promise<WebSocket> | null = null;
+  private static reconnectAttempts = 0;
+  private static maxReconnectAttempts = 5;
+  private static pingInterval: ReturnType<typeof setInterval> | null = null;
 
   connect(): Promise<WebSocket> {
     // If a connection is already open, return it.
@@ -37,9 +80,9 @@ export class SocketManager {
       }
 
       // Create the WebSocket connection
-      SocketManager.connection = new WebSocket(window.APP_SOCKETURL + "?Authorization=" + authStore.getToken);
+      SocketManager.connection = new WebSocket(window.APP_SOCKETURL + "?Authorization=" + authStore.getToken + `&ApiVersion=${window.APP_API_VERSION}`);
 
-      SocketManager.connection.addEventListener("message", SocketManager.invokeNotify.bind(SocketManager));
+      SocketManager.connection.addEventListener("message", (message) => SocketManager.handleMessage(message));
 
       SocketManager.connection.addEventListener("open", () => {
         console.log("WebSocket connection opened");
@@ -67,27 +110,39 @@ export class SocketManager {
     return SocketManager.pendingPromise;
   }
 
-  private static invokeNotify(rawMessage: SocketMessage) {
-    const json = JSON.parse(rawMessage.data) as { name: string; data: object };
-    SocketManager.notify(json.name, json.data);
-  }
+  close(): void {
+    this.offGlobal();
 
-  private static notify(event: string, data: unknown) {
-    if (SocketManager.listeners[event]) {
-      SocketManager.listeners[event].forEach((fn) => fn(data));
+    this.instanceListeners = {
+      "channel:online": [],
+      "channel:start": [],
+      "channel:thumbnail": [],
+      "job:activate": [],
+      "job:create": [],
+      "job:deactivate": [],
+      "job:delete": [],
+      "job:deleted": [],
+      "job:done": [],
+      "job:preview:done": [],
+      "job:preview:progress": [],
+      "job:progress": [],
+      "job:start": [],
+      "recording:add": [],
+      pong: [],
+      "channel:offline": [],
+    };
+
+    SocketManager.connection?.close();
+    SocketManager.connection = null;
+    SocketManager.pendingPromise = null;
+
+    if (SocketManager.pingInterval !== null) {
+      clearInterval(SocketManager.pingInterval);
+      SocketManager.pingInterval = null;
     }
   }
 
-  /**
-   * Destroys all listeners.
-   */
-  close(): void {
-    this.offGlobal();
-    this.instanceListeners = {};
-  }
-
-  on(event: string, fn: ListenerType) {
-    // Init
+  on<T = unknown>(event: MessageTypeKey, fn: ListenerType<T>): void {
     if (!this.instanceListeners[event]) {
       this.instanceListeners[event] = [];
     }
@@ -95,63 +150,53 @@ export class SocketManager {
       SocketManager.listeners[event] = [];
     }
 
-    // Add function reference.
-    SocketManager.listeners[event].push(fn);
-    this.instanceListeners[event].push(fn);
+    SocketManager.listeners[event].push(fn as ListenerType);
+    this.instanceListeners[event].push(fn as ListenerType);
   }
 
-  /**
-   * Removes a listener function. Notice that you can only remove non-anonymous functions,
-   * since the compiler generate function references on-the-fly for them, in-place.
-   * so do not do:
-   *  manager.on('some-event', () => ...)
-   *  but instead:
-   *  function abc() {...};
-   *  // Both functions reference the same function reference.
-   *  manager.on('some-event', abc);
-   *  manager.off('some-event', abc);
-   * @param event
-   * @param fn
-   */
-  off(event: string, fn: ListenerType) {
+  off<T = unknown>(event: MessageTypeKey, fn: ListenerType<T>): void {
     this.offInstance(event, fn);
-    this.offFnFromGlobalListener(event, fn);
+    this.offGlobalFn(event, fn);
   }
 
-  private offInstance(event: string, fn: ListenerType) {
-    if (this.instanceListeners[event]) {
-      this.instanceListeners[event] = this.instanceListeners[event].filter((listener) => listener !== fn);
+  private static handleMessage(raw: MessageEvent<string>): void {
+    try {
+      const parsed = JSON.parse(raw.data) as SocketPayload;
+      SocketManager.emit(parsed.name, parsed.data);
+    } catch (e) {
+      console.error("Failed to parse WebSocket message", e);
     }
   }
 
-  /**
-   * Remove instance listeners from global array.
-   * @private
-   */
-  private offGlobal() {
-    const instanceFns = Object.values(this.instanceListeners).flat();
-
-    // Filter out functions that exist in instanceFns
-    for (const eventName in SocketManager.listeners) {
-      SocketManager.listeners[eventName] = SocketManager.listeners[eventName].filter((listener) => !instanceFns.includes(listener));
+  private static emit<T = unknown>(event: MessageTypeKey, data: T): void {
+    const listeners = SocketManager.listeners[event];
+    if (listeners) {
+      listeners.forEach((fn) => fn(data));
     }
   }
 
-  private offFnFromGlobalListener(eventName: string, fn: ListenerType) {
-    SocketManager.listeners[eventName] = SocketManager.listeners[eventName].filter((listener) => listener !== fn);
+  private offInstance<T>(event: MessageTypeKey, fn: ListenerType<T>): void {
+    this.instanceListeners[event] = (this.instanceListeners[event] || []).filter((listener) => listener !== fn);
+  }
+
+  private offGlobalFn<T>(event: MessageTypeKey, fn: ListenerType<T>): void {
+    SocketManager.listeners[event] = (SocketManager.listeners[event] || []).filter((listener) => listener !== fn);
+  }
+
+  private offGlobal(): void {
+    const allInstanceFns = Object.values(this.instanceListeners).flat();
+    for (const event of Object.keys(SocketManager.listeners) as MessageTypeKey[]) {
+      SocketManager.listeners[event] = SocketManager.listeners[event].filter((fn) => !allInstanceFns.includes(fn));
+    }
   }
 }
 
 export const MessageType = {
-  HeartBeat: "heartbeat",
-
   ChannelOnline: "channel:online",
   ChannelOffline: "channel:offline",
   ChannelThumbnail: "channel:thumbnail",
   ChannelStart: "channel:start",
-
   RecordingAdd: "recording:add",
-
   JobActivate: "job:activate",
   JobDone: "job:done",
   JobDeactivate: "job:deactivate",
@@ -162,4 +207,7 @@ export const MessageType = {
   JobProgress: "job:progress",
   JobDeleted: "job:deleted",
   JobPreviewProgress: "job:preview:progress",
-};
+  Pong: "pong",
+} as const;
+
+export type MessageTypeKey = (typeof MessageType)[keyof typeof MessageType];

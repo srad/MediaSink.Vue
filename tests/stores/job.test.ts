@@ -1,5 +1,5 @@
 import { useJobStore } from "../../src/stores/job";
-import { DatabaseJobStatus } from "../../src/services/api/v1/StreamSinkClient";
+import { DatabaseJobStatus } from "../../src/services/api/v1/MediaSinkClient";
 import { describe, expect, it, beforeEach } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import jobsData from "../mocks/jobs";

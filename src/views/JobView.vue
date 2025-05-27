@@ -10,8 +10,8 @@
         </div>
       </template>
       <template v-slot:body>
-        <span v-if="processingJobs"> Do you want to pause the job worker? </span>
-        <span v-else> Do you want to resume the job worker? </span>
+        <span v-if="processingJobs">Do you want to pause the job worker?</span>
+        <span v-else>Do you want to resume the job worker?</span>
       </template>
     </ModalConfirmDialog>
     <div class="row mb-2">
@@ -29,8 +29,14 @@
           <div class="d-flex justify-content-center">
             <div class="col-auto">
               <button type="button" class="btn" :class="{ 'btn-success': !processingJobs, 'btn-danger rounded-3': processingJobs }" @click="showConfirmToggleWorkerDialog = true">
-                <span v-if="processingJobs"><i class="bi bi-pause-fill blink" /> <span class="ms-1 d-none d-sm-inline-flex">Pause</span></span>
-                <span v-else><i class="bi bi-play-fill" /> <span class="ms-1 d-none d-sm-inline-flex">Resume</span></span>
+                <span v-if="processingJobs">
+                  <i class="bi bi-pause-fill blink" />
+                  <span class="ms-1 d-none d-sm-inline-flex">Pause</span>
+                </span>
+                <span v-else>
+                  <i class="bi bi-play-fill" />
+                  <span class="ms-1 d-none d-sm-inline-flex">Resume</span>
+                </span>
               </button>
             </div>
           </div>
@@ -48,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { type DatabaseJob, DatabaseJobOrder, DatabaseJobStatus, type ServicesProcessInfo } from "@/services/api/v1/StreamSinkClient";
+import { type DatabaseJob, DatabaseJobOrder, DatabaseJobStatus, type ServicesProcessInfo } from "@/services/api/v1/MediaSinkClient";
 import { useJobStore } from "@/stores/job";
 import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
 import { onMounted, ref, watch } from "vue";

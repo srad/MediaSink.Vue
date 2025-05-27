@@ -7,13 +7,13 @@
           <button type="button" class="btn-close btn-close-white" @click="emit('close')"></button>
         </div>
 
-        <div class="modal-body px-4">
+        <div class="modal-body m-0 p-3">
           <slot name="body">default body</slot>
         </div>
 
-        <div class="modal-footer p-3 rounded-bottom-2">
+        <div v-if="props.showFooter" class="modal-footer mx-3 mb-3 rounded-bottom-2">
           <slot name="footer">
-            <button class="modal-default-button" @click="emit('close')">OK</button>
+            <button class="modal-default-button btn btn-primary" @click="emit('close')">OK</button>
           </slot>
         </div>
       </div>
@@ -28,10 +28,15 @@
 
 import { ref, watch } from "vue";
 
-const props = defineProps<{
+interface Props {
   show: boolean;
   scrollTop?: boolean;
-}>();
+  showFooter?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  showFooter: true,
+});
 
 // --------------------------------------------------------------------------------------
 // Emits

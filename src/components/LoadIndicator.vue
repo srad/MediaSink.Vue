@@ -1,7 +1,7 @@
 <template>
   <div v-if="props.busy || props.empty" class="d-flex justify-content-center">
     <div v-if="props.busy" class="text-center">
-      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem">
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
@@ -18,8 +18,8 @@
 import { defineProps } from "vue";
 
 const props = defineProps<{
-  busy: boolean
-  empty?: boolean
-  emptyText?: string
+  busy: boolean;
+  empty?: boolean;
+  emptyText?: string;
 }>();
 </script>

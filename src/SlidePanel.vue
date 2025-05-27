@@ -1,10 +1,11 @@
 <template>
-  <div class="rounded-bottom-3" :class="[panelClass, 'slide-panel', positionClass]" :style="{ height: isOpen ? contentHeight : '35px', width , opacity}">
+  <div class="rounded-bottom-3" :class="[panelClass, 'slide-panel', positionClass]" :style="{ height: isOpen ? contentHeight : '35px', width, opacity }">
     <div ref="contentRef" class="panel-content" :style="{ maxHeight: isOpen ? contentRefHeight + 'px' : '0', opacity: isOpen ? 1 : 0, transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out' }">
       <slot></slot>
     </div>
     <button class="toggle-button rounded-bottom-3" :class="[buttonClass]" @click="togglePanel">
-      {{ label }} <i :class="isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
+      {{ label }}
+      <i :class="isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
     </button>
   </div>
 </template>

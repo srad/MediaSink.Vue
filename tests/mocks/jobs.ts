@@ -1,4 +1,4 @@
-import { DatabaseJobStatus } from "../../src/services/api/v1/StreamSinkClient";
+import { DatabaseJobStatus } from "../../src/services/api/v1/MediaSinkClient";
 
 export default {
   skip: 0,

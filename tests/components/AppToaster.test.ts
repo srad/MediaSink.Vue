@@ -39,7 +39,7 @@ describe("AppToaster", () => {
 
     // Get the close button for the first toast
     const elId = `#toast_${toasts[0].id}`;
-    let closeButton = wrapper.find(elId + " .btn-close");
+    const closeButton = wrapper.find(elId + " .btn-close");
 
     await closeButton.trigger("click");
 

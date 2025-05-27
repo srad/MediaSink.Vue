@@ -3,21 +3,21 @@
     <div class="table-responsive">
       <table class="table table-bordered">
         <thead>
-        <tr style="visibility: collapse">
-          <th style="width: 25%"></th>
-          <th></th>
-        </tr>
+          <tr style="visibility: collapse">
+            <th style="width: 25%"></th>
+            <th></th>
+          </tr>
         </thead>
         <tbody>
-        <tr>
-          <td colspan="2" class="p-0"></td>
-        </tr>
-        <tr v-for="version in versions" :key="version[0]">
-          <td class="bg-light-subtle align-middle">
-            {{ version[0] }}
-          </td>
-          <td class="align-middle">{{ version[1] }}</td>
-        </tr>
+          <tr>
+            <td colspan="2" class="p-0"></td>
+          </tr>
+          <tr v-for="version in versions" :key="version[0]">
+            <td class="bg-light-subtle align-middle">
+              {{ version[0] }}
+            </td>
+            <td class="align-middle">{{ version[1] }}</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import type { HelpersCPUInfo, HelpersDiskInfo, HelpersNetInfo } from "@/services/api/v1/StreamSinkClient";
+import type { HelpersCPUInfo, HelpersDiskInfo, HelpersNetInfo } from "@/services/api/v1/MediaSinkClient";
 import { inject, onMounted, type Ref, ref } from "vue";
 import { onBeforeRouteLeave } from "vue-router";
 import { createClient } from "@/services/api/v1/ClientFactory";

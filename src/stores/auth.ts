@@ -5,7 +5,7 @@
 // --------------------------------------------------------
 import { defineStore } from "pinia";
 import AuthService from "../services/auth.service";
-import type { RequestsAuthenticationRequest } from "../services/api/v1/StreamSinkClient";
+import type { RequestsAuthenticationRequest } from "../services/api/v1/MediaSinkClient";
 import { ref, computed } from "vue";
 
 export const useAuthStore = defineStore("auth", () => {

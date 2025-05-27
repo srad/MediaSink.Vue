@@ -35,7 +35,7 @@ const isResizing = ref<boolean>(false);
 const currentSelection = ref<Selection | null>(null);
 const resizeDirection = ref<"left" | "right" | null>(null);
 
-let imageNaturalWidth = ref(0); // Variable to store the image's actual width
+const imageNaturalWidth = ref(0); // Variable to store the image's actual width
 
 // This method is called when the image is loaded to get its actual width
 const onImageLoad = () => {

@@ -14,7 +14,7 @@
       { key: 'createdAt', label: 'Added', sortable: true, width: '10%', headerClass: 'text-center align-middle bg-light', rowClass: 'text-center align-middle' },
     ]"
     :data="channels">
-    <template #header-size> Size ({{ totalSize }})</template>
+    <template #header-size>Size ({{ totalSize }})</template>
 
     <template #header-recordingsCount>Count ({{ totalCount }})</template>
 
@@ -31,7 +31,10 @@
         <RouterLink :to="`/channel/${row.channelId}/${row.channelName}`">
           <span>{{ row.displayName }}</span>
         </RouterLink>
-        <a class="mx-2" :href="row.url as string" target="_blank"> Link <i class="bi bi-link"></i> </a>
+        <a class="mx-2" :href="row.url as string" target="_blank">
+          Link
+          <i class="bi bi-link"></i>
+        </a>
       </div>
     </template>
 
@@ -40,7 +43,10 @@
     </template>
 
     <template #cell-isRecording="{ row }">
-      <div v-if="row.isRecording"><i class="bi text-danger blink bi-record-fill pulse"></i> Recording</div>
+      <div v-if="row.isRecording">
+        <i class="bi text-danger blink bi-record-fill pulse"></i>
+        Recording
+      </div>
       <div v-else></div>
     </template>
   </DataTable>
@@ -48,7 +54,7 @@
 
 <script setup lang="ts">
 import ChannelFavButton from "../../components/controls/ChannelFavButton.vue";
-import type { ServicesChannelInfo } from "../../services/api/v1/StreamSinkClient";
+import type { ServicesChannelInfo } from "../../services/api/v1/MediaSinkClient";
 import { computed, inject } from "vue";
 import DataTable from "../DataTable.vue";
 

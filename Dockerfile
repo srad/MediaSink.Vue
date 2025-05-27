@@ -16,14 +16,18 @@ COPY . .
 RUN pnpm run test:unit
 RUN pnpm run build
 
+# Build time vars
 ARG APP_VERSION=1.0.0-alpha
 ARG APP_BUILD
+ARG APP_API_VERSION
 
+# Run time vars
 ARG APP_NAME=MediaSink
 ARG APP_BASE
 ARG APP_API_URL
 ARG APP_FILE_URL
 ARG APP_SOCKET_URL
+ARG APP_API_VERSION
 
 ENV APP_API_URL $APP_API_URL
 ENV APP_BASE $APP_BASE
@@ -34,6 +38,7 @@ ENV APP_SOCKET_URL $APP_SOCKET_URL
 RUN cat >./dist/build.js <<EOL
 window.APP_BUILD = "${APP_BUILD}";
 window.APP_VERSION = "${APP_VERSION}";
+window.APP_API_VERSION = "${APP_API_VERSION}";
 EOL
 
 # production stage

@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import type { DatabaseRecording } from "../services/api/v1/StreamSinkClient";
+import type { DatabaseRecording } from "../services/api/v1/MediaSinkClient";
 import VideoItem from "../components/VideoItem.vue";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -69,7 +69,7 @@ const destroyRecording = async (recording: DatabaseRecording) => {
 
   try {
     const client = createClient();
-    await client.recordings.recordingsDelete(recording.recordingId);
+    await client.videos.videosDelete(recording.recordingId);
     removeItem(recording);
   } catch (ex) {
     alert(ex);
@@ -82,7 +82,7 @@ const destroyRecording = async (recording: DatabaseRecording) => {
 
 onMounted(async () => {
   const client = createClient();
-  const data = await client.recordings.bookmarksList();
+  const data = await client.videos.bookmarksList();
   videos.value = (data || []) as DatabaseRecording[];
 });
 </script>

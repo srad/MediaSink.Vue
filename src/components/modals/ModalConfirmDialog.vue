@@ -1,10 +1,10 @@
 <template>
   <modal :show="showModal" @close="cancel">
     <template v-slot:header>
-      <slot name="header"/>
+      <slot name="header" />
     </template>
     <template v-slot:body>
-      <slot name="body"/>
+      <slot name="body" />
     </template>
     <template v-slot:footer>
       <div class="modal-footer w-100 d-flex justify-content-between">

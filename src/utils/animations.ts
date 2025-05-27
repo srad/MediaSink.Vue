@@ -14,14 +14,14 @@ export function easeInOutQuad(t: number): number {
  * @param duration In which timespan shall the animation be completed.
  */
 export function animateScrollLeft(element: Element, left: number, duration: number) {
-  let start = element.scrollLeft;
-  let startTime = performance.now();
-  let distance = left - start;
+  const start = element.scrollLeft;
+  const startTime = performance.now();
+  const distance = left - start;
 
   function scrollStep(currentTime: number) {
-    let elapsed = currentTime - startTime;
-    let progress = Math.min(elapsed / duration, 1); // Clamp progress between 0 and 1
-    let easedProgress = easeInOutQuad(progress); // Apply easing
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1); // Clamp progress between 0 and 1
+    const easedProgress = easeInOutQuad(progress); // Apply easing
 
     element.scrollLeft = start + distance * easedProgress;
 

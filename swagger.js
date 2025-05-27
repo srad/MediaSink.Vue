@@ -41,9 +41,10 @@ const createCustomOperationId = (method, route, moduleName) => {
 /* NOTE: all fields are optional expect one of `input`, `url`, `spec` */
 await generateApi({
   name: "MediaSinkClient.ts",
+  fileName: "MediaSinkClient.ts",
   apiClassName: "MediaSinkClient",
   // set to `false` to prevent the tool from writing to disk
-  output: path.join(process.cwd(), "services", "api", "v1"),
+  output: path.join(process.cwd(), "src", "services", "api", "v1"),
   url: "http://localhost:3000/swagger/doc.json",
   //templates: path.resolve(path.join(process.cwd(), ".", "services", "api", "v1", "templates")),
   httpClientType: "fetch", // or "axios"
@@ -58,8 +59,8 @@ await generateApi({
   extractResponseError: false,
   unwrapResponseData: true,
   prettier: {
-    printWidth: 240,
-    tabWidth: 4,
+    printWidth: 500,
+    tabWidth: 2,
     trailingComma: "all",
     parser: "typescript",
   },

@@ -1,8 +1,4 @@
-/**
- * @file VideoView.vue
- * @description This component serves as a video playback and editing interface,
- * allowing users to view, cut, and manage recordings. Notice that this view uses a different layout than other routes.
-*/
+/** * @file VideoView.vue * @description This component serves as a video playback and editing interface, * allowing users to view, cut, and manage recordings. Notice that this view uses a different layout than other routes. */
 
 <template>
   <ModalConfirmDialog :show="showConfirmDialog" @cancel="showConfirmDialog = false" @confirm="cutVideo">
@@ -23,31 +19,36 @@
   <BusyOverlay :visible="busy"></BusyOverlay>
 
   <template v-if="recording">
-    <SlidePanel label="Info" position="left" :opacity="0.7  " width="250px">
-      <ul class="list-group m-0 mb-1" style="font-size: 0.8rem">
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <strong>Resolution</strong>
-          <span>{{ recording.width }}x{{ recording.height }}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <strong>Duration</strong>
-          <span>{{ (recording.duration / 60).toFixed(1) }}min</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <strong>File Size</strong>
-          <span>{{ (recording.size / 1024 / 1024 / 1024).toFixed(1) }}GB</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <strong>Bitrate</strong>
-          <span>{{ (recording.bitRate / 1024 / 1024).toFixed(2) }} MBit</span>
-        </li>
-        <li class="list-group-item d-flex gap-2 justify-content-between align-items-center">
-          <strong>File</strong>
-          <br/>
-          <div class="text-truncate">{{recording.filename}}</div>
-        </li>
-      </ul>
-    </SlidePanel>
+    <ModalWindow :show="showInfo" @close="showInfo=false" :show-footer="false">
+      <template #header>
+        Video Info
+      </template>
+      <template #body>
+        <ul class="list-group">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>Resolution</strong>
+            <span class="font-monospace">{{ recording.width }}x{{ recording.height }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>Duration</strong>
+            <span class="font-monospace">{{ (recording.duration / 60).toFixed(1) }}min</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>File Size</strong>
+            <span class="font-monospace">{{ (recording.size / 1024 / 1024 / 1024).toFixed(1) }}GB</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>Bitrate</strong>
+            <span class="font-monospace">{{ (recording.bitRate / 1024 / 1024).toFixed(2) }} MBit</span>
+          </li>
+          <li class="list-group-item d-flex gap-2 justify-content-between align-items-center">
+            <strong>File</strong>
+            <br />
+            <span class="text-ellipsis font-monospace">{{ recording.pathRelative }}</span>
+          </li>
+        </ul>
+      </template>
+    </ModalWindow>
 
     <div class="d-flex flex-column bg-light w-100 vh-100">
       <!-- Main Row: Video & Sidebar -->
@@ -59,8 +60,13 @@
               <source :src="videoUrl" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
-            <div class="position-absolute fs-2" style="top: 10px; right: 20px;">
-              <RecordingFavButton :bookmarked="recording.bookmark" :recording-id="recording.recordingId"/>
+            <div class="position-absolute fs-2" style="top: 10px; right: 70px">
+              <a href="#" @click="showInfo=!showInfo">
+                <i class="bi bi-info-circle" style="color: deepskyblue"></i>
+              </a>
+            </div>
+            <div class="position-absolute fs-2" style="top: 10px; right: 20px">
+              <RecordingFavButton :bookmarked="recording.bookmark" :recording-id="recording.recordingId" />
             </div>
           </div>
 
@@ -70,7 +76,7 @@
               <button class="btn btn-danger btn-sm me-1" @click="destroy">
                 <span>Delete</span>
               </button>
-              <RouterLink class="btn btn-sm btn-info" :to="`/channel/${recording.channelId}/${recording.channelName}`"> Show Channel</RouterLink>
+              <RouterLink class="btn btn-sm btn-info" :to="`/channel/${recording.channelId}/${recording.channelName}`">Show Channel</RouterLink>
             </div>
 
             <div class="d-flex">
@@ -109,7 +115,10 @@
           <button v-else class="btn btn-sm btn-primary" @click="stopCut"><span>Stop cut</span> <i class="bi bi-stop-fill"></i></button>
           -->
 
-          <button v-if="editMode" class="btn btn-sm my-2 btn-warning" type="button" @click="showConfirmDialog = true">{{ t("videoView.button.cut") }} <i class="bi bi-scissors"></i></button>
+          <button v-if="editMode" class="btn btn-sm my-2 btn-warning" type="button" @click="showConfirmDialog = true">
+            {{ t("videoView.button.cut") }}
+            <i class="bi bi-scissors"></i>
+          </button>
         </div>
       </div>
 
@@ -123,7 +132,7 @@
 </template>
 
 <script setup lang="ts">
-import type { DatabaseRecording } from "@/services/api/v1/StreamSinkClient";
+import type { DatabaseRecording } from "@/services/api/v1/MediaSinkClient";
 import VideoStripe, { type Selection } from "@/components/VideoStripe.vue";
 import BusyOverlay from "@/components/BusyOverlay.vue";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
@@ -135,9 +144,9 @@ import { useToastStore } from "@/stores/toast";
 import { useJobStore } from "@/stores/job";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import { useSettingsStore } from "@/stores/settings.ts";
-import SlidePanel from "@/SlidePanel.vue";
 import VideoSelector from "@/VideoSelector.vue";
 import RecordingFavButton from "@/components/controls/RecordingFavButton.vue";
+import ModalWindow from "@/components/modals/ModalWindow.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -155,6 +164,8 @@ const video = ref<HTMLVideoElement | null>(null);
 const fileUrl = inject("fileUrl") as string;
 const stripeUrl = ref("");
 const videoUrl = ref("");
+
+const  showInfo = ref(false);
 
 const seeked = ref(0);
 const isMuted = ref(settingsStore.isMuted);
@@ -299,8 +310,8 @@ const destroy = () => {
   unloadVideo();
 
   const client = createClient();
-  client.recordings
-    .recordingsDelete(recording.value.recordingId)
+  client.videos
+    .videosDelete(recording.value.recordingId)
     .then(() => {
       // Remove from Job list if existent.
       jobStore.destroy(recording.value!.recordingId);
@@ -317,7 +328,7 @@ const cutVideo = () => {
   const starts = markings.value.map((m) => String(m.timestart.toFixed(4)));
   const ends = markings.value.map((m) => String(m.timeend.toFixed(4)));
 
-  client.recordings
+  client.videos
     .cutCreate(id.value!, {
       starts,
       ends,
@@ -396,7 +407,7 @@ onUnmounted(() => {
 onMounted(async () => {
   const client = createClient();
   id.value = Number(route.params.id);
-  const data = await client.recordings.recordingsDetail(id.value);
+  const data = await client.videos.videosDetail(id.value);
   recording.value = data;
   stripeUrl.value = fileUrl + "/" + recording.value?.previewStripe;
   videoUrl.value = fileUrl + "/" + recording.value?.pathRelative;

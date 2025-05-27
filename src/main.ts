@@ -14,6 +14,7 @@ declare global {
     APP_FILEURL: string;
     APP_BUILD: string;
     APP_VERSION: string;
+    APP_API_VERSION: string;
   }
 }
 
@@ -45,6 +46,7 @@ app.provide("fileUrl", window.APP_FILEURL);
 app.provide("socketUrl", window.APP_SOCKETURL);
 app.provide("build", window.APP_BUILD);
 app.provide("version", window.APP_VERSION);
+app.provide("apiVersion", window.APP_API_VERSION);
 app.use(router);
 
 app.mount("#app");

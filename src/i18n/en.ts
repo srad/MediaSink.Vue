@@ -21,13 +21,13 @@ export default {
     addChannel: "Add Channel",
   },
   search: {
-    searchInput: "search ... #tag"
+    searchInput: "search ... #tag",
   },
   navtop: {
     addStream: "Stream",
     stopRecording: "Stop",
     startRecording: "Start",
-    jobsLoading: "Loading..."
+    jobsLoading: "Loading...",
   },
   jobTable: {
     col: {
@@ -44,7 +44,7 @@ export default {
       duration: "Duration",
     },
     loading: "Loading...",
-    noJobs: "No Jobs"
+    noJobs: "No Jobs",
   },
   recording: {
     durationMinutes: "{0}min",
@@ -55,7 +55,7 @@ export default {
     convert: "Convert to",
   },
   channel: {
-    destroy: "Delete the channel \"{0}\"?",
+    destroy: 'Delete the channel "{0}"?',
     rec: "Recording",
     recShort: "Rec",
     offline: "Offline",
@@ -88,29 +88,29 @@ export default {
     infoDisplay: "Displayed as stream name. Can be changed at any time.",
     infoChannel: "This field is the file system folder name and cannot be changed.",
     infoSkipStart: "Some broadcasters have certain number of seconds ads at the recordings start. Define how many seconds at start should be skipped when recording, i.e. for Twitch 15s.",
-    infoPause: "Do not record as long as paused."
+    infoPause: "Do not record as long as paused.",
   },
   recordings: {
-    destroy: "Delete recording \"{filename}\"?",
+    destroy: 'Delete recording "{filename}"?',
     generatePreview: "Generate a new preview?",
-    convert: "Convert \"{filename}\" recordings to type \"{mediaType}\"?"
+    convert: 'Convert "{filename}" recordings to type "{mediaType}"?',
   },
   recorder: {
     start: "Start recording?",
-    stop: "Do you want to stop all recordings?"
+    stop: "Do you want to stop all recordings?",
   },
   crud: {
-    destroy: "Do you want to delete \"{0}\"?"
+    destroy: 'Do you want to delete "{0}"?',
   },
   admin: {
-    regenPoster: "Regenerate all posters?"
+    regenPoster: "Regenerate all posters?",
   },
   videoView: {
     button: {
       destroy: "Delete",
       cut: "Cut",
     },
-    destroy: "Delete recordings \"{0}\"?",
+    destroy: 'Delete recordings "{0}"?',
     exportSegments: "Export selected segments?",
     updateInfo: "Check all durations and update in database?",
     segment: {
@@ -118,9 +118,9 @@ export default {
       end: "End",
       duration: "Duration",
       destroy: "Del",
-    }
+    },
   },
   button: {
-    destroy: "Delete"
-  }
+    destroy: "Delete",
+  },
 };

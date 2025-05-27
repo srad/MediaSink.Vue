@@ -9,8 +9,8 @@
     <video v-else ref="video" loop muted playsinline class="w-100 h-auto" style="user-select: none; z-index: 0" :poster="props.previewImage" @click="emit('selected', props.data)" @contextmenu="context($event)" @error="errorLoadImage" @mouseleave="leaveVideo()" @mouseover="hoverVideo()" @touchend="leaveVideo()" @touchstart="hoverVideo()">
       <source :src="previewVideo" />
     </video>
-    <div v-if="isRecording" class="recording-time-overlay bg-danger position-absolute badge rounded-2 opacity-75 text-white"> {{ minutes }}:{{ seconds }}min </div>
-    <div class="channel-info-overlay bg-dark position-absolute badge rounded-2 opacity-75 text-white" v-if="props.recordingsSize && props.recordingsCount"> {{ (props.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ props.recordingsCount }}) </div>
+    <div v-if="isRecording" class="recording-time-overlay bg-danger position-absolute badge rounded-2 opacity-75 text-white">{{ minutes }}:{{ seconds }}min</div>
+    <div class="channel-info-overlay bg-dark position-absolute badge rounded-2 opacity-75 text-white" v-if="props.recordingsSize && props.recordingsCount">{{ (props.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ props.recordingsCount }})</div>
   </div>
 </template>
 

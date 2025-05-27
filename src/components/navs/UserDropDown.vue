@@ -1,41 +1,23 @@
 <template>
   <div ref="dropdownRef" class="user-dropdown d-flex align-content-center">
-    <button class="dropdown-toggle text-secondary fs-5" @mouseenter="isOpen = true" @click="toggleDropdown">
+    <button class="dropdown-toggle text-secondary fs-5" @click="toggleDropdown">
       <i class="bi bi-person-circle"></i>
     </button>
 
-    <ul class="dropdown-menu dropdown-menu-end border-primary bg-secondary" :class="{show: isOpen}" @mouseleave="isOpen = false" style="width: 180px">
+    <ul class="dropdown-menu dropdown-menu-end border-primary bg-secondary" :class="{ show: isOpen }" @mouseleave="isOpen = false" style="width: 180px">
       <li class="dropdown-item rounded-top-2">
         <a href="#" class="rounded-top-2 nav-link bg-transparent">
           <DarkModelToggleButton :checkbox="true" />
         </a>
       </li>
-      <li class="dropdown-item">
-        <RouterLink to="/admin" class="nav-link d-flex justify-content-between bg-transparent">
-          <span>Admin</span>
-          <i class="bi bi-sliders"></i>
-        </RouterLink>
-      </li>
-      <li class="dropdown-item">
-        <RouterLink to="/info" class="nav-link d-flex gap-2 bg-transparent justify-content-between">
-          <span>System Info</span>
-          <i class="bi bi-info-circle-fill"></i>
-        </RouterLink>
-      </li>
-      <li class="dropdown-item">
-        <RouterLink to="/monitoring" class="nav-link d-flex gap-2 bg-transparent justify-content-between">
-          <span>Monitoring</span>
-          <i class="bi bi-binoculars-fill"></i>
-        </RouterLink>
-      </li>
-      <li class="dropdown-item">
-        <RouterLink to="/bookmarks" class="nav-link d-flex justify-content-between bg-transparent">
-          <span>Favourites</span>
-          <i class="bi bi-heart-fill"></i>
+      <li class="dropdown-item" v-for="link in links">
+        <RouterLink :to="link.link" class="nav-link d-flex bg-transparent justify-content-between" @click="isOpen = false">
+          <span>{{ link.title }}</span>
+          <i class="bi" :class="link.icon"></i>
         </RouterLink>
       </li>
       <li class="dropdown-item rounded-bottom-2">
-        <a href="#" class="gap-2 d-flex justify-content-between bg-transparent nav-link rounded-bottom-2" @click="emit('logout')">
+        <a href="#" class="d-flex justify-content-between bg-transparent nav-link rounded-bottom-2" @click="emit('logout')">
           <span>Logout</span>
           <i class="bi bi-door-open-fill"></i>
         </a>
@@ -45,12 +27,19 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, onMounted, onBeforeUnmount} from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import DarkModelToggleButton from "../DarkModelToggleButton.vue";
 
 const emit = defineEmits<{
   (e: "logout"): void;
 }>();
+
+const links = [
+  { title: "Admin", icon: "bi bi-sliders", link: "/admin" },
+  { title: "System Info", icon: "bi bi-info-circle-fill", link: "/info" },
+  { title: "Monitoring", icon: "bi bi-binoculars-fill", link: "/monitoring" },
+  { title: "Favourites", icon: "bi bi-heart-fill", link: "/bookmarks" },
+];
 
 // Dropdown state
 const isOpen = ref(false);
