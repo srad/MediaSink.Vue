@@ -40,7 +40,7 @@
       <i v-if="!expand" class="bi bi-caret-down-fill"></i>
       <i v-else class="bi bi-caret-up-fill"></i>
     </li>
-    <li v-if="isDownloading && downloadProgress !== null" class="list-group-item align-middle">
+    <li v-if="isDownloading && downloadProgress !== null" class="list-group-item align-middle video-controls rounded-bottom-2">
       <div class="d-flex justify-between justify-content-center gap-2">
         <div class="flex-grow-1">
           <ProgressBar :percent="downloadProgress" />
