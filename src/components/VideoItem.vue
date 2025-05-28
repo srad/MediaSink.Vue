@@ -96,7 +96,6 @@ const fileUrl = inject("fileUrl") as string;
 const previewVideoUrl = `${fileUrl}/${props.recording.previewVideo}`;
 // TODO: Pass a default image from the server, if the preview image is missing.
 const previewCoverUrl = `${fileUrl}/${props.recording.previewCover || props.recording.channelName + "/.previews/live.jpg"}`;
-const downloadUrl = `${fileUrl}/${props.recording.pathRelative}`;
 const downloadApiUrl = `${apiUrl}/videos/${props.recording.recordingId}/download`;
 
 const { t } = useI18n();

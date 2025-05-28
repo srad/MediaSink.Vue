@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import type { DatabaseRecording as RecordingResponse } from "../services/api/v1/MediaSinkClient.ts";
 import { fromNow } from "../utils/datetime";
@@ -126,6 +126,18 @@ const {
   cancelDownload, // Die neue Funktion aus dem Composable
 } = useDownloadWithProgress();
 
+const checkDownload = () => {
+
+};
+
+onMounted(() => {
+  window.addEventListener('beforeunload', checkDownload);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', checkDownload);
+});
+
 const download = async () => {
   const authToken = authStore.getToken!;
 
@@ -135,7 +147,7 @@ const download = async () => {
 
   if (downloadError.value && downloadError.value !== "Download aborted") {
     console.error("Download error:", downloadError.value);
-    alert(`Download failed: ${downloadError.value}`);
+    alert(downloadError.value);
   }
 };
 </script>
