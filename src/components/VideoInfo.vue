@@ -40,7 +40,15 @@
       <i v-if="!expand" class="bi bi-caret-down-fill"></i>
       <i v-else class="bi bi-caret-up-fill"></i>
     </li>
-    <li class="list-group-item fs-6 video-controls rounded-bottom-2">
+    <li v-if="isDownloading && downloadProgress !== null" class="list-group-item align-middle">
+      <div class="d-flex justify-between justify-content-center gap-2">
+        <div class="flex-grow-1">
+          <ProgressBar :percent="downloadProgress" />
+        </div>
+        <button type="button" class="btn btn-sm btn-danger py-0 px-1" @click="cancelDownload">Cancel</button>
+      </div>
+    </li>
+    <li v-else class="list-group-item fs-6 video-controls rounded-bottom-2">
       <div class="justify-content-between d-flex">
         <div class="d-flex gap-2">
           <a class="btn-link btn-sm p-0 px-2" @click="download">
@@ -69,6 +77,10 @@ import type { DatabaseRecording as RecordingResponse } from "../services/api/v1/
 import { fromNow } from "../utils/datetime";
 import FavButton from "./controls/FavButton.vue";
 import { useAuthStore } from "../stores/auth";
+import { useDownloadWithProgress } from "../composables/useDownloadWithProgress";
+import ProgressBar from "../components/ProgressBar.vue";
+
+const authStore = useAuthStore();
 
 const { t } = useI18n();
 
@@ -106,118 +118,26 @@ const ago = ref(fromNow(Date.parse(props.createdAt)));
 
 const expand = ref(false);
 
+const {
+  isDownloading,
+  downloadProgress,
+  error: downloadError,
+  startDownload,
+  cancelDownload, // Die neue Funktion aus dem Composable
+} = useDownloadWithProgress();
+
 const download = async () => {
-  await downloadWithFetch(props.url, props.data.filename);
+  const authToken = authStore.getToken!;
+
+  const filenameToUse = props.data.filename || `video-${props.data.recordingId}.mp4`;
+
+  await startDownload(props.url, authToken, window.APP_API_VERSION, filenameToUse);
+
+  if (downloadError.value && downloadError.value !== "Download aborted") {
+    console.error("Download error:", downloadError.value);
+    alert(`Download failed: ${downloadError.value}`);
+  }
 };
-
-async function downloadWithFetch(url: string, filename: string = '') {
-  try {
-    // 1. Fetch the data from the URL
-    const response = await fetch(url);
-
-    // Check if the request was successful
-    if (!response.ok) {
-      throw new Error(`Network response was not ok: ${response.statusText}`);
-    }
-
-    // 2. Get the data as a Blob
-    const blob = await response.blob();
-
-    // 3. Create an object URL for the Blob
-    const objectUrl = window.URL.createObjectURL(blob);
-
-    // 4. Use the anchor tag method to trigger the download
-    const link = document.createElement('a');
-    link.href = objectUrl;
-
-    // Try to determine filename if not provided
-    if (!filename) {
-      // Try to get filename from Content-Disposition header
-      const disposition = response.headers.get('content-disposition');
-      if (disposition && disposition.indexOf('attachment') !== -1) {
-        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-        const matches = filenameRegex.exec(disposition);
-        if (matches != null && matches[1]) {
-          filename = matches[1].replace(/['"]/g, '');
-        }
-      }
-      // Fallback to URL path segment
-      if (!filename) {
-        filename = url.substring(url.lastIndexOf('/') + 1);
-      }
-    }
-
-    link.download = filename || 'downloaded-file'; // Provide a fallback filename
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // 5. Revoke the object URL to free up memory
-    window.URL.revokeObjectURL(objectUrl);
-
-  } catch (error) {
-    console.error('Download failed:', error);
-    alert('Failed to download the file. Check console for details.');
-  }
-}
-
-async function downloadWithFetchAndAuth(url: string, token: string, filename: string = '') {
-  try {
-    // 1. Define the headers, including the Authorization Bearer token
-    const headers = new Headers();
-    headers.append('Authorization', `Bearer ${token}`);
-
-    // 2. Fetch the data from the URL, now including the headers
-    const response = await fetch(url, {
-      method: 'GET', // Or 'POST', 'PUT', etc., if your API requires it
-      headers: headers,
-    });
-
-    // Check if the request was successful
-    if (!response.ok) {
-      // Handle potential auth errors (401, 403) or other issues
-      throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
-    }
-
-    // 3. Get the data as a Blob
-    const blob = await response.blob();
-
-    // 4. Create an object URL for the Blob
-    const objectUrl = window.URL.createObjectURL(blob);
-
-    // 5. Use the anchor tag method to trigger the download
-    const link = document.createElement('a');
-    link.href = objectUrl;
-
-    // Try to determine filename if not provided
-    if (!filename) {
-      const disposition = response.headers.get('content-disposition');
-      if (disposition && disposition.indexOf('attachment') !== -1) {
-        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-        const matches = filenameRegex.exec(disposition);
-        if (matches != null && matches[1]) {
-          filename = matches[1].replace(/['"]/g, '');
-        }
-      }
-      if (!filename) {
-        filename = url.substring(url.lastIndexOf('/') + 1) || 'downloaded-file';
-      }
-    }
-
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // 6. Revoke the object URL to free up memory
-    window.URL.revokeObjectURL(objectUrl);
-
-  } catch (error) {
-    console.error('Download failed:', error);
-    alert('Failed to download the file. Check console for details or if you are authorized.');
-  }
-}
 </script>
 
 <style scoped lang="scss">

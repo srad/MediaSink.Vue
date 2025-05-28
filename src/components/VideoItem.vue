@@ -36,7 +36,7 @@
       :disable-buttons="props.job !== null"
       :duration="props.recording.duration"
       :size="props.recording.size"
-      :url="downloadUrl"
+      :url="downloadApiUrl"
       :bit-rate="props.recording.bitRate"
       :bookmark="props.recording.bookmark"
       :created-at="props.recording.createdAt"
@@ -97,6 +97,7 @@ const previewVideoUrl = `${fileUrl}/${props.recording.previewVideo}`;
 // TODO: Pass a default image from the server, if the preview image is missing.
 const previewCoverUrl = `${fileUrl}/${props.recording.previewCover || props.recording.channelName + "/.previews/live.jpg"}`;
 const downloadUrl = `${fileUrl}/${props.recording.pathRelative}`;
+const downloadApiUrl = `${apiUrl}/videos/${props.recording.recordingId}/download`;
 
 const { t } = useI18n();
 
