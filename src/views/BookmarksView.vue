@@ -10,6 +10,9 @@
       </div>
     </div>
     <div class="row">
+      <FillNotice v-if="filteredVideos.length == 0">
+        <h1><i class="bi bi-heartbreak-fill" style="color: deeppink"></i></h1>
+      </FillNotice>
       <div v-for="recording in filteredVideos" :key="recording.filename" class="mb-3 col-lg-5 col-xl-4 col-xxl-4 col-md-10">
         <VideoItem :recording="recording" @destroyed="destroyRecording" @bookmark="bookmark" :show-selection="false" :show-title="false" />
       </div>
@@ -23,6 +26,7 @@ import VideoItem from "../components/VideoItem.vue";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { createClient } from "../services/api/v1/ClientFactory";
+import FillNotice from "@/components/FillNotice.vue";
 
 // --------------------------------------------------------------------------------------
 // Refs

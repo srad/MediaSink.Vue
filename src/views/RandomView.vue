@@ -19,6 +19,9 @@
       </div>
     </div>
     <div class="row">
+      <FillNotice v-if="recordings.length == 0">
+        <h1>No results</h1>
+      </FillNotice>
       <div v-for="recording in recordings" :key="recording.filename" class="mb-3 col-lg-6 col-xl-4 col-xxl-4 col-md-6 col-sm-8">
         <VideoItem :show-title="true" :recording="recording" @destroyed="destroyRecording" :show-selection="false" />
       </div>
@@ -34,6 +37,7 @@ import { useRoute } from "vue-router";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import LoadIndicator from "@/components/LoadIndicator.vue";
 import { useI18n } from "vue-i18n";
+import FillNotice from "@/components/FillNotice.vue";
 
 const { t } = useI18n();
 

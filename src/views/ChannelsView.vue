@@ -26,6 +26,10 @@
         </div>
       </div>
 
+      <FillNotice v-if="channelStore.all.length == 0">
+        <h1>No Channels</h1>
+      </FillNotice>
+
       <ChannelsList v-if="settingsStore.isChannelsListLayout" :channels="channelStore.all" />
       <ChannelsGrid v-else :channels="channelStore.all" />
     </div>
@@ -43,6 +47,7 @@ import { ChannelsViewLayout, useSettingsStore } from "@/stores/settings.ts";
 import ChannelsGrid from "@/components/channels/ChannelsGrid.vue";
 import ChannelsList from "@/components/channels/ChannelsList.vue";
 import { useChannelStore } from "@/stores/channel.ts";
+import FillNotice from "@/components/FillNotice.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations

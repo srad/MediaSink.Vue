@@ -30,6 +30,9 @@
       </div>
     </div>
     <div class="row">
+      <FillNotice v-if="videos.length == 0">
+        <h1>No results</h1>
+      </FillNotice>
       <div v-for="video in videos" :key="video.video.recordingId" class="mb-3 col-lg-6 col-xl-6 col-xxl-4 col-md-8 col-sm-8">
         <VideoItem :job="video.jobTask" :show-title="true" :recording="video.video" @destroyed="destroyRecording" :show-selection="false" />
       </div>
@@ -51,6 +54,7 @@ import { createClient } from "../services/api/v1/ClientFactory";
 import LoadIndicator from "../components/LoadIndicator.vue";
 import { useJobStore } from "../stores/job";
 import { useSettingsStore } from "../stores/settings";
+import FillNotice from "@/components/FillNotice.vue";
 
 const { t } = useI18n();
 const router = useRouter();

@@ -116,7 +116,7 @@ const formState = reactive({
   myDisplayName: props.displayName || "",
   myChannelName: props.channelName || "",
   mySkipStart: props.skipStart || 0,
-  myMinDuration: props.minDuration || 10,
+  myMinDuration: props.minDuration || 15,
 });
 
 const isSaving = ref(false);
@@ -206,7 +206,7 @@ watch(
     formState.myDisplayName = newProps.displayName || "";
     formState.myChannelName = newProps.channelName || "";
     formState.mySkipStart = newProps.skipStart || 0;
-    formState.myMinDuration = newProps.minDuration || 0;
+    formState.myMinDuration = newProps.minDuration || 15;
   },
   { deep: true },
 );
