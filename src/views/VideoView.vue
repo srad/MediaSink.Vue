@@ -187,6 +187,9 @@ const playingCut = ref(false);
 
 const skipSeconds = 30;
 
+// Store event listener references for proper cleanup
+let playCutTimeUpdateListener: (() => void) | null = null;
+
 // --------------------------------------------------------------------------------------
 // Computes
 // --------------------------------------------------------------------------------------
@@ -231,6 +234,11 @@ const forward = () => (video.value!.currentTime = (video.value?.currentTime || 0
 const stopCut = () => {
   pause.value = true;
   playingCut.value = false;
+  // Clean up event listener
+  if (playCutTimeUpdateListener && video.value) {
+    video.value.removeEventListener("timeupdate", playCutTimeUpdateListener);
+    playCutTimeUpdateListener = null;
+  }
 };
 
 const volumeChanged = (event: Event) => {
@@ -243,11 +251,20 @@ const playCut = () => {
     return;
   }
 
+  // Clean up any existing listener first
+  if (playCutTimeUpdateListener && video.value) {
+    video.value.removeEventListener("timeupdate", playCutTimeUpdateListener);
+    playCutTimeUpdateListener = null;
+  }
+
   let i = 0;
 
   const timeUpdate = () => {
     if (i >= markings.value.length) {
-      video.value!.removeEventListener("timeupdate", timeUpdate);
+      if (video.value && playCutTimeUpdateListener) {
+        video.value.removeEventListener("timeupdate", playCutTimeUpdateListener);
+        playCutTimeUpdateListener = null;
+      }
       pause.value = true;
       playingCut.value = false;
       return;
@@ -263,12 +280,13 @@ const playCut = () => {
   };
 
   if (i >= markings.value.length) {
-    video.value!.removeEventListener("timeupdate", timeUpdate);
     pause.value = true;
     playingCut.value = false;
     return;
   }
 
+  // Store the listener reference for cleanup
+  playCutTimeUpdateListener = timeUpdate;
   timeCode.value = markings.value[i].timestart;
   video.value!.addEventListener("timeupdate", timeUpdate);
   playingCut.value = true;
@@ -369,6 +387,11 @@ const timeupdate = () => {
 
 const unloadVideo = () => {
   if (isMounted.value && video.value) {
+    // Clean up playCut event listener if it exists
+    if (playCutTimeUpdateListener) {
+      video.value.removeEventListener("timeupdate", playCutTimeUpdateListener);
+      playCutTimeUpdateListener = null;
+    }
     video.value.pause();
     video.value.src = "";
     video.value.load();
@@ -393,15 +416,34 @@ const rotate = () => {
   const mql = window.matchMedia("(orientation: portrait)");
 
   if (mql.matches) {
-    video.value!.requestFullscreen();
+    // Check if fullscreen is available before requesting
+    if (video.value && document.fullscreenEnabled) {
+      video.value.requestFullscreen().catch((err) => {
+        console.error("Failed to enter fullscreen:", err);
+      });
+    }
   } else {
-    document.exitFullscreen();
+    // Check if we're currently in fullscreen before exiting
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch((err) => {
+        console.error("Failed to exit fullscreen:", err);
+      });
+    }
   }
 };
 
 // Be careful if keep-alive components are using, then unmount is not collaed and causes memory but onmount is repeatedly.
 onUnmounted(() => {
   window.removeEventListener("orientationchange", rotate);
+
+  // Clean up playCut event listener if it exists
+  if (playCutTimeUpdateListener && video.value) {
+    video.value.removeEventListener("timeupdate", playCutTimeUpdateListener);
+    playCutTimeUpdateListener = null;
+  }
+
+  // Clean up video element
+  unloadVideo();
 });
 
 onMounted(async () => {

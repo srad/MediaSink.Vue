@@ -58,6 +58,9 @@ export class SocketManager {
   private static reconnectAttempts = 0;
   private static maxReconnectAttempts = 5;
   private static pingInterval: ReturnType<typeof setInterval> | null = null;
+  private static reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  private static intentionalClose = false;
+  private static pongTimeout: ReturnType<typeof setTimeout> | null = null;
 
   connect(): Promise<WebSocket> {
     // If a connection is already open, return it.
@@ -86,16 +89,35 @@ export class SocketManager {
 
       SocketManager.connection.addEventListener("open", () => {
         console.log("WebSocket connection opened");
+
+        // Reset reconnection attempts on successful connection
+        SocketManager.reconnectAttempts = 0;
+
+        // Start heartbeat ping/pong
+        SocketManager.startHeartbeat();
+
         resolve(SocketManager.connection!);
         SocketManager.pendingPromise = null; // Clear pending promise
       });
 
       SocketManager.connection.addEventListener("close", () => {
         console.log("WebSocket connection closed");
+
+        // Stop heartbeat
+        SocketManager.stopHeartbeat();
+
         if (SocketManager.pendingPromise) {
           SocketManager.pendingPromise = Promise.reject(new Error("WebSocket connection closed"));
         }
         SocketManager.pendingPromise = null;
+
+        // Attempt reconnection if it wasn't an intentional close
+        if (!SocketManager.intentionalClose) {
+          SocketManager.attemptReconnect();
+        } else {
+          // Reset flag for future connections
+          SocketManager.intentionalClose = false;
+        }
       });
 
       SocketManager.connection.addEventListener("error", (ev: Event) => {
@@ -132,14 +154,21 @@ export class SocketManager {
       "channel:offline": [],
     };
 
+    // Mark as intentional close to prevent reconnection
+    SocketManager.intentionalClose = true;
+
+    // Clear any pending reconnection attempts
+    if (SocketManager.reconnectTimeout !== null) {
+      clearTimeout(SocketManager.reconnectTimeout);
+      SocketManager.reconnectTimeout = null;
+    }
+
+    // Stop heartbeat
+    SocketManager.stopHeartbeat();
+
     SocketManager.connection?.close();
     SocketManager.connection = null;
     SocketManager.pendingPromise = null;
-
-    if (SocketManager.pingInterval !== null) {
-      clearInterval(SocketManager.pingInterval);
-      SocketManager.pingInterval = null;
-    }
   }
 
   on<T = unknown>(event: MessageTypeKey, fn: ListenerType<T>): void {
@@ -187,6 +216,81 @@ export class SocketManager {
     const allInstanceFns = Object.values(this.instanceListeners).flat();
     for (const event of Object.keys(SocketManager.listeners) as MessageTypeKey[]) {
       SocketManager.listeners[event] = SocketManager.listeners[event].filter((fn) => !allInstanceFns.includes(fn));
+    }
+  }
+
+  /**
+   * Attempts to reconnect with exponential backoff
+   */
+  private static attemptReconnect(): void {
+    if (SocketManager.reconnectAttempts >= SocketManager.maxReconnectAttempts) {
+      console.error(`WebSocket reconnection failed after ${SocketManager.maxReconnectAttempts} attempts`);
+      SocketManager.reconnectAttempts = 0;
+      return;
+    }
+
+    // Calculate exponential backoff: 1s, 2s, 4s, 8s, 16s
+    const delay = Math.pow(2, SocketManager.reconnectAttempts) * 1000;
+    SocketManager.reconnectAttempts++;
+
+    console.log(`WebSocket attempting to reconnect in ${delay}ms (attempt ${SocketManager.reconnectAttempts}/${SocketManager.maxReconnectAttempts})`);
+
+    SocketManager.reconnectTimeout = setTimeout(() => {
+      const manager = new SocketManager();
+      manager.connect().catch((error) => {
+        console.error("WebSocket reconnection attempt failed:", error);
+      });
+    }, delay);
+  }
+
+  /**
+   * Starts the heartbeat ping/pong mechanism
+   */
+  private static startHeartbeat(): void {
+    // Clear any existing heartbeat
+    SocketManager.stopHeartbeat();
+
+    // Send ping every 30 seconds
+    SocketManager.pingInterval = setInterval(() => {
+      if (SocketManager.connection?.readyState === WebSocket.OPEN) {
+        SocketManager.connection.send(JSON.stringify({ name: "ping" }));
+
+        // Set a timeout to detect if pong is not received
+        SocketManager.pongTimeout = setTimeout(() => {
+          console.warn("WebSocket pong not received, connection may be dead");
+          // Close the connection to trigger reconnection
+          SocketManager.connection?.close();
+        }, 5000); // Wait 5 seconds for pong response
+      }
+    }, 30000);
+
+    // Listen for pong responses
+    const pongHandler = () => {
+      // Clear the pong timeout when we receive a pong
+      if (SocketManager.pongTimeout !== null) {
+        clearTimeout(SocketManager.pongTimeout);
+        SocketManager.pongTimeout = null;
+      }
+    };
+
+    // Add pong listener if not already present
+    if (!SocketManager.listeners["pong"].includes(pongHandler)) {
+      SocketManager.listeners["pong"].push(pongHandler);
+    }
+  }
+
+  /**
+   * Stops the heartbeat ping/pong mechanism
+   */
+  private static stopHeartbeat(): void {
+    if (SocketManager.pingInterval !== null) {
+      clearInterval(SocketManager.pingInterval);
+      SocketManager.pingInterval = null;
+    }
+
+    if (SocketManager.pongTimeout !== null) {
+      clearTimeout(SocketManager.pongTimeout);
+      SocketManager.pongTimeout = null;
     }
   }
 }

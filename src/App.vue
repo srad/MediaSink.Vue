@@ -2,10 +2,14 @@
   <component :is="layoutComponent">
     <RouterView :key="$route.fullPath.split('?')[0]" />
   </component>
+  <div v-if="showUpdateBanner" class="update-notification">
+    <p>A new version of the app is available!</p>
+    <button @click="reloadApp">Reload</button>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import DefaultLayout from "@/layouts/DefaultLayout.vue";
 import AuthLayout from "@/layouts/AuthLayout.vue";
 import { useRoute } from "vue-router";
@@ -22,35 +26,26 @@ const layouts = {
 //@ts-expect-error nonsense
 const layoutComponent = computed(() => layouts[route.meta.layout] || DefaultLayout);
 
+const showUpdateBanner = ref(false);
+
 onMounted(() => {
   if ("serviceWorker" in navigator) {
     // Listen for a new service worker being installed
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       // A new service worker has taken control
-      showUpdateNotification();
+      showUpdateBanner.value = true;
     });
   }
 });
 
-const showUpdateNotification = () => {
-  const notification = document.createElement("div");
-  notification.classList.add("update-notification");
-  notification.innerHTML = `
-    <p>A new version of the app is available!</p>
-    <button id="reload-button">Reload</button>
-  `;
-  document.body.appendChild(notification);
+const reloadApp = () => {
+  // Post a message to the Service Worker to skip waiting and activate
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: "SKIP_WAITING" });
+  }
 
-  const reloadButton = document.getElementById("reload-button");
-  reloadButton?.addEventListener("click", () => {
-    // Post a message to the Service Worker to skip waiting and activate
-    if (navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({ type: "SKIP_WAITING" });
-    }
-
-    // Reload the page to apply the new version
-    window.location.reload();
-  });
+  // Reload the page to apply the new version
+  window.location.reload();
 };
 </script>
 

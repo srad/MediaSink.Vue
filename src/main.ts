@@ -37,8 +37,14 @@ const updateSW = registerSW({
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
+import { initializeAppConfig } from "./composables/useAppConfig";
+
+// Initialize app configuration from window object
+initializeAppConfig();
+
 const app = createApp(App).use(pinia).use(i18n);
 
+// Keep legacy provide for backward compatibility
 app.provide("appName", window.APP_NAME);
 app.provide("baseUrl", window.APP_BASE);
 app.provide("apiUrl", window.APP_APIURL);

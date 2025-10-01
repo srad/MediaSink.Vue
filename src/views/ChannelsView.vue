@@ -48,11 +48,13 @@ import ChannelsGrid from "@/components/channels/ChannelsGrid.vue";
 import ChannelsList from "@/components/channels/ChannelsList.vue";
 import { useChannelStore } from "@/stores/channel.ts";
 import FillNotice from "@/components/FillNotice.vue";
+import { useToastStore } from "@/stores/toast.ts";
 
 // --------------------------------------------------------------------------------------
 // Declarations
 // --------------------------------------------------------------------------------------
 const channelStore = useChannelStore();
+const toastStore = useToastStore();
 
 // --------------------------------------------------------------------------------------
 // refs
@@ -95,13 +97,13 @@ const inputFileChanged = (event: Event) => {
     .then((channels) => importChannels(channels));
 };
 
-const importChannels = (channelsResponse: DatabaseChannel[]) => {
+const importChannels = async (channelsResponse: DatabaseChannel[]) => {
   isImporting.value = true;
   const client = createClient();
 
-  channelsResponse.forEach(async (channel) => {
-    try {
-      const response = await client.channels.channelsCreate({
+  const results = await Promise.allSettled(
+    channelsResponse.map((channel) =>
+      client.channels.channelsCreate({
         minDuration: channel.minDuration,
         channelName: channel.channelName,
         displayName: channel.displayName,
@@ -109,14 +111,32 @@ const importChannels = (channelsResponse: DatabaseChannel[]) => {
         skipStart: channel.skipStart,
         tags: channel.tags,
         url: channel.url,
-      });
+      })
+    )
+  );
 
-      channelStore.add(response);
-    } catch (err) {
-      alert(err);
+  let successCount = 0;
+  let failureCount = 0;
+
+  results.forEach((result, index) => {
+    if (result.status === "fulfilled") {
+      channelStore.add(result.value);
+      successCount++;
+    } else {
+      failureCount++;
+      console.error(`Failed to import channel "${channelsResponse[index]?.displayName || channelsResponse[index]?.channelName}":`, result.reason);
     }
   });
+
   isImporting.value = false;
+
+  if (successCount > 0 && failureCount === 0) {
+    toastStore.success({ title: "Import Complete", message: `Successfully imported ${successCount} channel${successCount > 1 ? "s" : ""}` });
+  } else if (successCount > 0 && failureCount > 0) {
+    toastStore.warn({ title: "Import Partially Complete", message: `Imported ${successCount} channel${successCount > 1 ? "s" : ""}, ${failureCount} failed` });
+  } else if (failureCount > 0) {
+    toastStore.error({ title: "Import Failed", message: `Failed to import ${failureCount} channel${failureCount > 1 ? "s" : ""}` });
+  }
 };
 
 // --------------------------------------------------------------------------------------

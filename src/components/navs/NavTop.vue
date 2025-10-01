@@ -98,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import { SocketManager } from "../../utils/socket";
+import { useSocket } from "../../composables/useSocket";
 import { useChannelStore } from "../../stores/channel";
 import { useJobStore } from "../../stores/job";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
@@ -158,7 +158,7 @@ const authStore = useAuthStore();
 
 let thread: undefined | ReturnType<typeof setInterval> = undefined;
 
-const socketManager = new SocketManager();
+const { socket: socketManager } = useSocket();
 
 // --------------------------------------------------------------------------------------
 // Computes

@@ -24,9 +24,9 @@
       <!-- Search -->
       <div v-if="searchVal !== '' || favs" class="col">
         <div class="row">
-          <div v-if="searchResults.length === 0" class="justify-content-center d-flex">
-            <h5 class="m-5">No results...</h5>
-          </div>
+          <FillNotice v-if="searchResults.length === 0">
+            <h1>No results</h1>
+          </FillNotice>
           <div v-else v-for="channel in searchResults" :key="channel.channelId" :class="channelItemClass">
             <ChannelItem :channel="channel" />
           </div>
@@ -70,7 +70,9 @@
               <div v-for="channel in channelStore.recordingStreams" :key="channel.channelId" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel" />
               </div>
-              <h1 v-if="channelStore.recordingStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
+              <FillNotice v-if="channelStore.recordingStreams.length === 0">
+                <h1>No recording streams</h1>
+              </FillNotice>
             </div>
           </div>
 
@@ -79,7 +81,9 @@
               <div v-for="channel in channelStore.notRecordingStreams" :key="channel.channelId" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel" />
               </div>
-              <h1 v-if="channelStore.notRecordingStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
+              <FillNotice v-if="channelStore.notRecordingStreams.length === 0">
+                <h1>No offline streams</h1>
+              </FillNotice>
             </div>
           </div>
 
@@ -88,7 +92,9 @@
               <div v-for="channel in channelStore.disabledStreams" :key="channel.channelId" :class="channelItemClass">
                 <ChannelItem :channel="channel" @edit="editChannel" />
               </div>
-              <h1 v-if="channelStore.disabledStreams.length === 0" class="d-flex align-items-center justify-content-center w-100 m-0 p-0" style="height: 65vh">No disabled streams</h1>
+              <FillNotice v-if="channelStore.disabledStreams.length === 0">
+                <h1>No disabled streams</h1>
+              </FillNotice>
             </div>
           </div>
         </div>
@@ -107,6 +113,7 @@ import { useRoute, useRouter } from "vue-router";
 import LoadIndicator from "@/components/LoadIndicator.vue";
 import { sortChannel, useChannelStore } from "@/stores/channel.ts";
 import type { ChannelUpdate } from "@/types/channel";
+import FillNotice from "@/components/FillNotice.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations

@@ -11,7 +11,8 @@
 
 <script setup lang="ts">
 import { type DatabaseJob, type RequestsChannelRequest as ChannelRequest } from "@/services/api/v1/MediaSinkClient";
-import { MessageType, SocketManager } from "@/utils/socket";
+import { MessageType } from "@/utils/socket";
+import { useSocket } from "@/composables/useSocket";
 import ChannelModal from "@/components/modals/ChannelModal.vue";
 import NavTop from "@/components/navs/NavTop.vue";
 import { useChannelStore } from "@/stores/channel";
@@ -43,7 +44,7 @@ const route = useRoute();
 
 const showModal = ref(false);
 
-const socketManager = new SocketManager();
+const { socket: socketManager, connect } = useSocket();
 
 const routes = [
   { icon: "bi-camera-video-fill", url: "/streams/live", title: t("menu.streams") },

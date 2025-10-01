@@ -73,17 +73,21 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   const publicPages = ["/login", "/register"];
   const isLoggedIn = authStore.isLoggedIn;
+  const isPublicPage = publicPages.includes(to.path);
 
-  if (!isLoggedIn && publicPages.includes(to.path)) {
-    next();
+  // If not logged in and trying to access protected page, redirect to login
+  if (!isLoggedIn && !isPublicPage) {
+    next("/login");
     return;
   }
 
-  if (isLoggedIn && publicPages.includes(to.path)) {
+  // If logged in and trying to access public page (login/register), redirect to home
+  if (isLoggedIn && isPublicPage) {
     next("/");
     return;
   }
 
+  // Allow navigation
   next();
 });
 
