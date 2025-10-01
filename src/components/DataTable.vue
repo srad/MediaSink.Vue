@@ -12,7 +12,7 @@
               <!-- Input for non-boolean columns -->
               <input v-if="column.type !== 'boolean'" v-model="searchQueries[column.key]" type="text" :placeholder="column.label" class="form-control border-primary-subtle" />
             </div>
-            <div v-else @click="column.sortable && toggleSort(column.key)">
+            <div v-else :class="{ 'cursor-pointer': column.sortable }" @click="column.sortable ? toggleSort(column.key) : undefined">
               <slot :name="`header-${column.key}`">
                 {{ column.label }}
               </slot>
@@ -27,7 +27,7 @@
         <!-- Column Titles Row -->
         <tr>
           <template v-for="column in columns" :key="`header-${column.key}`">
-            <th class="user-select-none" v-if="column.isSearchable" :style="{ width: column.width }" :class="[column.headerClass, column.sortable ? 'cursor-pointer' : 'user-select-none', sortKey === column.key && sortedClass]" @click="toggleSort(column.key)" :rowspan="column.sortable ? 1 : 2">
+            <th class="user-select-none" v-if="column.isSearchable" :style="{ width: column.width }" :class="[column.headerClass, column.sortable ? 'cursor-pointer' : 'user-select-none', sortKey === column.key && sortedClass]" @click="column.sortable ? toggleSort(column.key) : undefined" :rowspan="column.sortable ? 1 : 2">
               <!-- Set rowspan for sortable columns -->
               <!-- Column title with sorting click event -->
               <slot :name="`header-${column.key}`">
@@ -63,9 +63,14 @@
             <span aria-hidden="true">&laquo;</span>
           </button>
         </li>
-        <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
-          <button class="page-link" @click="changePage(page)">{{ page }}</button>
-        </li>
+        <template v-for="page in visiblePages" :key="page">
+          <li v-if="page === '...'" class="page-item disabled">
+            <span class="page-link">...</span>
+          </li>
+          <li v-else class="page-item" :class="{ active: page === currentPage }">
+            <button class="page-link" @click="changePage(page as number)">{{ page }}</button>
+          </li>
+        </template>
         <li class="page-item" :class="{ disabled: currentPage === totalPages }">
           <button class="page-link" @click="changePage(currentPage + 1)" aria-label="Next">
             <span aria-hidden="true">&raquo;</span>
@@ -86,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineEmits, defineProps, onMounted, ref } from "vue";
+import { computed, defineEmits, defineProps, onMounted, ref, watch } from "vue";
 
 export type Column = {
   key: string;
@@ -112,6 +117,7 @@ const props = defineProps<{
   defaultSortKey?: string;
   defaultSortOrder?: SortOrder;
   pageSize?: number; // Make pageSize optional
+  storageKey?: string; // Optional key for localStorage
 }>();
 
 const emit = defineEmits<{
@@ -119,8 +125,33 @@ const emit = defineEmits<{
   (event: "page-size-change", size: number): void;
 }>();
 
-const sortKey = ref<string | null>(props.defaultSortKey ?? null);
-const sortOrder = ref<SortOrder>(props.defaultSortOrder ?? null);
+const STORAGE_KEY = props.storageKey || "datatable-sort";
+
+// Load from localStorage or use defaults
+const loadSortState = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const { sortKey: storedKey, sortOrder: storedOrder } = JSON.parse(stored);
+      // Validate that the stored sortKey exists in current columns
+      const isValidKey = storedKey && props.columns.some((col) => col.key === storedKey);
+      return {
+        sortKey: isValidKey ? storedKey : props.defaultSortKey ?? null,
+        sortOrder: isValidKey ? storedOrder : props.defaultSortOrder ?? null,
+      };
+    }
+  } catch (error) {
+    console.error("Error loading sort state from localStorage:", error);
+  }
+  return {
+    sortKey: props.defaultSortKey ?? null,
+    sortOrder: props.defaultSortOrder ?? null,
+  };
+};
+
+const initialState = loadSortState();
+const sortKey = ref<string | null>(initialState.sortKey);
+const sortOrder = ref<SortOrder>(initialState.sortOrder);
 const searchQueries = ref<Record<string, unknown>>({});
 const currentPage = ref(1); // Track current page
 const pageSize = ref<number>(props.pageSize ?? 10); // Default page size to 10 if not provided
@@ -128,19 +159,36 @@ const pageSizeToNumber = computed(() => Number(pageSize.value));
 
 const pageSizes = [10, 20, 50, 100]; // Options for page size
 
+// Save to localStorage whenever sort state changes
+watch([sortKey, sortOrder], () => {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        sortKey: sortKey.value,
+        sortOrder: sortOrder.value,
+      })
+    );
+  } catch (error) {
+    console.error("Error saving sort state to localStorage:", error);
+  }
+});
+
 onMounted(() => {
   if (sortKey.value && !sortOrder.value) {
     sortOrder.value = "asc";
   }
 });
 
-const compareValues = (a: unknown, b: unknown): number => {
-  // Convert date strings to Date objects if needed
-  if (typeof a === "string" && !isNaN(Date.parse(a))) {
-    a = new Date(a);
-  }
-  if (typeof b === "string" && !isNaN(Date.parse(b))) {
-    b = new Date(b);
+const compareValues = (a: unknown, b: unknown, columnKey: string): number => {
+  // Get column type from columns
+  const column = props.columns.find((col) => col.key === columnKey);
+  const columnType = column?.type;
+
+  // Only convert dates if column type is explicitly 'date'
+  if (columnType === "date") {
+    if (typeof a === "string") a = new Date(a);
+    if (typeof b === "string") b = new Date(b);
   }
 
   // Date comparison
@@ -148,12 +196,10 @@ const compareValues = (a: unknown, b: unknown): number => {
     return sortOrder.value === "asc" ? a.getTime() - b.getTime() : b.getTime() - a.getTime();
   }
 
-  // Convert numeric strings to numbers if needed
-  if (typeof a === "string" && !isNaN(parseFloat(a))) {
-    a = parseFloat(a);
-  }
-  if (typeof b === "string" && !isNaN(parseFloat(b))) {
-    b = parseFloat(b);
+  // Only convert to numbers if column type is explicitly 'number'
+  if (columnType === "number") {
+    if (typeof a === "string") a = parseFloat(a);
+    if (typeof b === "string") b = parseFloat(b);
   }
 
   // Number comparison
@@ -161,7 +207,7 @@ const compareValues = (a: unknown, b: unknown): number => {
     return sortOrder.value === "asc" ? a - b : b - a;
   }
 
-  // Number comparison
+  // Boolean comparison
   if (typeof a === "boolean" && typeof b === "boolean") {
     return sortOrder.value === "asc" ? Number(a) - Number(b) : Number(b) - Number(a);
   }
@@ -183,12 +229,12 @@ const sortedData = computed(() => {
     const valueA = a[sortKey.value!] as unknown;
     const valueB = b[sortKey.value!] as unknown;
 
-    return compareValues(valueA, valueB);
+    return compareValues(valueA, valueB, sortKey.value!);
   });
 });
 
 const filteredData = computed(() => {
-  return sortedData.value.filter((row) => {
+  const result = sortedData.value.filter((row) => {
     return props.columns.every((column) => {
       const searchQuery = searchQueries.value[column.key];
       const cellValue = row[column.key];
@@ -208,6 +254,14 @@ const filteredData = computed(() => {
       return containsAllSubstrings(String(cellValue).trim().toLowerCase(), toSearchTermsArray(searchQuery as string));
     });
   });
+
+  // Reset to page 1 if filter changed and current page is out of bounds
+  const maxPage = Math.ceil(result.length / pageSize.value) || 1;
+  if (currentPage.value > maxPage) {
+    currentPage.value = 1;
+  }
+
+  return result;
 });
 
 const toSearchTermsArray = (str: string): string[] => str.trim().toLowerCase().split(/\s+/);
@@ -224,6 +278,45 @@ const totalPages = computed(() => {
     return 1; // All items fit in one page
   }
   return Math.ceil(filteredData.value.length / pageSize.value);
+});
+
+const visiblePages = computed(() => {
+  const total = totalPages.value;
+  const current = currentPage.value;
+  const maxVisible = 7; // Maximum number of page buttons to show
+
+  if (total <= maxVisible) {
+    // Show all pages if total is less than maxVisible
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const pages: (number | string)[] = [];
+
+  // Always show first page
+  pages.push(1);
+
+  if (current > 3) {
+    pages.push("...");
+  }
+
+  // Show pages around current page
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+
+  if (current < total - 2) {
+    pages.push("...");
+  }
+
+  // Always show last page
+  if (total > 1) {
+    pages.push(total);
+  }
+
+  return pages;
 });
 
 const currentPageRows = computed(() => {
@@ -248,11 +341,7 @@ const toggleSort = (key: string) => {
 };
 
 const handleCheckboxChange = (key: string) => {
-  if (searchQueries.value[key] === true) {
-    searchQueries.value[key] = false;
-  } else {
-    searchQueries.value[key] = true;
-  }
+  searchQueries.value[key] = !searchQueries.value[key];
 };
 
 const changePage = (page: number) => {
@@ -298,9 +387,7 @@ const onPageSizeChange = () => {
   }
 }
 
-[data-bs-theme="dark"],
-.table-rounded th,
-.table-rounded td {
+[data-bs-theme="dark"] {
   table tbody td {
     border-top: 1px solid bootstrap.$info;
   }
