@@ -1,5 +1,6 @@
-import { ContentType, type DatabaseRecording, type DatabaseRecording as RecordingResponse, HttpClient, MediaSinkClient } from "./MediaSinkClient";
+import { type DatabaseRecording as RecordingResponse, HttpClient, MediaSinkClient } from "./MediaSinkClient";
 import { useAuthStore } from "../../../stores/auth";
+import { handlePotentialServerError } from "../../../utils/serverError";
 
 const checkResponseStatus = (response: Response) => {
   if ([401].includes(response.status) && !["/login", "/register"].includes(window.location.pathname)) {
@@ -27,7 +28,7 @@ export class MyClient extends MediaSinkClient<unknown> {
         },
       },
       /**
-       * Redirect
+       * Custom fetch with error handling for server unreachability
        * @param input
        * @param init
        */
@@ -38,8 +39,21 @@ export class MyClient extends MediaSinkClient<unknown> {
               checkResponseStatus(response);
               resolve(response);
             })
-            .catch((err) => {
-              checkResponseStatus(err);
+            .catch(async (err) => {
+              // Check if error is due to server being unreachable
+              const wasServerError = await handlePotentialServerError(err);
+              if (wasServerError) {
+                // Error was handled (user logged out and redirected)
+                reject(err);
+                return;
+              }
+
+              // For other errors, still try to check status
+              try {
+                checkResponseStatus(err);
+              } catch {
+                // checkResponseStatus may throw, continue
+              }
               reject(err);
             });
         });
@@ -50,26 +64,84 @@ export class MyClient extends MediaSinkClient<unknown> {
 
   /**
    * Custom function to upload and cancel large files with progress indicator.
+   * Uses XMLHttpRequest for proper upload progress tracking.
    * @param channelId Upload to which channel
    * @param file File object to upload
    * @param progress Returns the progress as number in range [0.0 ... 1.0]
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   channelUpload(channelId: number, file: File, progress: (pcent: number) => void): [Promise<RecordingResponse>, AbortController] {
     const controller = new AbortController();
-    const signal = controller.signal;
-    const formData = new FormData();
-    formData.append("file", file);
+    const authStore = useAuthStore();
+    const token = authStore.getToken;
+    const apiUrl = window.APP_APIURL;
 
-    const req = this.http.request<DatabaseRecording>({
-      path: `/channels/${channelId}/upload`,
-      method: "POST",
-      body: formData,
-      type: ContentType.FormData,
-      signal,
+    const uploadPromise = new Promise<RecordingResponse>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const progressPercent = event.loaded / event.total;
+          progress(progressPercent);
+        }
+      });
+
+      // Handle completion
+      xhr.addEventListener("load", () => {
+        try {
+          if (xhr.status === 401) {
+            authStore.logout();
+            window.location.assign("/login");
+            reject(new Error("Unauthorized access, redirecting to login..."));
+            return;
+          }
+
+          if (xhr.status >= 400) {
+            reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.statusText}`));
+            return;
+          }
+
+          const response = JSON.parse(xhr.responseText) as RecordingResponse;
+          resolve(response);
+        } catch (error) {
+          reject(error);
+        }
+      });
+
+      // Handle errors
+      xhr.addEventListener("error", () => {
+        reject(new Error("Upload failed: Network error"));
+      });
+
+      xhr.addEventListener("abort", () => {
+        reject(new Error("Upload cancelled"));
+      });
+
+      // Setup request
+      xhr.open("POST", `${apiUrl}/channels/${channelId}/upload`);
+
+      // Add authorization header if token exists
+      if (token) {
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      }
+
+      // Add API version header
+      xhr.setRequestHeader("X-API-Version", window.APP_API_VERSION);
+
+      // Send the request
+      xhr.send(formData);
+
+      // Link abort controller to xhr
+      const originalAbort = controller.abort.bind(controller);
+      controller.abort = function () {
+        xhr.abort();
+        originalAbort();
+      };
     });
 
-    return [req, controller];
+    return [uploadPromise, controller];
   }
 
   async isRecording(): Promise<boolean> {

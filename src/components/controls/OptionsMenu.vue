@@ -5,7 +5,7 @@
       <span class="d-none d-sm-inline">Upload video</span>
       <i class="bi bi-upload" />
     </button>
-    <button type="button" class="btn btn-info btn-sm d-flex gap-2">
+    <button type="button" class="btn btn-info btn-sm d-flex gap-2" @click="emit('edit')">
       <span class="d-none d-sm-inline">Edit channel</span>
       <i class="bi bi-pencil" />
     </button>
@@ -33,6 +33,7 @@ const show = ref(false);
 const emit = defineEmits<{
   (e: "file", value: File): void;
   (e: "pause", value: HTMLInputElement): void;
+  (e: "edit", value: void): void;
   (e: "delete", value: void): void;
 }>();
 
@@ -41,12 +42,12 @@ const file = useTemplateRef<HTMLInputElement>("file");
 const clickFile = () => file.value?.click();
 
 const fileChanged = () => {
-  const el = file as unknown as HTMLInputElement;
+  const el = file.value;
 
-  if (el.files && el.files.length > 0) {
+  if (el && el.files && el.files.length > 0) {
     const firstFile = el.files[0];
     if (firstFile) {
-      emit("file", firstFile!);
+      emit("file", firstFile);
       // clear old file
       el.value = "";
     }

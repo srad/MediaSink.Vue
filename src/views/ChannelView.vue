@@ -2,6 +2,8 @@
   <div>
     <BusyOverlay :visible="busyOverlay" />
 
+    <ChannelModal @save="saveEditChannel" @close="showEditModal = false" title="Edit Channel" :saving="editFormSaving" :is-paused="editFormIsPaused" :channel-disabled="true" :clear="false" :channel-id="editFormChannelId" :show="showEditModal" :channel-name="editFormChannelName" :display-name="editFormDisplayName" :url="editFormUrl" :min-duration="editFormMinDuration" :skip-start="editFormSkipStart" />
+
     <JsConfirmDialog :show="showConfirm" @cancel="showConfirm = false" @confirm="deleteChannel" text="Are you sure you want to delete this channel?" />
 
     <ModalConfirmDialog :show="showDeleteSelectedRecordings" @cancel="showDeleteSelectedRecordings = false" @confirm="destroySelection">
@@ -20,31 +22,24 @@
     </ModalConfirmDialog>
 
     <LoadIndicator :busy="!channel">
-      <div ref="upload" style="display: none" class="modal modal-dialog modal-dialog-centered" tabindex="-1">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-              <h5 class="modal-title">Uploading Video</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <h5>Progress: {{ (uploadProgress * 100).toFixed(0) }}%</h5>
-              <div class="progress">
-                <div class="progress-bar progress-bar-animated progress-bar-striped bg-warning" role="progressbar" :style="{ width: `${uploadProgress * 100}%` }" aria-valuemax="1" aria-valuemin="0" aria-valuenow="0.4"></div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-warning" @click="cancelUpload">Cancel Upload</button>
-            </div>
+      <ModalWindow :show="showModal">
+        <template #header>Video upload</template>
+        <template #body>
+          <h5>Progress: {{ (uploadProgress * 100).toFixed(0) }}%</h5>
+          <div class="progress">
+            <div class="progress-bar progress-bar-animated progress-bar-striped bg-warning" role="progressbar" :style="{ width: `${uploadProgress * 100}%` }" aria-valuemax="1" aria-valuemin="0" aria-valuenow="0.4"></div>
           </div>
-        </div>
-      </div>
+        </template>
+        <template #footer>
+          <button type="button" class="btn btn-warning" @click="cancelUpload">Cancel Upload</button>
+        </template>
+      </ModalWindow>
 
       <div class="d-flex align-items-center mb-3 justify-content-between border-bottom pb-2">
         <div class="text-info fs-5 fw-bolder d-none d-sm-inline">{{ channel!.displayName }}</div>
 
         <div class="d-flex gap-2 align-items-center">
-          <OptionsMenu v-if="!areItemsSelected" :channel-paused="channel!.isPaused" :multi-select="selectedRecordings.length === 0" @file="fileSelected" @pause="pauseChannel" @delete="showConfirm = true" />
+          <OptionsMenu v-if="!areItemsSelected" :channel-paused="channel!.isPaused" :multi-select="selectedRecordings.length === 0" @file="fileSelected" @pause="pauseChannel" @edit="editChannel" @delete="showConfirm = true" />
 
           <div class="d-flex gap-2 align-items-center">
             <button v-if="areItemsSelected" type="button" class="btn btn-sm btn-danger d-flex gap-2 justify-content-between" @click="showDeleteSelectedRecordings = true">
@@ -84,7 +79,7 @@
 <script setup lang="ts">
 import VideoItem from "../components/VideoItem.vue";
 import type { DatabaseRecording, DatabaseRecording as RecordingResponse, ServicesChannelInfo } from "../services/api/v1/MediaSinkClient";
-import { computed, inject, onMounted, onUnmounted, ref, useTemplateRef } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { MessageType, SocketManager } from "../utils/socket";
 import BusyOverlay from "../components/BusyOverlay.vue";
@@ -93,10 +88,13 @@ import { useChannelStore } from "../stores/channel";
 import { useJobStore } from "../stores/job";
 import OptionsMenu from "@/components/controls/OptionsMenu.vue";
 import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
+import ChannelModal from "@/components/modals/ChannelModal.vue";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import LoadIndicator from "@/components/LoadIndicator.vue";
 import JsConfirmDialog from "@/components/modals/JsConfirmDialog.vue";
 import FavButton from "@/components/controls/FavButton.vue";
+import type { ChannelUpdate } from "@/types/channel";
+import ModalWindow from "@/components/modals/ModalWindow.vue";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -109,9 +107,6 @@ const jobStore = useJobStore();
 const toastStore = useToastStore();
 const channelStore = useChannelStore();
 
-// Elements
-const upload = useTemplateRef<HTMLDivElement>("upload");
-
 const channelId = +route.params.id as number;
 
 const channel = ref<ServicesChannelInfo | null>(null);
@@ -120,6 +115,17 @@ const uploadProgress = ref(0);
 const busyOverlay = ref(false);
 
 let uploadAbortController: AbortController | null = null;
+
+// Edit channel modal state
+const showEditModal = ref(false);
+const editFormChannelId = ref<number>();
+const editFormChannelName = ref("");
+const editFormDisplayName = ref("");
+const editFormIsPaused = ref(false);
+const editFormUrl = ref("");
+const editFormMinDuration = ref(20);
+const editFormSkipStart = ref(0);
+const editFormSaving = ref(false);
 
 const showModal = ref(false);
 const showConfirm = ref(false);
@@ -137,7 +143,7 @@ const areItemsSelected = computed(() => selectedRecordings.value.length > 0);
 
 const recordings = computed(() => {
   if (channel.value && channel.value.recordings) {
-    return [...channel.value.recordings] // Avoid mutating original array
+    return [...channel.value.recordings] // Avoid mutating an original array
       .sort((a, b) => b.videoType.localeCompare(a.videoType))
       .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
   }
@@ -151,7 +157,7 @@ const recordings = computed(() => {
 const pauseChannel = (element: HTMLInputElement): void => {
   const client = createClient();
   const fn = element.checked ? client.channels.resumeCreate : client.channels.pauseCreate;
-  fn(channel.value!.channelId)
+  fn({ id: channel.value!.channelId })
     .then(() => {
       if (element.checked) {
         channelStore.resume(channel.value!.channelId);
@@ -174,7 +180,7 @@ const destroySelection = async () => {
 
     for (let i = 0; i < selectedRecordings.value.length; i++) {
       const rec = selectedRecordings.value[i] as RecordingResponse;
-      await client.videos.videosDelete(rec.recordingId);
+      await client.videos.videosDelete({ id: rec.recordingId });
       const index = channel.value?.recordings?.findIndex((x: DatabaseRecording) => x.recordingId === rec.recordingId);
       if (index && index !== -1) {
         channel.value?.recordings?.splice(index, 1);
@@ -205,7 +211,7 @@ const deleteChannel = async () => {
   try {
     busyOverlay.value = true;
     const client = createClient();
-    await client.channels.channelsDelete(channelId);
+    await client.channels.channelsDelete({ id: channelId });
     channelStore.destroy(channelId);
     toastStore.success({
       title: "Channel deleted",
@@ -228,18 +234,33 @@ const cancelUpload = () => {
 
 const fileSelected = async (file: File) => {
   try {
+    console.log("[Upload] Starting file upload:", file.name);
     uploadProgress.value = 0;
     showModal.value = true;
     const client = createClient();
-    const [req, abortController] = client.channelUpload(channelId, file, (pcent: number) => (uploadProgress.value = pcent));
+    const [req, abortController] = client.channelUpload(channelId, file, (pcent: number) => {
+      console.log("[Upload] Progress:", Math.round(pcent * 100) + "%");
+      uploadProgress.value = pcent;
+    });
     uploadAbortController = abortController;
+    console.log("[Upload] Waiting for upload to complete...");
     const recording = await req;
-    uploadProgress.value = 0;
+    console.log("[Upload] Upload completed successfully");
+    uploadProgress.value = 1;
     channel.value?.recordings?.unshift(recording);
     uploadAbortController = null;
     showModal.value = false;
+    toastStore.success({
+      title: "Video uploaded",
+      message: `File ${file.name} uploaded successfully`,
+    });
   } catch (e) {
-    alert(e);
+    console.error("[Upload] Error:", e);
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    toastStore.error({
+      title: "Upload failed",
+      message: errorMessage,
+    });
     showModal.value = false;
   }
 };
@@ -260,7 +281,7 @@ const bookmark = () => {
   const client = createClient();
   const fn = channel.value!.fav ? client.channels.unfavPartialUpdate : client.channels.favPartialUpdate;
 
-  fn(channel.value!.channelId)
+  fn({ id: channel.value!.channelId })
     .then(() => (channel.value!.fav = !channel.value!.fav))
     .catch((err) => alert(err));
 };
@@ -268,6 +289,47 @@ const bookmark = () => {
 const mergeVideos = async () => {
   // TODO: call merge videos api.
   alert(selectedRecordings.value.map((x) => x.filename).join(", "));
+};
+
+const editChannel = () => {
+  if (channel.value) {
+    editFormChannelId.value = channel.value.channelId;
+    editFormChannelName.value = channel.value.channelName;
+    editFormDisplayName.value = channel.value.displayName;
+    editFormIsPaused.value = channel.value.isPaused;
+    editFormUrl.value = channel.value.url;
+    editFormSkipStart.value = channel.value.skipStart;
+    editFormMinDuration.value = channel.value.minDuration;
+    showEditModal.value = true;
+  }
+};
+
+const saveEditChannel = async (formData: ChannelUpdate) => {
+  try {
+    editFormSaving.value = true;
+    await channelStore.save(formData.channelId, formData);
+    showEditModal.value = false;
+    // Update the channel data with the new values
+    if (channel.value) {
+      channel.value.displayName = formData.displayName;
+      channel.value.url = formData.url;
+      channel.value.minDuration = formData.minDuration;
+      channel.value.skipStart = formData.skipStart;
+      channel.value.isPaused = formData.isPaused;
+      channel.value.channelName = formData.channelName;
+    }
+    toastStore.success({
+      title: "Channel updated",
+      message: `Channel ${formData.displayName} has been saved`,
+    });
+  } catch (e) {
+    toastStore.error({
+      title: "Error",
+      message: `Failed to save channel: ${e instanceof Error ? e.message : String(e)}`,
+    });
+  } finally {
+    editFormSaving.value = false;
+  }
 };
 
 // --------------------------------------------------------------------------------------
@@ -283,7 +345,7 @@ onUnmounted(() => {
 onMounted(async () => {
   try {
     const client = createClient();
-    const data = await client.channels.channelsDetail(channelId);
+    const data = await client.channels.channelsDetail({ id: channelId });
 
     if (!data) {
       await router.replace("/streams/live");
