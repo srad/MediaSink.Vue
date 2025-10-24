@@ -111,8 +111,8 @@ const importChannels = async (channelsResponse: DatabaseChannel[]) => {
         skipStart: channel.skipStart,
         tags: channel.tags,
         url: channel.url,
-      })
-    )
+      }),
+    ),
   );
 
   let successCount = 0;

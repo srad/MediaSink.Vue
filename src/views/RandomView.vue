@@ -4,18 +4,18 @@
       <div class="col">
         <div class="d-flex justify-content-end">
           <div class="d-flex justify-content-center gap-2">
-                <select id="limit" class="form-select border-info rounded-3" v-model="filterLimit" @change="fetch">
-                  <option value="" style="font-weight: bold" disabled>{{ t("filter.limit") }}</option>
-                  <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
-                </select>
-                <button class="btn btn-info" @click="fetch">
-                  <i class="bi bi-arrow-clockwise"></i>
-                </button>
-            </div>
+            <select id="limit" class="form-select border-info rounded-3" v-model="filterLimit" @change="fetch">
+              <option value="" style="font-weight: bold" disabled>{{ t("filter.limit") }}</option>
+              <option v-for="limit in limits" :key="limit" :value="limit">{{ limit }}</option>
+            </select>
+            <button class="btn btn-info" @click="fetch">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
           </div>
-          <button class="btn btn-info" @click="fetch" v-if="route.params.type === 'random'">
-            <i class="bi bi-arrow-clockwise"></i>
-          </button>
+        </div>
+        <button class="btn btn-info" @click="fetch" v-if="route.params.type === 'random'">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
       </div>
     </div>
     <div class="row">
@@ -56,7 +56,7 @@ const recordings = ref<RecordingResponse[]>([]);
 
 const fetch = async () => {
   const client = createClient();
-  const data = await client.videos.randomDetail(filterLimit);
+  const data = await client.videos.randomDetail({ limit: +filterLimit });
   recordings.value = data || [];
 };
 

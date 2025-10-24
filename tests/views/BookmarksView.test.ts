@@ -180,6 +180,6 @@ describe("BookmarksView.vue", () => {
     });
 
     expect(global.confirm).toHaveBeenCalledWith("Are you sure you want to delete video1.mp4?");
-    expect(mockRecordingsDelete).toHaveBeenCalledWith(1);
+    expect(mockRecordingsDelete).toHaveBeenCalledWith({ id: 1 });
   });
 });

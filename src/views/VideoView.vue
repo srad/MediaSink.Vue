@@ -19,10 +19,8 @@
   <BusyOverlay :visible="busy"></BusyOverlay>
 
   <template v-if="recording">
-    <ModalWindow :show="showInfo" @close="showInfo=false" :show-footer="false">
-      <template #header>
-        Video Info
-      </template>
+    <ModalWindow :show="showInfo" @close="showInfo = false" :show-footer="false">
+      <template #header>Video Info</template>
       <template #body>
         <ul class="list-group">
           <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -61,7 +59,7 @@
               Your browser does not support the video tag.
             </video>
             <div class="position-absolute fs-2" style="top: 10px; right: 70px">
-              <a href="#" @click="showInfo=!showInfo">
+              <a href="#" @click="showInfo = !showInfo">
                 <i class="bi bi-info-circle" style="color: deepskyblue"></i>
               </a>
             </div>
@@ -165,7 +163,7 @@ const fileUrl = inject("fileUrl") as string;
 const stripeUrl = ref("");
 const videoUrl = ref("");
 
-const  showInfo = ref(false);
+const showInfo = ref(false);
 
 const seeked = ref(0);
 const isMuted = ref(settingsStore.isMuted);
@@ -329,7 +327,7 @@ const destroy = () => {
 
   const client = createClient();
   client.videos
-    .videosDelete(recording.value.recordingId)
+    .videosDelete({ id: recording.value.recordingId })
     .then(() => {
       // Remove from Job list if existent.
       jobStore.destroy(recording.value!.recordingId);
@@ -347,11 +345,14 @@ const cutVideo = () => {
   const ends = markings.value.map((m) => String(m.timeend.toFixed(4)));
 
   client.videos
-    .cutCreate(id.value!, {
-      starts,
-      ends,
-      deleteAfterCut: deleteFileAfterCut.value,
-    })
+    .cutCreate(
+      { id: id.value! },
+      {
+        starts,
+        ends,
+        deleteAfterCut: deleteFileAfterCut.value,
+      },
+    )
     .then(() => (markings.value = []))
     .catch((err) => alert(err))
     .finally(() => (showConfirmDialog.value = false));
@@ -449,7 +450,7 @@ onUnmounted(() => {
 onMounted(async () => {
   const client = createClient();
   id.value = Number(route.params.id);
-  const data = await client.videos.videosDetail(id.value);
+  const data = await client.videos.videosDetail({ id: id.value });
   recording.value = data;
   stripeUrl.value = fileUrl + "/" + recording.value?.previewStripe;
   videoUrl.value = fileUrl + "/" + recording.value?.pathRelative;

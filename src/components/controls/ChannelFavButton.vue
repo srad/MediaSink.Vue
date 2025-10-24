@@ -45,7 +45,7 @@ const bookmark = (event: Event) => {
   const client = createClient();
   const fn = fav.value ? client.channels.unfavPartialUpdate : client.channels.favPartialUpdate;
 
-  fn(props.channelId)
+  fn({ id: props.channelId })
     .then(() => (fav.value = !fav.value))
     .catch((res) => alert(res.error))
     .finally(() => (busy.value = false));

@@ -132,7 +132,7 @@ const destroy = (id: number) => {
   if (window.confirm("Delete?")) {
     const client = createClient();
     client.jobs
-      .jobsDelete(id)
+      .jobsDelete({ id })
       .then(() => jobStore.destroy(id))
       .catch((res) => alert(res));
   }

@@ -136,8 +136,8 @@ const loadSortState = () => {
       // Validate that the stored sortKey exists in current columns
       const isValidKey = storedKey && props.columns.some((col) => col.key === storedKey);
       return {
-        sortKey: isValidKey ? storedKey : props.defaultSortKey ?? null,
-        sortOrder: isValidKey ? storedOrder : props.defaultSortOrder ?? null,
+        sortKey: isValidKey ? storedKey : (props.defaultSortKey ?? null),
+        sortOrder: isValidKey ? storedOrder : (props.defaultSortOrder ?? null),
       };
     }
   } catch (error) {
@@ -167,7 +167,7 @@ watch([sortKey, sortOrder], () => {
       JSON.stringify({
         sortKey: sortKey.value,
         sortOrder: sortOrder.value,
-      })
+      }),
     );
   } catch (error) {
     console.error("Error saving sort state to localStorage:", error);

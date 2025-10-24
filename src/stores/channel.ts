@@ -49,7 +49,7 @@ export const useChannelStore = defineStore("channel", {
       return res;
     },
     async save(id: number, channel: RequestsChannelRequest): Promise<DatabaseChannel> {
-      const update = await createClient().channels.channelsPartialUpdate(id, channel);
+      const update = await createClient().channels.channelsPartialUpdate({ id }, channel);
       this.update(update);
       return update;
     },

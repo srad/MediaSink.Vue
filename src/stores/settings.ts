@@ -31,45 +31,45 @@ export const useSettingsStore = defineStore(
     const filterViewPageSize = ref(100);
     const theme = ref<"dark" | "light">("light");
 
-  // Actions
-  const mute = () => {
-    videoMuted.value = true;
-  };
+    // Actions
+    const mute = () => {
+      videoMuted.value = true;
+    };
 
-  const unmute = () => {
-    videoMuted.value = false;
-  };
+    const unmute = () => {
+      videoMuted.value = false;
+    };
 
-  const updateVolume = (volume: number) => {
-    if (volume < 0) {
-      volume = 0;
-    }
-    if (volume > 1) {
-      volume = 1;
-    }
-    videoVolume.value = volume;
-  };
+    const updateVolume = (volume: number) => {
+      if (volume < 0) {
+        volume = 0;
+      }
+      if (volume > 1) {
+        volume = 1;
+      }
+      videoVolume.value = volume;
+    };
 
-  const setChannelsLayout = (newLayout: ChannelsViewLayout) => {
-    layout.value = newLayout;
-  };
+    const setChannelsLayout = (newLayout: ChannelsViewLayout) => {
+      layout.value = newLayout;
+    };
 
-  const setFilterViewPageSize = (size: number) => {
-    filterViewPageSize.value = size;
-  };
+    const setFilterViewPageSize = (size: number) => {
+      filterViewPageSize.value = size;
+    };
 
-  const updateTheme = (newTheme: "light" | "dark") => {
-    theme.value = newTheme;
-  };
+    const updateTheme = (newTheme: "light" | "dark") => {
+      theme.value = newTheme;
+    };
 
-  // Getters to access state variables
-  const isMuted = computed(() => videoMuted.value);
-  const isDarkMode = computed(() => theme.value === "dark");
-  const isLightMode = computed(() => theme.value === "light");
-  const currentVolume = computed(() => videoVolume.value);
-  const isChannelsGridLayout = computed(() => layout.value === ChannelsViewLayout.Grid);
-  const isChannelsListLayout = computed(() => layout.value === ChannelsViewLayout.List);
-  const filterPageSize = computed(() => filterViewPageSize.value);
+    // Getters to access state variables
+    const isMuted = computed(() => videoMuted.value);
+    const isDarkMode = computed(() => theme.value === "dark");
+    const isLightMode = computed(() => theme.value === "light");
+    const currentVolume = computed(() => videoVolume.value);
+    const isChannelsGridLayout = computed(() => layout.value === ChannelsViewLayout.Grid);
+    const isChannelsListLayout = computed(() => layout.value === ChannelsViewLayout.List);
+    const filterPageSize = computed(() => filterViewPageSize.value);
 
     return {
       videoVolume,
@@ -94,5 +94,5 @@ export const useSettingsStore = defineStore(
   },
   {
     persist: true,
-  } as any
+  } as any,
 );

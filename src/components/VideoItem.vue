@@ -32,21 +32,7 @@
         </h6>
       </div>
     </div>
-    <VideoInfo
-      :disable-buttons="props.job !== null"
-      :duration="props.recording.duration"
-      :size="props.recording.size"
-      :url="downloadApiUrl"
-      :bit-rate="props.recording.bitRate"
-      :bookmark="props.recording.bookmark"
-      :created-at="props.recording.createdAt"
-      :data="recording"
-      :width="props.recording.width"
-      :height="props.recording.height"
-      @convert="convert"
-      @bookmarked="bookmark"
-      @preview="generatePreview"
-      @destroy="destroyRecording" />
+    <VideoInfo :disable-buttons="props.job !== null" :duration="props.recording.duration" :size="props.recording.size" :url="downloadApiUrl" :bit-rate="props.recording.bitRate" :bookmark="props.recording.bookmark" :created-at="props.recording.createdAt" :data="recording" :width="props.recording.width" :height="props.recording.height" @convert="convert" @bookmarked="bookmark" @preview="generatePreview" @destroy="destroyRecording" />
   </div>
 </template>
 
@@ -54,7 +40,7 @@
 import VideoInfo from "./VideoInfo.vue";
 import VideoPreview from "./VideoPreview.vue";
 import type { DatabaseRecording as RecordingResponse } from "../services/api/v1/MediaSinkClient";
-import { watch, ref, inject } from "vue";
+import { inject, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { createClient } from "../services/api/v1/ClientFactory";
@@ -128,7 +114,7 @@ const bookmark = async (recording: RecordingResponse, yesNo: boolean) => {
     busy.value = true;
     const client = createClient();
     const method = yesNo ? client.videos.favPartialUpdate : client.videos.unfavPartialUpdate;
-    await method(recording.recordingId);
+    await method({ id: recording.recordingId });
     recording.bookmark = yesNo;
     emit("bookmark", recording);
   } catch (ex) {
@@ -143,7 +129,7 @@ const generatePreview = async (recording: RecordingResponse) => {
     try {
       busy.value = true;
       const client = createClient();
-      await client.videos.previewCreate(recording.recordingId);
+      await client.videos.previewCreate({ id: recording.recordingId });
     } catch (ex) {
       alert(ex);
     } finally {
@@ -160,7 +146,7 @@ const convert = async ({ recording, mediaType }: { recording: RecordingResponse;
   try {
     busy.value = true;
     const client = createClient();
-    await client.videos.convertCreate(recording.recordingId, mediaType);
+    await client.videos.convertCreate({ id: recording.recordingId, mediaType });
   } catch (ex) {
     alert(ex);
   } finally {
@@ -176,7 +162,7 @@ const destroyRecording = async (recording: RecordingResponse) => {
   try {
     busy.value = true;
     const client = createClient();
-    await client.videos.videosDelete(recording.recordingId);
+    await client.videos.videosDelete({ id: recording.recordingId });
     destroyed.value = true;
     setTimeout(() => emit("destroyed", recording), 1000);
   } catch (ex) {

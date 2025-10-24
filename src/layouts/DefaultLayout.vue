@@ -23,6 +23,7 @@ import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import AppToaster from "@/components/AppToaster.vue";
+import { handlePotentialServerError } from "@/utils/serverError";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -105,59 +106,113 @@ watch(showModal, (val) => {
 // Hooks
 // --------------------------------------------------------------------------------------
 
+// --------------------------------------------------------------------------------------
+// Socket Event Handlers (defined outside onMounted to prevent duplicate registrations)
+// --------------------------------------------------------------------------------------
+
+const handleJobStart = (message: unknown) => {
+  const data = message as JobMessage<TaskInfo>;
+  jobStore.start(data);
+};
+
+const handleJobCreate = (data: unknown) => {
+  const job = data as DatabaseJob;
+  jobStore.add(job);
+  toastStore.success({
+    title: "Job created",
+    message: `File ${(job as DatabaseJob).filename} in ${(job as DatabaseJob).channelName}`,
+  });
+};
+
+const handleJobDone = (message: unknown) => {
+  jobStore.done(message as JobMessage<TaskComplete>);
+};
+
+const handleJobDeactivate = (message: unknown) => {
+  jobStore.done(message as JobMessage<TaskComplete>);
+};
+
+const handleJobDelete = (jobId: unknown) => {
+  const id = jobId as number;
+  jobStore.destroy(id);
+  toastStore.success({
+    title: "Job destroyed",
+    message: `Job id ${id} removed`,
+  });
+};
+
+const handleJobDeleted = (data: unknown) => jobStore.destroy(data as number);
+const handleJobProgress = (data: unknown) => jobStore.progress(data as JobMessage<TaskProgress>);
+const handleChannelOnline = (data: unknown) => channelStore.online(data as number);
+const handleChannelOffline = (data: unknown) => channelStore.offline(data as number);
+const handleChannelThumbnail = (data: unknown) => channelStore.thumbnail(data as number);
+
+const handleChannelStart = (data: unknown) => {
+  const id = data as number;
+  channelStore.start(id);
+  toastStore.info({ title: "Channel recording", message: `Channel id ${id}` });
+};
+
 onMounted(async () => {
   if (!authStore.isLoggedIn) {
     return;
   }
 
-  await jobStore.load();
-  await socketManager.connect();
+  try {
+    // Try to load initial job data
+    await jobStore.load();
+  } catch (error) {
+    // Check if this is a server unreachability error and handle it
+    console.error("[DefaultLayout] Job load error:", error);
+    const wasServerError = await handlePotentialServerError(error);
+    if (wasServerError) {
+      console.log("[DefaultLayout] Server unreachable error handled, redirecting to login");
+      return; // User has been logged out and redirected
+    }
+    // Log other errors but continue
+    console.error("[DefaultLayout] Non-server error, continuing anyway:", error);
+  }
 
-  socketManager.on(MessageType.JobStart, (message) => {
-    const data = message as JobMessage<TaskInfo>;
-    jobStore.start(data);
-  });
+  try {
+    // Try to connect to socket
+    await socketManager.connect();
+  } catch (error) {
+    // Check if this is a server unreachability error and handle it
+    console.error("[DefaultLayout] Socket connect error:", error);
+    const wasServerError = await handlePotentialServerError(error);
+    if (wasServerError) {
+      console.log("[DefaultLayout] Server unreachable error handled, redirecting to login");
+      return; // User has been logged out and redirected
+    }
+    // Log other errors but continue (socket will attempt to reconnect)
+    console.error("[DefaultLayout] Non-server socket error, continuing anyway:", error);
+  }
 
-  socketManager.on(MessageType.JobCreate, (data) => {
-    const job = data as DatabaseJob;
-    jobStore.add(job);
-    toastStore.success({
-      title: "Job created",
-      message: `File ${job.filename} in ${job.channelName}`,
-    });
-  });
+  // Unregister previous listeners to prevent duplicates on reconnection
+  socketManager.off(MessageType.JobStart, handleJobStart);
+  socketManager.off(MessageType.JobCreate, handleJobCreate);
+  socketManager.off(MessageType.JobDone, handleJobDone);
+  socketManager.off(MessageType.JobDeactivate, handleJobDeactivate);
+  socketManager.off(MessageType.JobDelete, handleJobDelete);
+  socketManager.off(MessageType.JobDeleted, handleJobDeleted);
+  socketManager.off(MessageType.JobProgress, handleJobProgress);
+  socketManager.off(MessageType.ChannelOnline, handleChannelOnline);
+  socketManager.off(MessageType.ChannelOffline, handleChannelOffline);
+  socketManager.off(MessageType.ChannelThumbnail, handleChannelThumbnail);
+  socketManager.off(MessageType.ChannelStart, handleChannelStart);
 
-  // Dispatch
-  socketManager.on(MessageType.JobDone, (message) => {
-    jobStore.done(message as JobMessage<TaskComplete>);
-  });
-
-  // Dispatch
-  socketManager.on(MessageType.JobDeactivate, (message) => {
-    jobStore.done(message as JobMessage<TaskComplete>);
-  });
-
-  socketManager.on(MessageType.JobDelete, (jobId) => {
-    const id = jobId as number;
-    jobStore.destroy(id);
-    toastStore.success({
-      title: "Job destroyed",
-      message: `Job id ${id} removed`,
-    });
-  });
-
-  socketManager.on(MessageType.JobDeleted, (data) => jobStore.destroy(data as number));
-  socketManager.on(MessageType.JobProgress, (data) => jobStore.progress(data as JobMessage<TaskProgress>));
-
-  socketManager.on(MessageType.ChannelOnline, (data) => channelStore.online(data as number));
-  socketManager.on(MessageType.ChannelOffline, (data) => channelStore.offline(data as number));
-  socketManager.on(MessageType.ChannelThumbnail, (data) => channelStore.thumbnail(data as number));
-
-  socketManager.on(MessageType.ChannelStart, (data) => {
-    const id = data as number;
-    channelStore.start(id);
-    toastStore.info({ title: "Channel recording", message: `Channel id ${id}` });
-  });
+  // Register listeners
+  socketManager.on(MessageType.JobStart, handleJobStart);
+  socketManager.on(MessageType.JobCreate, handleJobCreate);
+  socketManager.on(MessageType.JobDone, handleJobDone);
+  socketManager.on(MessageType.JobDeactivate, handleJobDeactivate);
+  socketManager.on(MessageType.JobDelete, handleJobDelete);
+  socketManager.on(MessageType.JobDeleted, handleJobDeleted);
+  socketManager.on(MessageType.JobProgress, handleJobProgress);
+  socketManager.on(MessageType.ChannelOnline, handleChannelOnline);
+  socketManager.on(MessageType.ChannelOffline, handleChannelOffline);
+  socketManager.on(MessageType.ChannelThumbnail, handleChannelThumbnail);
+  socketManager.on(MessageType.ChannelStart, handleChannelStart);
 });
 
 onUnmounted(() => {

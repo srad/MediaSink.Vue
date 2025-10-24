@@ -73,7 +73,7 @@ const destroyRecording = async (recording: DatabaseRecording) => {
 
   try {
     const client = createClient();
-    await client.videos.videosDelete(recording.recordingId);
+    await client.videos.videosDelete({ id: recording.recordingId });
     removeItem(recording);
   } catch (ex) {
     alert(ex);

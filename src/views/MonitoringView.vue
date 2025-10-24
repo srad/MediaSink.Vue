@@ -56,7 +56,7 @@ const id = ref<number>(0);
 const fetch = async () => {
   try {
     const client = createClient();
-    const data = await Promise.all([client.info.infoDetail(1), client.admin.importList()]);
+    const data = await Promise.all([client.info.infoDetail({ seconds: 1 }), client.admin.importList()]);
 
     if (data) {
       netInfo.value = data[0].netInfo;

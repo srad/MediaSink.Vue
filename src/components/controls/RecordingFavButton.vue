@@ -22,7 +22,7 @@ const bookmark = () => {
   const client = createClient();
   busy.value = true;
   const fn = fav.value ? client.videos.unfavPartialUpdate : client.videos.favPartialUpdate;
-  fn(props.recordingId)
+  fn({ id: props.recordingId })
     .then(() => (fav.value = !fav.value))
     .catch((res) => alert(res.error))
     .finally(() => (busy.value = false));

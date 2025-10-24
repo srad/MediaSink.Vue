@@ -10,6 +10,33 @@
  * ---------------------------------------------------------------
  */
 
+export interface ChannelsDeleteParams {
+  /** Channel id */
+  id: number;
+}
+
+export interface ChannelsDetailParams {
+  /** Channel id */
+  id: number;
+}
+
+export interface ChannelsPartialUpdateParams {
+  /** Channel id */
+  id: number;
+}
+
+export interface ConvertCreateParams {
+  /** video item id */
+  id: number;
+  /** Media type to convert to: 720, 1080, mp3 */
+  mediaType: string;
+}
+
+export interface CutCreateParams {
+  /** video item id */
+  id: number;
+}
+
 export interface DatabaseChannel {
   channelId: number;
   channelName: string;
@@ -95,6 +122,21 @@ export interface DatabaseRecording {
   width: number;
 }
 
+export interface DownloadDetailParams {
+  /** Recording item id */
+  id: number;
+}
+
+export interface FavPartialUpdateParams {
+  /** Channel id */
+  id: number;
+}
+
+export interface FavPartialUpdateParams2 {
+  /** video item id */
+  id: number;
+}
+
 export interface HelpersCPUInfo {
   loadCpu: HelpersCPULoad[];
 }
@@ -125,9 +167,39 @@ export interface HelpersSysInfo {
   netInfo: HelpersNetInfo;
 }
 
+export interface InfoDetailParams {
+  /** Number of seconds to measure */
+  seconds: number;
+}
+
+export interface JobsCreateParams {
+  /** Recording item id */
+  id: string;
+}
+
+export interface JobsDeleteParams {
+  /** Job id */
+  id: number;
+}
+
+export interface PauseCreateParams {
+  /** Channel id */
+  id: number;
+}
+
+export interface PreviewCreateParams {
+  /** videos item id */
+  id: number;
+}
+
 export enum QueriesSortOrder {
   SortAsc = "asc",
   SortDesc = "desc",
+}
+
+export interface RandomDetailParams {
+  /** Number of random videos to return */
+  limit: number;
 }
 
 export interface RequestsAuthenticationRequest {
@@ -214,6 +286,11 @@ export interface ResponsesVideoFilterResponse {
   videos?: DatabaseRecording[];
 }
 
+export interface ResumeCreateParams {
+  /** Channel id */
+  id: number;
+}
+
 export interface ServicesChannelInfo {
   channelId: number;
   channelName: string;
@@ -246,17 +323,52 @@ export interface ServicesProcessInfo {
   pid?: number;
 }
 
+export interface StopCreateParams {
+  /** Process ID */
+  pid: number;
+}
+
+export interface TagsPartialUpdateParams {
+  /** Channel id */
+  id: number;
+}
+
+export interface UnfavPartialUpdateParams {
+  /** Channel id */
+  id: number;
+}
+
+export interface UnfavPartialUpdateParams2 {
+  /** video item id */
+  id: number;
+}
+
+export interface UploadCreateParams {
+  /** Channel id */
+  id: number;
+}
+
 export interface UploadCreatePayload {
-  /** Uploaded file chunk */
-  file: number[];
+  /** Video file to upload */
+  file: File;
+}
+
+export interface VideosDeleteParams {
+  /** video item id */
+  id: number;
+}
+
+export interface VideosDetailParams {
+  /** videos item id */
+  id: number;
 }
 
 export namespace Admin {
   /**
-   * @description version information
+   * @description Get the current import progress status and information
    * @tags admin
    * @name ImportList
-   * @summary Returns server version information
+   * @summary Returns current import progress information
    * @request GET:/admin/import
    * @response `200` `ResponsesImportInfoResponse` OK
    * @response `500` `any` Internal Server Error
@@ -270,12 +382,12 @@ export namespace Admin {
   }
 
   /**
-   * @description Return a list of channels
+   * @description Import all mp4 files in the recordings directory that are not yet in the system database
    * @tags admin
    * @name ImportCreate
-   * @summary Run once the import of mp4 files in the recordings folder, which are not yet in the system
+   * @summary Run once the import of mp4 files in the recordings folder
    * @request POST:/admin/import
-   * @response `200` `void` OK
+   * @response `200` `any` OK
    * @response `500` `any` Internal Server Error
    */
   export namespace ImportCreate {
@@ -283,7 +395,7 @@ export namespace Admin {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = any;
   }
 
   /**
@@ -324,30 +436,30 @@ export namespace Auth {
   }
 
   /**
-   * @description User logout, removes the authentication cookie.
+   * @description User logout, clears the authentication session
    * @tags auth
    * @name LogoutCreate
-   * @summary User logout.
+   * @summary User logout
    * @request POST:/auth/logout
-   * @response `200` `ResponsesLoginResponse` JWT token for authentication
+   * @response `200` `any` Logout successful message
    * @response `400` `string` Error message
    * @response `401` `string` Error message
    */
   export namespace LogoutCreate {
     export type RequestParams = {};
     export type RequestQuery = {};
-    export type RequestBody = RequestsAuthenticationRequest;
+    export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = ResponsesLoginResponse;
+    export type ResponseBody = any;
   }
 
   /**
-   * @description Create new user
+   * @description Create a new user account with username and password
    * @tags auth
    * @name SignupCreate
-   * @summary Create new user
+   * @summary Create new user account
    * @request POST:/auth/signup
-   * @response `200` `any` JWT token for authentication
+   * @response `200` `any` User created successfully
    * @response `400` `string` Error message
    * @response `500` `string` Error message
    */
@@ -417,17 +529,18 @@ export namespace Channels {
   }
 
   /**
-   * @description Delete channel with all recordings
+   * @description Delete a channel and all its associated recordings
    * @tags channels
    * @name ChannelsDelete
    * @summary Delete channel
    * @request DELETE:/channels/{id}
    * @response `200` `any` OK
+   * @response `400` `any` Bad Request
    * @response `500` `any` Internal Server Error
    */
   export namespace ChannelsDelete {
     export type RequestParams = {
-      /** List of tags */
+      /** Channel id */
       id: number;
     };
     export type RequestQuery = {};
@@ -458,12 +571,13 @@ export namespace Channels {
   }
 
   /**
-   * @description Mark channel as one of favorites
+   * @description Mark a channel as favorite/bookmarked
    * @tags channels
    * @name FavPartialUpdate
-   * @summary Mark channel as one of favorites
+   * @summary Bookmark a channel
    * @request PATCH:/channels/{id}/fav
    * @response `200` `any` OK
+   * @response `400` `any` Bad Request
    * @response `500` `any` Internal Server Error
    */
   export namespace FavPartialUpdate {
@@ -478,12 +592,13 @@ export namespace Channels {
   }
 
   /**
-   * @description Pause channel for recording
+   * @description Pause/stop recording for a channel
    * @tags channels
    * @name PauseCreate
-   * @summary Pause channel for recording
+   * @summary Pause channel recording
    * @request POST:/channels/{id}/pause
    * @response `200` `any` OK
+   * @response `400` `any` Bad Request
    * @response `500` `any` Internal Server Error
    */
   export namespace PauseCreate {
@@ -498,10 +613,10 @@ export namespace Channels {
   }
 
   /**
-   * @description Delete channel with all recordings
+   * @description Resume/restart recording for a channel that was paused
    * @tags channels
    * @name ResumeCreate
-   * @summary Tag a channel
+   * @summary Resume channel recording
    * @request POST:/channels/{id}/resume
    * @response `200` `any` OK
    * @response `400` `any` Bad Request
@@ -540,12 +655,13 @@ export namespace Channels {
   }
 
   /**
-   * @description Remove channel as one of favorites
+   * @description Remove a channel from favorites/bookmarks
    * @tags channels
    * @name UnfavPartialUpdate
-   * @summary Remove channel as one of favorites
+   * @summary Remove channel from bookmarks
    * @request PATCH:/channels/{id}/unfav
    * @response `200` `any` OK
+   * @response `400` `any` Bad Request
    * @response `500` `any` Internal Server Error
    */
   export namespace UnfavPartialUpdate {
@@ -560,10 +676,10 @@ export namespace Channels {
   }
 
   /**
-   * @description Add a new channel
+   * @description Upload a video file to a channel's recordings
    * @tags channels
    * @name UploadCreate
-   * @summary Add a new channel
+   * @summary Upload video file to channel
    * @request POST:/channels/{id}/upload
    * @response `200` `DatabaseRecording` OK
    * @response `400` `any` Bad Request
@@ -640,12 +756,13 @@ export namespace Jobs {
   }
 
   /**
-   * @description Stops the job processing
+   * @description Pause the background job processing worker
    * @tags jobs
    * @name PauseCreate
-   * @summary Stops the job processing
+   * @summary Stop job processing worker
    * @request POST:/jobs/pause
    * @response `200` `any` OK
+   * @response `500` `any` Error message
    */
   export namespace PauseCreate {
     export type RequestParams = {};
@@ -656,12 +773,13 @@ export namespace Jobs {
   }
 
   /**
-   * @description Start the job processing
+   * @description Resume the background job processing worker
    * @tags jobs
    * @name ResumeCreate
-   * @summary Start the job processing
+   * @summary Start job processing worker
    * @request POST:/jobs/resume
    * @response `200` `any` OK
+   * @response `500` `any` Error message
    */
   export namespace ResumeCreate {
     export type RequestParams = {};
@@ -672,12 +790,12 @@ export namespace Jobs {
   }
 
   /**
-   * @description Interrupt job gracefully
+   * @description Interrupt a running job by process ID
    * @tags jobs
    * @name StopCreate
    * @summary Interrupt job gracefully
    * @request POST:/jobs/stop/{pid}
-   * @response `200` `void` OK
+   * @response `200` `any` Process ID
    * @response `400` `any` Error message
    * @response `500` `any` Error message
    */
@@ -689,16 +807,17 @@ export namespace Jobs {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = any;
   }
 
   /**
-   * @description Job worker status
+   * @description Get the current job processing worker status
    * @tags jobs
    * @name WorkerList
-   * @summary Job worker status
+   * @summary Get job worker status
    * @request GET:/jobs/worker
    * @response `200` `ResponsesJobWorkerStatus` OK
+   * @response `500` `any` Error message
    */
   export namespace WorkerList {
     export type RequestParams = {};
@@ -730,7 +849,7 @@ export namespace Jobs {
   }
 
   /**
-   * @description Interrupt and delete job gracefully
+   * @description Interrupt a running job and remove it from the queue
    * @tags jobs
    * @name JobsDelete
    * @summary Interrupt and delete job gracefully
@@ -772,13 +891,13 @@ export namespace Processes {
 
 export namespace Recorder {
   /**
-   * @description Return if server is current recording.
+   * @description Get the current recording/streaming recorder status
    * @tags recorder
    * @name RecorderList
-   * @summary Return if server is current recording
+   * @summary Get recorder status
    * @request GET:/recorder
    * @response `200` `ResponsesRecordingStatusResponse` OK
-   * @response `500` `void` Internal Server Error
+   * @response `500` `any` Error message
    */
   export namespace RecorderList {
     export type RequestParams = {};
@@ -789,54 +908,56 @@ export namespace Recorder {
   }
 
   /**
-   * No description
+   * @description Stop/pause the recording and streaming recorder
    * @tags recorder
    * @name PauseCreate
-   * @summary StopRecorder server recording
+   * @summary Pause the recorder
    * @request POST:/recorder/pause
-   * @response `200` `void` OK
+   * @response `200` `any` OK
+   * @response `500` `any` Error message
    */
   export namespace PauseCreate {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = any;
   }
 
   /**
-   * No description
+   * @description Resume/restart the recording and streaming recorder
    * @tags recorder
    * @name ResumeCreate
-   * @summary StartRecorder server recording
+   * @summary Resume the recorder
    * @request POST:/recorder/resume
-   * @response `200` `void` OK
+   * @response `200` `any` OK
+   * @response `500` `any` Error message
    */
   export namespace ResumeCreate {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = any;
   }
 }
 
 export namespace User {
   /**
-   * @description Get user profile
+   * @description Get the current authenticated user's profile information
    * @tags user
-   * @name ProfileCreate
+   * @name ProfileList
    * @summary Get user profile
-   * @request POST:/user/profile
-   * @response `200` `any` OK
+   * @request GET:/user/profile
+   * @response `200` `object` User profile
    * @response `400` `any` Bad Request
    */
-  export namespace ProfileCreate {
+  export namespace ProfileList {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = any;
+    export type ResponseBody = object;
   }
 }
 
@@ -894,12 +1015,12 @@ export namespace Videos {
   }
 
   /**
-   * @description Return a list of recordings.
+   * @description Generate poster/cover images for all videos in the system
    * @tags videos
    * @name GeneratePostersCreate
-   * @summary Return a list of recordings
+   * @summary Generate cover images for all videos
    * @request POST:/videos/generate/posters
-   * @response `200` `void` OK
+   * @response `200` `any` OK
    * @response `500` `any` Error message
    */
   export namespace GeneratePostersCreate {
@@ -907,28 +1028,28 @@ export namespace Videos {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = any;
   }
 
   /**
-   * @description Returns if current the videos are updated.
+   * @description Get the status of the video metadata update process
    * @tags videos
-   * @name IsupdatingList
-   * @summary Returns if current the videos are updated.
-   * @request GET:/videos/isupdating
-   * @response `200` `void` OK
+   * @name IsupdatingCreate
+   * @summary Check if video metadata update is in progress
+   * @request POST:/videos/isupdating
+   * @response `200` `boolean` OK
    * @response `500` `any` Error message
    */
-  export namespace IsupdatingList {
+  export namespace IsupdatingCreate {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = boolean;
   }
 
   /**
-   * No description
+   * @description Get a random selection of videos from the system
    * @tags videos
    * @name RandomDetail
    * @summary Get random videos
@@ -939,8 +1060,8 @@ export namespace Videos {
    */
   export namespace RandomDetail {
     export type RequestParams = {
-      /** How many videos */
-      limit?: string;
+      /** Number of random videos to return */
+      limit: number;
     };
     export type RequestQuery = {};
     export type RequestBody = never;
@@ -949,12 +1070,12 @@ export namespace Videos {
   }
 
   /**
-   * @description Return a list of videos.
+   * @description Update metadata information for all videos in the system
    * @tags videos
    * @name UpdateinfoCreate
-   * @summary Return a list of videos
+   * @summary Update video metadata information
    * @request POST:/videos/updateinfo
-   * @response `200` `void` OK
+   * @response `200` `any` OK
    * @response `500` `any` Error message
    */
   export namespace UpdateinfoCreate {
@@ -962,7 +1083,7 @@ export namespace Videos {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = any;
   }
 
   /**
@@ -1029,12 +1150,12 @@ export namespace Videos {
   }
 
   /**
-   * @description Download a file from a channel.
+   * @description Download a video file as an attachment
    * @tags videos
    * @name DownloadDetail
-   * @summary Download a file from a channel
+   * @summary Download a video file
    * @request GET:/videos/{id}/download
-   * @response `200` `void` OK
+   * @response `200` `File` Video file
    * @response `400` `any` Error message
    * @response `500` `any` Error message
    */
@@ -1046,16 +1167,16 @@ export namespace Videos {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = File;
   }
 
   /**
-   * @description Bookmark a certain video in a channel.
+   * @description Bookmark/favorite a video for easy access
    * @tags videos
    * @name FavPartialUpdate
-   * @summary Bookmark a certain video in a channel
+   * @summary Bookmark a video
    * @request PATCH:/videos/{id}/fav
-   * @response `200` `void` OK
+   * @response `200` `any` OK
    * @response `400` `any` Error message
    * @response `500` `any` Error message
    */
@@ -1067,7 +1188,7 @@ export namespace Videos {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = any;
   }
 
   /**
@@ -1092,12 +1213,12 @@ export namespace Videos {
   }
 
   /**
-   * @description Bookmark a certain video in a channel.
+   * @description Remove/unbookmark a video from favorites
    * @tags videos
    * @name UnfavPartialUpdate
-   * @summary Bookmark a certain video in a channel
+   * @summary Remove video from bookmarks
    * @request PATCH:/videos/{id}/unfav
-   * @response `200` `void` OK
+   * @response `200` `any` OK
    * @response `400` `any` Error message
    * @response `500` `any` Error message
    */
@@ -1109,7 +1230,7 @@ export namespace Videos {
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = void;
+    export type ResponseBody = any;
   }
 
   /**
@@ -1182,6 +1303,7 @@ type CancelToken = Symbol | string | number;
 
 export enum ContentType {
   Json = "application/json",
+  JsonApi = "application/vnd.api+json",
   FormData = "multipart/form-data",
   UrlEncoded = "application/x-www-form-urlencoded",
   Text = "text/plain",
@@ -1248,12 +1370,20 @@ export class HttpClient<SecurityDataType = unknown> {
       input !== null && (typeof input === "object" || typeof input === "string")
         ? JSON.stringify(input)
         : input,
+    [ContentType.JsonApi]: (input: any) =>
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
     [ContentType.Text]: (input: any) =>
       input !== null && typeof input !== "string"
         ? JSON.stringify(input)
         : input,
-    [ContentType.FormData]: (input: any) =>
-      Object.keys(input || {}).reduce((formData, key) => {
+    [ContentType.FormData]: (input: any) => {
+      if (input instanceof FormData) {
+        return input;
+      }
+
+      return Object.keys(input || {}).reduce((formData, key) => {
         const property = input[key];
         formData.append(
           key,
@@ -1264,7 +1394,8 @@ export class HttpClient<SecurityDataType = unknown> {
               : `${property}`,
         );
         return formData;
-      }, new FormData()),
+      }, new FormData());
+    },
     [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
   };
 
@@ -1350,13 +1481,14 @@ export class HttpClient<SecurityDataType = unknown> {
             : payloadFormatter(body),
       },
     ).then(async (response) => {
-      const r = response.clone() as HttpResponse<T, E>;
+      const r = response as HttpResponse<T, E>;
       r.data = null as unknown as T;
       r.error = null as unknown as E;
 
+      const responseToParse = responseFormat ? response.clone() : response;
       const data = !responseFormat
         ? r
-        : await response[responseFormat]()
+        : await responseToParse[responseFormat]()
             .then((data) => {
               if (r.ok) {
                 r.data = data;
@@ -1394,11 +1526,11 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
 
   admin = {
     /**
-     * @description version information
+     * @description Get the current import progress status and information
      *
      * @tags admin
      * @name ImportList
-     * @summary Returns server version information
+     * @summary Returns current import progress information
      * @request GET:/admin/import
      * @response `200` `ResponsesImportInfoResponse` OK
      * @response `500` `any` Internal Server Error
@@ -1413,20 +1545,21 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Return a list of channels
+     * @description Import all mp4 files in the recordings directory that are not yet in the system database
      *
      * @tags admin
      * @name ImportCreate
-     * @summary Run once the import of mp4 files in the recordings folder, which are not yet in the system
+     * @summary Run once the import of mp4 files in the recordings folder
      * @request POST:/admin/import
-     * @response `200` `void` OK
+     * @response `200` `any` OK
      * @response `500` `any` Internal Server Error
      */
     importCreate: (params: RequestParams = {}) =>
-      this.http.request<void, any>({
+      this.http.request<any, any>({
         path: `/admin/import`,
         method: "POST",
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
@@ -1475,37 +1608,33 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description User logout, removes the authentication cookie.
+     * @description User logout, clears the authentication session
      *
      * @tags auth
      * @name LogoutCreate
-     * @summary User logout.
+     * @summary User logout
      * @request POST:/auth/logout
-     * @response `200` `ResponsesLoginResponse` JWT token for authentication
+     * @response `200` `any` Logout successful message
      * @response `400` `string` Error message
      * @response `401` `string` Error message
      */
-    logoutCreate: (
-      AuthenticationRequest: RequestsAuthenticationRequest,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<ResponsesLoginResponse, string>({
+    logoutCreate: (params: RequestParams = {}) =>
+      this.http.request<any, string>({
         path: `/auth/logout`,
         method: "POST",
-        body: AuthenticationRequest,
         type: ContentType.Json,
         format: "json",
         ...params,
       }),
 
     /**
-     * @description Create new user
+     * @description Create a new user account with username and password
      *
      * @tags auth
      * @name SignupCreate
-     * @summary Create new user
+     * @summary Create new user account
      * @request POST:/auth/signup
-     * @response `200` `any` JWT token for authentication
+     * @response `200` `any` User created successfully
      * @response `400` `string` Error message
      * @response `500` `string` Error message
      */
@@ -1576,7 +1705,10 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `200` `ServicesChannelInfo` OK
      * @response `500` `any` Internal Server Error
      */
-    channelsDetail: (id: number, params: RequestParams = {}) =>
+    channelsDetail: (
+      { id, ...query }: ChannelsDetailParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<ServicesChannelInfo, any>({
         path: `/channels/${id}`,
         method: "GET",
@@ -1585,16 +1717,20 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Delete channel with all recordings
+     * @description Delete a channel and all its associated recordings
      *
      * @tags channels
      * @name ChannelsDelete
      * @summary Delete channel
      * @request DELETE:/channels/{id}
      * @response `200` `any` OK
+     * @response `400` `any` Bad Request
      * @response `500` `any` Internal Server Error
      */
-    channelsDelete: (id: number, params: RequestParams = {}) =>
+    channelsDelete: (
+      { id, ...query }: ChannelsDeleteParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<any, any>({
         path: `/channels/${id}`,
         method: "DELETE",
@@ -1615,7 +1751,7 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `500` `any` Internal Server Error
      */
     channelsPartialUpdate: (
-      id: number,
+      { id, ...query }: ChannelsPartialUpdateParams,
       ChannelRequest: RequestsChannelRequest,
       params: RequestParams = {},
     ) =>
@@ -1629,16 +1765,20 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Mark channel as one of favorites
+     * @description Mark a channel as favorite/bookmarked
      *
      * @tags channels
      * @name FavPartialUpdate
-     * @summary Mark channel as one of favorites
+     * @summary Bookmark a channel
      * @request PATCH:/channels/{id}/fav
      * @response `200` `any` OK
+     * @response `400` `any` Bad Request
      * @response `500` `any` Internal Server Error
      */
-    favPartialUpdate: (id: number, params: RequestParams = {}) =>
+    favPartialUpdate: (
+      { id, ...query }: FavPartialUpdateParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<any, any>({
         path: `/channels/${id}/fav`,
         method: "PATCH",
@@ -1648,16 +1788,20 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Pause channel for recording
+     * @description Pause/stop recording for a channel
      *
      * @tags channels
      * @name PauseCreate
-     * @summary Pause channel for recording
+     * @summary Pause channel recording
      * @request POST:/channels/{id}/pause
      * @response `200` `any` OK
+     * @response `400` `any` Bad Request
      * @response `500` `any` Internal Server Error
      */
-    pauseCreate: (id: number, params: RequestParams = {}) =>
+    pauseCreate: (
+      { id, ...query }: PauseCreateParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<any, any>({
         path: `/channels/${id}/pause`,
         method: "POST",
@@ -1667,17 +1811,20 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Delete channel with all recordings
+     * @description Resume/restart recording for a channel that was paused
      *
      * @tags channels
      * @name ResumeCreate
-     * @summary Tag a channel
+     * @summary Resume channel recording
      * @request POST:/channels/{id}/resume
      * @response `200` `any` OK
      * @response `400` `any` Bad Request
      * @response `500` `any` Internal Server Error
      */
-    resumeCreate: (id: number, params: RequestParams = {}) =>
+    resumeCreate: (
+      { id, ...query }: ResumeCreateParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<any, any>({
         path: `/channels/${id}/resume`,
         method: "POST",
@@ -1698,7 +1845,7 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `500` `any` Internal Server Error
      */
     tagsPartialUpdate: (
-      id: number,
+      { id, ...query }: TagsPartialUpdateParams,
       ChannelTagsUpdateRequest: RequestsChannelTagsUpdateRequest,
       params: RequestParams = {},
     ) =>
@@ -1711,16 +1858,20 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Remove channel as one of favorites
+     * @description Remove a channel from favorites/bookmarks
      *
      * @tags channels
      * @name UnfavPartialUpdate
-     * @summary Remove channel as one of favorites
+     * @summary Remove channel from bookmarks
      * @request PATCH:/channels/{id}/unfav
      * @response `200` `any` OK
+     * @response `400` `any` Bad Request
      * @response `500` `any` Internal Server Error
      */
-    unfavPartialUpdate: (id: number, params: RequestParams = {}) =>
+    unfavPartialUpdate: (
+      { id, ...query }: UnfavPartialUpdateParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<any, any>({
         path: `/channels/${id}/unfav`,
         method: "PATCH",
@@ -1730,18 +1881,18 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Add a new channel
+     * @description Upload a video file to a channel's recordings
      *
      * @tags channels
      * @name UploadCreate
-     * @summary Add a new channel
+     * @summary Upload video file to channel
      * @request POST:/channels/{id}/upload
      * @response `200` `DatabaseRecording` OK
      * @response `400` `any` Bad Request
      * @response `500` `any` Internal Server Error
      */
     uploadCreate: (
-      id: number,
+      { id, ...query }: UploadCreateParams,
       data: UploadCreatePayload,
       params: RequestParams = {},
     ) =>
@@ -1784,7 +1935,10 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `200` `HelpersSysInfo` OK
      * @response `500` `any` Internal Server Error
      */
-    infoDetail: (seconds: number, params: RequestParams = {}) =>
+    infoDetail: (
+      { seconds, ...query }: InfoDetailParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<HelpersSysInfo, any>({
         path: `/info/${seconds}`,
         method: "GET",
@@ -1819,69 +1973,81 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Stops the job processing
+     * @description Pause the background job processing worker
      *
      * @tags jobs
      * @name PauseCreate
-     * @summary Stops the job processing
+     * @summary Stop job processing worker
      * @request POST:/jobs/pause
      * @response `200` `any` OK
+     * @response `500` `any` Error message
      */
     pauseCreate: (params: RequestParams = {}) =>
       this.http.request<any, any>({
         path: `/jobs/pause`,
         method: "POST",
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
     /**
-     * @description Start the job processing
+     * @description Resume the background job processing worker
      *
      * @tags jobs
      * @name ResumeCreate
-     * @summary Start the job processing
+     * @summary Start job processing worker
      * @request POST:/jobs/resume
      * @response `200` `any` OK
+     * @response `500` `any` Error message
      */
     resumeCreate: (params: RequestParams = {}) =>
       this.http.request<any, any>({
         path: `/jobs/resume`,
         method: "POST",
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
     /**
-     * @description Interrupt job gracefully
+     * @description Interrupt a running job by process ID
      *
      * @tags jobs
      * @name StopCreate
      * @summary Interrupt job gracefully
      * @request POST:/jobs/stop/{pid}
-     * @response `200` `void` OK
+     * @response `200` `any` Process ID
      * @response `400` `any` Error message
      * @response `500` `any` Error message
      */
-    stopCreate: (pid: number, params: RequestParams = {}) =>
-      this.http.request<void, any>({
+    stopCreate: (
+      { pid, ...query }: StopCreateParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<any, any>({
         path: `/jobs/stop/${pid}`,
         method: "POST",
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
     /**
-     * @description Job worker status
+     * @description Get the current job processing worker status
      *
      * @tags jobs
      * @name WorkerList
-     * @summary Job worker status
+     * @summary Get job worker status
      * @request GET:/jobs/worker
      * @response `200` `ResponsesJobWorkerStatus` OK
+     * @response `500` `any` Error message
      */
     workerList: (params: RequestParams = {}) =>
       this.http.request<ResponsesJobWorkerStatus, any>({
         path: `/jobs/worker`,
         method: "GET",
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -1897,7 +2063,10 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `400` `any` Error message
      * @response `500` `any` Error message
      */
-    jobsCreate: (id: string, params: RequestParams = {}) =>
+    jobsCreate: (
+      { id, ...query }: JobsCreateParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<DatabaseJob[], any>({
         path: `/jobs/${id}`,
         method: "POST",
@@ -1907,7 +2076,7 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Interrupt and delete job gracefully
+     * @description Interrupt a running job and remove it from the queue
      *
      * @tags jobs
      * @name JobsDelete
@@ -1917,7 +2086,10 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `400` `any` Error message
      * @response `500` `any` Error message
      */
-    jobsDelete: (id: number, params: RequestParams = {}) =>
+    jobsDelete: (
+      { id, ...query }: JobsDeleteParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<any, any>({
         path: `/jobs/${id}`,
         method: "DELETE",
@@ -1948,70 +2120,77 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
   };
   recorder = {
     /**
-     * @description Return if server is current recording.
+     * @description Get the current recording/streaming recorder status
      *
      * @tags recorder
      * @name RecorderList
-     * @summary Return if server is current recording
+     * @summary Get recorder status
      * @request GET:/recorder
      * @response `200` `ResponsesRecordingStatusResponse` OK
-     * @response `500` `void` Internal Server Error
+     * @response `500` `any` Error message
      */
     recorderList: (params: RequestParams = {}) =>
-      this.http.request<ResponsesRecordingStatusResponse, void>({
+      this.http.request<ResponsesRecordingStatusResponse, any>({
         path: `/recorder`,
         method: "GET",
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
 
     /**
-     * No description
+     * @description Stop/pause the recording and streaming recorder
      *
      * @tags recorder
      * @name PauseCreate
-     * @summary StopRecorder server recording
+     * @summary Pause the recorder
      * @request POST:/recorder/pause
-     * @response `200` `void` OK
+     * @response `200` `any` OK
+     * @response `500` `any` Error message
      */
     pauseCreate: (params: RequestParams = {}) =>
-      this.http.request<void, any>({
+      this.http.request<any, any>({
         path: `/recorder/pause`,
         method: "POST",
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
     /**
-     * No description
+     * @description Resume/restart the recording and streaming recorder
      *
      * @tags recorder
      * @name ResumeCreate
-     * @summary StartRecorder server recording
+     * @summary Resume the recorder
      * @request POST:/recorder/resume
-     * @response `200` `void` OK
+     * @response `200` `any` OK
+     * @response `500` `any` Error message
      */
     resumeCreate: (params: RequestParams = {}) =>
-      this.http.request<void, any>({
+      this.http.request<any, any>({
         path: `/recorder/resume`,
         method: "POST",
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };
   user = {
     /**
-     * @description Get user profile
+     * @description Get the current authenticated user's profile information
      *
      * @tags user
-     * @name ProfileCreate
+     * @name ProfileList
      * @summary Get user profile
-     * @request POST:/user/profile
-     * @response `200` `any` OK
+     * @request GET:/user/profile
+     * @response `200` `object` User profile
      * @response `400` `any` Bad Request
      */
-    profileCreate: (params: RequestParams = {}) =>
-      this.http.request<any, any>({
+    profileList: (params: RequestParams = {}) =>
+      this.http.request<object, any>({
         path: `/user/profile`,
-        method: "POST",
+        method: "GET",
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -2081,43 +2260,45 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Return a list of recordings.
+     * @description Generate poster/cover images for all videos in the system
      *
      * @tags videos
      * @name GeneratePostersCreate
-     * @summary Return a list of recordings
+     * @summary Generate cover images for all videos
      * @request POST:/videos/generate/posters
-     * @response `200` `void` OK
+     * @response `200` `any` OK
      * @response `500` `any` Error message
      */
     generatePostersCreate: (params: RequestParams = {}) =>
-      this.http.request<void, any>({
+      this.http.request<any, any>({
         path: `/videos/generate/posters`,
         method: "POST",
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
     /**
-     * @description Returns if current the videos are updated.
+     * @description Get the status of the video metadata update process
      *
      * @tags videos
-     * @name IsupdatingList
-     * @summary Returns if current the videos are updated.
-     * @request GET:/videos/isupdating
-     * @response `200` `void` OK
+     * @name IsupdatingCreate
+     * @summary Check if video metadata update is in progress
+     * @request POST:/videos/isupdating
+     * @response `200` `boolean` OK
      * @response `500` `any` Error message
      */
-    isupdatingList: (params: RequestParams = {}) =>
-      this.http.request<void, any>({
+    isupdatingCreate: (params: RequestParams = {}) =>
+      this.http.request<boolean, any>({
         path: `/videos/isupdating`,
-        method: "GET",
+        method: "POST",
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
     /**
-     * No description
+     * @description Get a random selection of videos from the system
      *
      * @tags videos
      * @name RandomDetail
@@ -2127,7 +2308,10 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `400` `any` Error message
      * @response `500` `any` Error message
      */
-    randomDetail: (limit?: string, params: RequestParams = {}) =>
+    randomDetail: (
+      { limit, ...query }: RandomDetailParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<DatabaseRecording[], any>({
         path: `/videos/random/${limit}`,
         method: "GET",
@@ -2137,20 +2321,21 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Return a list of videos.
+     * @description Update metadata information for all videos in the system
      *
      * @tags videos
      * @name UpdateinfoCreate
-     * @summary Return a list of videos
+     * @summary Update video metadata information
      * @request POST:/videos/updateinfo
-     * @response `200` `void` OK
+     * @response `200` `any` OK
      * @response `500` `any` Error message
      */
     updateinfoCreate: (params: RequestParams = {}) =>
-      this.http.request<void, any>({
+      this.http.request<any, any>({
         path: `/videos/updateinfo`,
         method: "POST",
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
@@ -2165,7 +2350,10 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `400` `any` Error message
      * @response `500` `any` Error message
      */
-    videosDetail: (id: number, params: RequestParams = {}) =>
+    videosDetail: (
+      { id, ...query }: VideosDetailParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<DatabaseRecording, any>({
         path: `/videos/${id}`,
         method: "GET",
@@ -2185,7 +2373,10 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `400` `any` Error message
      * @response `500` `any` Error message
      */
-    videosDelete: (id: number, params: RequestParams = {}) =>
+    videosDelete: (
+      { id, ...query }: VideosDeleteParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<void, any>({
         path: `/videos/${id}`,
         method: "DELETE",
@@ -2205,7 +2396,7 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `500` `any` Error message
      */
     cutCreate: (
-      id: number,
+      { id, ...query }: CutCreateParams,
       CutRequest: RequestsCutRequest,
       params: RequestParams = {},
     ) =>
@@ -2219,18 +2410,21 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Download a file from a channel.
+     * @description Download a video file as an attachment
      *
      * @tags videos
      * @name DownloadDetail
-     * @summary Download a file from a channel
+     * @summary Download a video file
      * @request GET:/videos/{id}/download
-     * @response `200` `void` OK
+     * @response `200` `File` Video file
      * @response `400` `any` Error message
      * @response `500` `any` Error message
      */
-    downloadDetail: (id: number, params: RequestParams = {}) =>
-      this.http.request<void, any>({
+    downloadDetail: (
+      { id, ...query }: DownloadDetailParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<File, any>({
         path: `/videos/${id}/download`,
         method: "GET",
         type: ContentType.Json,
@@ -2238,21 +2432,25 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Bookmark a certain video in a channel.
+     * @description Bookmark/favorite a video for easy access
      *
      * @tags videos
      * @name FavPartialUpdate
-     * @summary Bookmark a certain video in a channel
+     * @summary Bookmark a video
      * @request PATCH:/videos/{id}/fav
-     * @response `200` `void` OK
+     * @response `200` `any` OK
      * @response `400` `any` Error message
      * @response `500` `any` Error message
      */
-    favPartialUpdate: (id: number, params: RequestParams = {}) =>
-      this.http.request<void, any>({
+    favPartialUpdate: (
+      { id, ...query }: FavPartialUpdateParams2,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<any, any>({
         path: `/videos/${id}/fav`,
         method: "PATCH",
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
@@ -2267,7 +2465,10 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `400` `any` Error message
      * @response `500` `any` Error message
      */
-    previewCreate: (id: number, params: RequestParams = {}) =>
+    previewCreate: (
+      { id, ...query }: PreviewCreateParams,
+      params: RequestParams = {},
+    ) =>
       this.http.request<DatabaseJob[], any>({
         path: `/videos/${id}/preview`,
         method: "POST",
@@ -2277,21 +2478,25 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
-     * @description Bookmark a certain video in a channel.
+     * @description Remove/unbookmark a video from favorites
      *
      * @tags videos
      * @name UnfavPartialUpdate
-     * @summary Bookmark a certain video in a channel
+     * @summary Remove video from bookmarks
      * @request PATCH:/videos/{id}/unfav
-     * @response `200` `void` OK
+     * @response `200` `any` OK
      * @response `400` `any` Error message
      * @response `500` `any` Error message
      */
-    unfavPartialUpdate: (id: number, params: RequestParams = {}) =>
-      this.http.request<void, any>({
+    unfavPartialUpdate: (
+      { id, ...query }: UnfavPartialUpdateParams2,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<any, any>({
         path: `/videos/${id}/unfav`,
         method: "PATCH",
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
@@ -2307,8 +2512,7 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
      * @response `500` `any` Error message
      */
     convertCreate: (
-      id: number,
-      mediaType: string,
+      { id, mediaType, ...query }: ConvertCreateParams,
       params: RequestParams = {},
     ) =>
       this.http.request<DatabaseJob, any>({

@@ -126,16 +126,14 @@ const {
   cancelDownload, // Die neue Funktion aus dem Composable
 } = useDownloadWithProgress();
 
-const checkDownload = () => {
-
-};
+const checkDownload = () => {};
 
 onMounted(() => {
-  window.addEventListener('beforeunload', checkDownload);
+  window.addEventListener("beforeunload", checkDownload);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('beforeunload', checkDownload);
+  window.removeEventListener("beforeunload", checkDownload);
 });
 
 const download = async () => {

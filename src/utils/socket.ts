@@ -1,4 +1,5 @@
 import { useAuthStore } from "../stores/auth";
+import { handleServerUnreachable } from "./serverError";
 
 declare global {
   interface Window {

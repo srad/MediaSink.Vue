@@ -113,7 +113,7 @@ watch(showTagInput, (val) => {
 const destroyTag = async (tag: string) => {
   const removeTag = tagArray.value?.filter((t) => t !== tag);
   const client = createClient();
-  await client.channels.tagsPartialUpdate(props.channel.channelId!, { tags: removeTag });
+  await client.channels.tagsPartialUpdate({ id: props.channel.channelId! }, { tags: removeTag });
   tagArray.value = removeTag;
 };
 
@@ -134,7 +134,7 @@ const addTag = async () => {
     processingTag.value = true;
 
     const client = createClient();
-    await client.channels.tagsPartialUpdate(props.channel.channelId!, { tags: tagArray.value.concat(tag) });
+    await client.channels.tagsPartialUpdate({ id: props.channel.channelId! }, { tags: tagArray.value.concat(tag) });
     tagArray.value.push(tag);
     showTagInput.value = false;
     tagVal.value = "";

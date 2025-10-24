@@ -41,11 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  type DatabaseRecording,
-  type DatabaseRecording as RecordingResponse, QueriesSortOrder,
-  RequestsVideoSortColumn
-} from "../services/api/v1/MediaSinkClient";
+import { type DatabaseRecording, type DatabaseRecording as RecordingResponse, QueriesSortOrder, RequestsVideoSortColumn } from "../services/api/v1/MediaSinkClient";
 import VideoItem from "../components/VideoItem.vue";
 import { ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";

@@ -65,13 +65,13 @@ const previewImage = computed(() => fileUrl + "/" + props.channel.preview);
 
 const fav = async (channel: ChannelInfo) => {
   const client = createClient();
-  await client.channels.favPartialUpdate(channel.channelId!);
+  await client.channels.favPartialUpdate({ id: channel.channelId! });
   channelStore.fav(channel.channelId);
 };
 
 const unfav = async (channel: ChannelInfo) => {
   const client = createClient();
-  await client.channels.unfavPartialUpdate(channel.channelId!);
+  await client.channels.unfavPartialUpdate({ id: channel.channelId! });
   channelStore.unfav(channel.channelId);
 };
 
@@ -80,7 +80,7 @@ const destroyChannel = async (channel: ChannelInfo) => {
     try {
       const client = createClient();
       busy.value = true;
-      await client.channels.channelsDelete(channel.channelId!);
+      await client.channels.channelsDelete({ id: channel.channelId! });
       destroyed.value = true;
       setTimeout(() => {
         channelStore.destroy(channel.channelId);
@@ -98,7 +98,7 @@ const pause = async (channel: ChannelInfo) => {
     const client = createClient();
     busy.value = true;
     const method = channel.isPaused ? client.channels.resumeCreate : client.channels.pauseCreate;
-    await method(channel.channelId!);
+    await method({ id: channel.channelId! });
 
     // Invert current paused mode.
     channelStore[channel.isPaused ? "resume" : "pause"](channel.channelId);
