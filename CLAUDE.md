@@ -74,7 +74,7 @@ pnpm approve-builds
 ```
 src/
 ├── components/          # Reusable Vue components
-│   ├── modals/         # Modal dialogs
+│   ├── modals/         # Modal dialogs (ChannelModal, VideoEnhancementModal, etc.)
 │   ├── channels/       # Channel-specific components
 │   ├── charts/         # Chart components (CPU, Traffic)
 │   ├── controls/       # Control buttons and menus
@@ -236,6 +236,14 @@ export const useMyStore = defineStore("storeName", {
 - Use in components: `{{ t("key.path") }}`
 - Define translations in locale files before using
 
+**Form Validation**
+- Use custom `FieldValidator` framework from `src/utils/validator.ts`
+- Define validators with `createValidator()` and `FieldConfig[]` array
+- Each field config has name, validator function, validMessage, and invalidMessage
+- Call `validator.validateAll()` to get validation results with `{ message, isValid }` for each field
+- Display errors with `<AppAlert>` and `<CheckList>` components (see ChannelModal.vue pattern)
+- Store validation messages in `validations` ref and clear on form reset/cancel
+
 **Styling**
 - Import Bootstrap variables: `@use "@/assets/custom-bootstrap.scss" as bootstrap;`
 - Use scoped SCSS in components: `<style scoped lang="scss">`
@@ -254,8 +262,11 @@ export const useMyStore = defineStore("storeName", {
 - `src/App.vue` - Root component with layout routing
 - `src/services/api/v1/ClientFactory.ts` - API client factory with auth handling and server error detection
 - `src/utils/serverError.ts` - Server unreachability utilities (detect network errors, logout user, show error toast)
+- `src/utils/validator.ts` - Custom form validation framework (FieldValidator, createValidator)
 - `src/stores/auth.ts` - Authentication store (Pinia)
 - `src/composables/useSocket.ts` - WebSocket singleton composable
+- `src/components/modals/ChannelModal.vue` - Example modal with validation pattern
+- `src/components/VideoEnhancementModal.vue` - Self-contained modal component for video enhancement
 - `src/components/DataTable.vue` - Example of a complex, feature-rich component
 - `src/layouts/DefaultLayout.vue` - Main layout with socket event listeners (register/unregister handlers on mount)
 - `src/router/index.ts` - Route definitions and auth guards
