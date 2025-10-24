@@ -56,6 +56,7 @@ export const useToastStore = defineStore("toast", {
       const toastDisplayDurationMs = 3000;
       const id = setInterval(() => {
         const dtMS = new Date().getTime() - toast.created.getTime();
+        if (!this.toasts[i]) clearInterval(id);
         this.toasts[i]!.countdown = 100 - (dtMS / toastDisplayDurationMs) * 100;
         if (this.toasts[i]!.countdown <= 0) {
           clearInterval(id);

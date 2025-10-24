@@ -61,6 +61,9 @@
           <button type="button" class="btn btn-sm p-0 px-2" @click="emit('preview', data)">
             <i class="bi bi-film"></i>
           </button>
+          <button type="button" class="btn btn-sm p-0 px-2" @click="emit('enhance', data)">
+            <i class="bi bi-magic"></i>
+          </button>
           <button type="button" class="btn btn-sm p-0 px-2" @click="emit('destroy', data)">
             <i class="bi bi-trash3-fill text-danger" />
           </button>
@@ -86,6 +89,7 @@ const { t } = useI18n();
 
 const emit = defineEmits<{
   (e: "preview", value: RecordingResponse): void;
+  (e: "enhance", value: RecordingResponse): void;
   (e: "destroy", value: RecordingResponse): void;
   (e: "bookmarked", data: RecordingResponse, value: boolean): void;
   (e: "convert", value: { recording: RecordingResponse; mediaType: string }): void;

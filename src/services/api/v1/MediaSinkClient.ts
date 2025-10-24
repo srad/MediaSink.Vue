@@ -97,6 +97,8 @@ export enum DatabaseJobTask {
   TaskPreviewStrip = "preview-stripe",
   TaskPreviewVideo = "preview-video",
   TaskCut = "cut",
+  TaskMerge = "merge",
+  TaskEnhanceVideo = "enhance-video",
 }
 
 export interface DatabaseRecording {
@@ -124,6 +126,16 @@ export interface DatabaseRecording {
 
 export interface DownloadDetailParams {
   /** Recording item id */
+  id: number;
+}
+
+export interface EnhanceCreateParams {
+  /** Recording id */
+  id: number;
+}
+
+export interface EstimateEnhancementCreateParams {
+  /** Recording id */
   id: number;
 }
 
@@ -182,6 +194,11 @@ export interface JobsDeleteParams {
   id: number;
 }
 
+export interface MergeCreateParams {
+  /** Channel id */
+  id: number;
+}
+
 export interface PauseCreateParams {
   /** Channel id */
   id: number;
@@ -229,11 +246,94 @@ export interface RequestsCutRequest {
   starts: string[];
 }
 
+export interface RequestsEnhanceRequest {
+  applyNormalize: boolean;
+  /**
+   * @min 15
+   * @max 28
+   */
+  crf?: number;
+  /**
+   * @min 1
+   * @max 10
+   */
+  denoiseStrength: number;
+  encodingPreset: RequestsEnhanceRequestEncodingPresetEnum;
+  recordingId: number;
+  /**
+   * @min 0
+   * @max 2
+   */
+  sharpenStrength: number;
+  targetResolution: RequestsEnhanceRequestTargetResolutionEnum;
+}
+
+export enum RequestsEnhanceRequestEncodingPresetEnum {
+  Veryfast = "veryfast",
+  Faster = "faster",
+  Fast = "fast",
+  Medium = "medium",
+  Slow = "slow",
+  Slower = "slower",
+  Veryslow = "veryslow",
+}
+
+export enum RequestsEnhanceRequestTargetResolutionEnum {
+  Value720P = "720p",
+  Value1080P = "1080p",
+  Value1440P = "1440p",
+  Value4K = "4k",
+}
+
+export interface RequestsEstimateEnhancementRequest {
+  applyNormalize: boolean;
+  /**
+   * @min 15
+   * @max 28
+   */
+  crf?: number;
+  /**
+   * @min 1
+   * @max 10
+   */
+  denoiseStrength: number;
+  encodingPreset: RequestsEstimateEnhancementRequestEncodingPresetEnum;
+  /**
+   * @min 0
+   * @max 2
+   */
+  sharpenStrength: number;
+  targetResolution: RequestsEstimateEnhancementRequestTargetResolutionEnum;
+}
+
+export enum RequestsEstimateEnhancementRequestEncodingPresetEnum {
+  Veryfast = "veryfast",
+  Faster = "faster",
+  Fast = "fast",
+  Medium = "medium",
+  Slow = "slow",
+  Slower = "slower",
+  Veryslow = "veryslow",
+}
+
+export enum RequestsEstimateEnhancementRequestTargetResolutionEnum {
+  Value720P = "720p",
+  Value1080P = "1080p",
+  Value1440P = "1440p",
+  Value4K = "4k",
+}
+
 export interface RequestsJobsRequest {
   skip?: number;
   sortOrder: DatabaseJobOrder;
   states: DatabaseJobStatus[];
   take?: number;
+}
+
+export interface RequestsMergeRequest {
+  reEncode: boolean;
+  /** @minItems 2 */
+  recordingIds: number[];
 }
 
 export interface RequestsVideoFilterRequest {
@@ -247,6 +347,52 @@ export enum RequestsVideoSortColumn {
   SortColumnCreatedAt = "created_at",
   SortColumnSize = "size",
   SortColumnDuration = "duration",
+}
+
+export interface ResponsesCRFDescription {
+  approxRatio: number;
+  description: string;
+  label: string;
+  quality: string;
+  value: number;
+}
+
+export interface ResponsesEnhancementDescriptions {
+  crfValues: ResponsesCRFDescription[];
+  filters: ResponsesFilterDescriptions;
+  presets: ResponsesPresetDescription[];
+  resolutions: ResponsesResolutionDescription[];
+}
+
+export interface ResponsesEstimateEnhancementResponse {
+  compressionRatio: number;
+  estimatedFileSize: number;
+  estimatedFileSizeMB: number;
+  inputFileSize: number;
+}
+
+export interface ResponsesFilterDescriptionBool {
+  description: string;
+  maxValue: boolean;
+  minValue: boolean;
+  name: string;
+  range: string;
+  recommended: boolean;
+}
+
+export interface ResponsesFilterDescriptionFloat64 {
+  description: string;
+  maxValue: number;
+  minValue: number;
+  name: string;
+  range: string;
+  recommended: number;
+}
+
+export interface ResponsesFilterDescriptions {
+  applyNormalize: ResponsesFilterDescriptionBool;
+  denoiseStrength: ResponsesFilterDescriptionFloat64;
+  sharpenStrength: ResponsesFilterDescriptionFloat64;
 }
 
 export interface ResponsesImportInfoResponse {
@@ -270,8 +416,22 @@ export interface ResponsesLoginResponse {
   token: string;
 }
 
+export interface ResponsesPresetDescription {
+  description: string;
+  encodeSpeed: string;
+  label: string;
+  preset: string;
+}
+
 export interface ResponsesRecordingStatusResponse {
   isRecording: boolean;
+}
+
+export interface ResponsesResolutionDescription {
+  description: string;
+  dimensions: string;
+  resolution: string;
+  useCase: string;
 }
 
 export interface ResponsesServerInfoResponse {
@@ -589,6 +749,27 @@ export namespace Channels {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = any;
+  }
+
+  /**
+   * @description Merge multiple videos with optional re-encoding to highest quality spec
+   * @tags channels
+   * @name MergeCreate
+   * @summary Merge multiple videos
+   * @request POST:/channels/{id}/merge
+   * @response `200` `DatabaseJob` OK
+   * @response `400` `any` Error message
+   * @response `500` `any` Error message
+   */
+  export namespace MergeCreate {
+    export type RequestParams = {
+      /** Channel id */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = RequestsMergeRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = DatabaseJob;
   }
 
   /**
@@ -997,6 +1178,23 @@ export namespace Videos {
   }
 
   /**
+   * @description Return descriptions for all video enhancement parameters (presets, CRF values, resolutions, filters)
+   * @tags videos
+   * @name EnhanceDescriptionsList
+   * @summary Get enhancement parameter descriptions
+   * @request GET:/videos/enhance/descriptions
+   * @response `200` `ResponsesEnhancementDescriptions` OK
+   * @response `500` `any` Error message
+   */
+  export namespace EnhanceDescriptionsList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ResponsesEnhancementDescriptions;
+  }
+
+  /**
    * @description Get the top N the latest videos.
    * @tags videos
    * @name FilterCreate
@@ -1168,6 +1366,48 @@ export namespace Videos {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = File;
+  }
+
+  /**
+   * @description Enhance a video with denoising, upscaling, and sharpening
+   * @tags videos
+   * @name EnhanceCreate
+   * @summary Enhance video quality
+   * @request POST:/videos/{id}/enhance
+   * @response `200` `DatabaseJob` OK
+   * @response `400` `any` Error message
+   * @response `500` `any` Error message
+   */
+  export namespace EnhanceCreate {
+    export type RequestParams = {
+      /** Recording id */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = RequestsEnhanceRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = DatabaseJob;
+  }
+
+  /**
+   * @description Estimate the output file size for video enhancement with given parameters
+   * @tags videos
+   * @name EstimateEnhancementCreate
+   * @summary Estimate video enhancement file size
+   * @request POST:/videos/{id}/estimate-enhancement
+   * @response `200` `ResponsesEstimateEnhancementResponse` OK
+   * @response `400` `any` Error message
+   * @response `500` `any` Error message
+   */
+  export namespace EstimateEnhancementCreate {
+    export type RequestParams = {
+      /** Recording id */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = RequestsEstimateEnhancementRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = ResponsesEstimateEnhancementResponse;
   }
 
   /**
@@ -1788,6 +2028,31 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
+     * @description Merge multiple videos with optional re-encoding to highest quality spec
+     *
+     * @tags channels
+     * @name MergeCreate
+     * @summary Merge multiple videos
+     * @request POST:/channels/{id}/merge
+     * @response `200` `DatabaseJob` OK
+     * @response `400` `any` Error message
+     * @response `500` `any` Error message
+     */
+    mergeCreate: (
+      { id, ...query }: MergeCreateParams,
+      MergeRequest: RequestsMergeRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<DatabaseJob, any>({
+        path: `/channels/${id}/merge`,
+        method: "POST",
+        body: MergeRequest,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Pause/stop recording for a channel
      *
      * @tags channels
@@ -2236,6 +2501,25 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
 
     /**
+     * @description Return descriptions for all video enhancement parameters (presets, CRF values, resolutions, filters)
+     *
+     * @tags videos
+     * @name EnhanceDescriptionsList
+     * @summary Get enhancement parameter descriptions
+     * @request GET:/videos/enhance/descriptions
+     * @response `200` `ResponsesEnhancementDescriptions` OK
+     * @response `500` `any` Error message
+     */
+    enhanceDescriptionsList: (params: RequestParams = {}) =>
+      this.http.request<ResponsesEnhancementDescriptions, any>({
+        path: `/videos/enhance/descriptions`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Get the top N the latest videos.
      *
      * @tags videos
@@ -2428,6 +2712,56 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
         path: `/videos/${id}/download`,
         method: "GET",
         type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Enhance a video with denoising, upscaling, and sharpening
+     *
+     * @tags videos
+     * @name EnhanceCreate
+     * @summary Enhance video quality
+     * @request POST:/videos/{id}/enhance
+     * @response `200` `DatabaseJob` OK
+     * @response `400` `any` Error message
+     * @response `500` `any` Error message
+     */
+    enhanceCreate: (
+      { id, ...query }: EnhanceCreateParams,
+      EnhanceRequest: RequestsEnhanceRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<DatabaseJob, any>({
+        path: `/videos/${id}/enhance`,
+        method: "POST",
+        body: EnhanceRequest,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Estimate the output file size for video enhancement with given parameters
+     *
+     * @tags videos
+     * @name EstimateEnhancementCreate
+     * @summary Estimate video enhancement file size
+     * @request POST:/videos/{id}/estimate-enhancement
+     * @response `200` `ResponsesEstimateEnhancementResponse` OK
+     * @response `400` `any` Error message
+     * @response `500` `any` Error message
+     */
+    estimateEnhancementCreate: (
+      { id, ...query }: EstimateEnhancementCreateParams,
+      EstimateEnhancementRequest: RequestsEstimateEnhancementRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ResponsesEstimateEnhancementResponse, any>({
+        path: `/videos/${id}/estimate-enhancement`,
+        method: "POST",
+        body: EstimateEnhancementRequest,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 

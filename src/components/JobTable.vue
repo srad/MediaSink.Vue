@@ -34,7 +34,7 @@
       </template>
 
       <template v-slot:cell-progress="{ row }">
-        <div v-if="row.active" class="progress">
+        <div v-if="row.active" class="progress border border-primary-subtle">
           <div class="progress-bar progress-bar-striped bg-info progress-bar-animated" role="progressbar" :style="'width:' + row.progress + '%'" :aria-valuenow="(row as unknown as JobTableItem).progress || 0" aria-valuemin="0" :aria-valuemax="100"></div>
         </div>
       </template>
@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { type DatabaseJob, DatabaseJobStatus } from "../services/api/v1/MediaSinkClient";
+import { type DatabaseJob } from "../services/api/v1/MediaSinkClient";
 import { useI18n } from "vue-i18n";
 import DataTable from "./DataTable.vue";
 import type { Column, TableRow } from "./DataTable.vue";
@@ -87,35 +87,20 @@ const columns: Column[] = [
   { key: "task", label: t("jobTable.col.task"), sortable: true, type: "string", width: "10%", class: "d-none d-lg-table-cell" },
   //{ key: "status", label: t("jobTable.col.status"), sortable: true, type: "string", width: "5%", class: "d-none d-lg-table-cell" },
   { key: "command", label: "Command", sortable: false, type: "string", width: "15%", class: "d-none d-lg-table-cell" },
-  //{ key: "progress", label: t("jobTable.col.progress"), sortable: false, type: "string", width: "10%" },
+  { key: "progress", label: t("jobTable.col.progress"), sortable: false, type: "string", width: "10%" },
   { key: "createdAtFromNow", label: t("jobTable.col.createdAt"), sortable: false, type: "string", width: "10%" },
   { key: "startedFromNow", label: t("jobTable.col.startedAt"), sortable: false, type: "string", width: "10%" },
   { key: "completedAtFromNow", label: t("jobTable.col.completedAt"), sortable: false, type: "string", width: "10%" },
   { key: "destroy", label: t("jobTable.col.destroy"), sortable: false, type: "string", width: "5%" },
 ];
 
-const getStatusClass = (row: JobTableItem) => {
-  switch (row.status) {
-    case DatabaseJobStatus.StatusJobOpen:
-      return "bg-primary";
-    case DatabaseJobStatus.StatusJobCompleted:
-      return "bg-success";
-    case DatabaseJobStatus.StatusJobError:
-      return "bg-danger";
-    case DatabaseJobStatus.StatusJobCanceled:
-      return "bg-warning";
-    default:
-      return "bg-secondary";
-  }
-};
-
 // Handlers for pagination events
 const handlePageChange = (page: number) => {
-  // Handle page change logic here
+  console.log(page);
 };
 
 const handlePageSizeChange = (size: number) => {
-  // Handle page size change logic here
+  console.log(size);
 };
 </script>
 

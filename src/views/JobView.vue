@@ -54,14 +54,13 @@
 </template>
 
 <script setup lang="ts">
-import { type DatabaseJob, DatabaseJobOrder, DatabaseJobStatus, type ServicesProcessInfo } from "@/services/api/v1/MediaSinkClient";
+import { DatabaseJobOrder, DatabaseJobStatus, type ServicesProcessInfo } from "@/services/api/v1/MediaSinkClient";
 import { useJobStore } from "@/stores/job";
 import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
-import { onMounted, ref, watch } from "vue";
-import JobTable, { type JobTableItem } from "@/components/JobTable.vue";
+import { computed, onMounted, ref, watch } from "vue";
+import JobTable from "@/components/JobTable.vue";
 import { useRoute, useRouter } from "vue-router";
 import { createClient } from "@/services/api/v1/ClientFactory";
-import { fromNow } from "@/utils/datetime.ts";
 import DataTable, { type Column } from "@/components/DataTable.vue";
 
 const jobStore = useJobStore();
@@ -100,30 +99,17 @@ const tabToJobType: { [key: string]: DatabaseJobStatus } = {
   processes: DatabaseJobStatus.StatusJobError,
 };
 
-const jobs = ref<JobTableItem[]>([]);
+const jobs = computed(() => jobStore.withTime);
 
 onMounted(async () => {
   await load();
 });
 
 const load = async () => {
-  const client = createClient();
-
   if (tab.value === "open" || tab.value === "completed" || tab.value === "canceled" || tab.value === "error") {
-    const result = await client.jobs.listCreate({
-      states: [tabToJobType[tab.value]],
-      sortOrder: DatabaseJobOrder.JobOrderDESC,
-      take: 100,
-    });
-    if (result.jobs) {
-      jobs.value = result.jobs.map((job: DatabaseJob) => ({
-        ...job,
-        createdAtFromNow: fromNow(Date.parse(job.createdAt)),
-        startedFromNow: job.startedAt ? fromNow(Date.parse(job.startedAt)) : "-",
-        completedAtFromNow: job.completedAt ? fromNow(Date.parse(job.completedAt)) : "-",
-      }));
-    }
+    await jobStore.load([tabToJobType[tab.value]], DatabaseJobOrder.JobOrderDESC);
   } else if (tab.value === "processes") {
+    const client = createClient();
     processes.value = await client.processes.processesList();
   }
 };

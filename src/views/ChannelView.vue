@@ -22,16 +22,31 @@
     </ModalConfirmDialog>
 
     <LoadIndicator :busy="!channel">
-      <ModalWindow :show="showModal">
+      <ModalConfirmDialog :show="showMergeModal" @confirm="merge" @cancel="showMergeModal = false">
+        <template #header>Merge videos</template>
+        <template #body>
+          <ul class="list-unstyled">
+            <li :key="recording.recordingId" v-for="recording in selectedRecordings" class="list-group-item d-flex justify-content-between mb-2">
+              <img class="img-thumbnail w-20 me-2" :alt="recording.filename" loading="lazy" :src="`${fileUrl}/${recording.previewCover || recording.channelName + '/.previews/live.jpg'}`" />
+              <div class="w-80">
+                <div>{{ recording.filename }}</div>
+                <div>{{ (recording.duration / 60).toFixed(1) }}min - {{ Math.fround(recording.size / 1024 / 1024 / 1024).toFixed(1) }}GB</div>
+              </div>
+            </li>
+          </ul>
+        </template>
+      </ModalConfirmDialog>
+
+      <ModalWindow :show="showVideoUploadModal">
         <template #header>Video upload</template>
         <template #body>
           <h5>Progress: {{ (uploadProgress * 100).toFixed(0) }}%</h5>
           <div class="progress">
-            <div class="progress-bar progress-bar-animated progress-bar-striped bg-warning" role="progressbar" :style="{ width: `${uploadProgress * 100}%` }" aria-valuemax="1" aria-valuemin="0" aria-valuenow="0.4"></div>
+            <div class="progress-bar progress-bar-animated progress-bar-striped bg-primary" role="progressbar" :style="{ width: `${uploadProgress * 100}%` }" aria-valuemax="1" aria-valuemin="0" aria-valuenow="0.4"></div>
           </div>
         </template>
         <template #footer>
-          <button type="button" class="btn btn-warning" @click="cancelUpload">Cancel Upload</button>
+          <button type="button" class="btn btn-danger" @click="cancelUpload">Cancel Upload</button>
         </template>
       </ModalWindow>
 
@@ -127,7 +142,8 @@ const editFormMinDuration = ref(20);
 const editFormSkipStart = ref(0);
 const editFormSaving = ref(false);
 
-const showModal = ref(false);
+const showMergeModal = ref(false);
+const showVideoUploadModal = ref(false);
 const showConfirm = ref(false);
 const showDeleteSelectedRecordings = ref(false);
 
@@ -229,14 +245,14 @@ const cancelUpload = () => {
   if (uploadAbortController) {
     uploadAbortController.abort();
   }
-  showModal.value = false;
+  showVideoUploadModal.value = false;
 };
 
 const fileSelected = async (file: File) => {
   try {
     console.log("[Upload] Starting file upload:", file.name);
     uploadProgress.value = 0;
-    showModal.value = true;
+    showVideoUploadModal.value = true;
     const client = createClient();
     const [req, abortController] = client.channelUpload(channelId, file, (pcent: number) => {
       console.log("[Upload] Progress:", Math.round(pcent * 100) + "%");
@@ -249,7 +265,7 @@ const fileSelected = async (file: File) => {
     uploadProgress.value = 1;
     channel.value?.recordings?.unshift(recording);
     uploadAbortController = null;
-    showModal.value = false;
+    showVideoUploadModal.value = false;
     toastStore.success({
       title: "Video uploaded",
       message: `File ${file.name} uploaded successfully`,
@@ -261,7 +277,7 @@ const fileSelected = async (file: File) => {
       title: "Upload failed",
       message: errorMessage,
     });
-    showModal.value = false;
+    showVideoUploadModal.value = false;
   }
 };
 
@@ -287,8 +303,18 @@ const bookmark = () => {
 };
 
 const mergeVideos = async () => {
-  // TODO: call merge videos api.
-  alert(selectedRecordings.value.map((x) => x.filename).join(", "));
+  showMergeModal.value = true;
+};
+
+const merge = async () => {
+  try {
+    const client = createClient();
+    await client.channels.mergeCreate({ id: channel.value!.channelId }, { recordingIds: selectedRecordings.value.map((x) => x.recordingId), reEncode: true });
+  } catch (e) {
+    alert(e);
+  } finally {
+    showMergeModal.value = false;
+  }
 };
 
 const editChannel = () => {

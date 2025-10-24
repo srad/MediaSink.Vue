@@ -45,7 +45,7 @@ const route = useRoute();
 
 const showModal = ref(false);
 
-const { socket: socketManager, connect } = useSocket();
+const { connect, on, off } = useSocket();
 
 const routes = [
   { icon: "bi-camera-video-fill", url: "/streams/live", title: t("menu.streams") },
@@ -175,7 +175,7 @@ onMounted(async () => {
 
   try {
     // Try to connect to socket
-    await socketManager.connect();
+    await connect();
   } catch (error) {
     // Check if this is a server unreachability error and handle it
     console.error("[DefaultLayout] Socket connect error:", error);
@@ -189,33 +189,33 @@ onMounted(async () => {
   }
 
   // Unregister previous listeners to prevent duplicates on reconnection
-  socketManager.off(MessageType.JobStart, handleJobStart);
-  socketManager.off(MessageType.JobCreate, handleJobCreate);
-  socketManager.off(MessageType.JobDone, handleJobDone);
-  socketManager.off(MessageType.JobDeactivate, handleJobDeactivate);
-  socketManager.off(MessageType.JobDelete, handleJobDelete);
-  socketManager.off(MessageType.JobDeleted, handleJobDeleted);
-  socketManager.off(MessageType.JobProgress, handleJobProgress);
-  socketManager.off(MessageType.ChannelOnline, handleChannelOnline);
-  socketManager.off(MessageType.ChannelOffline, handleChannelOffline);
-  socketManager.off(MessageType.ChannelThumbnail, handleChannelThumbnail);
-  socketManager.off(MessageType.ChannelStart, handleChannelStart);
+  off(MessageType.JobStart, handleJobStart);
+  off(MessageType.JobCreate, handleJobCreate);
+  off(MessageType.JobDone, handleJobDone);
+  off(MessageType.JobDeactivate, handleJobDeactivate);
+  off(MessageType.JobDelete, handleJobDelete);
+  off(MessageType.JobDeleted, handleJobDeleted);
+  off(MessageType.JobProgress, handleJobProgress);
+  off(MessageType.ChannelOnline, handleChannelOnline);
+  off(MessageType.ChannelOffline, handleChannelOffline);
+  off(MessageType.ChannelThumbnail, handleChannelThumbnail);
+  off(MessageType.ChannelStart, handleChannelStart);
 
   // Register listeners
-  socketManager.on(MessageType.JobStart, handleJobStart);
-  socketManager.on(MessageType.JobCreate, handleJobCreate);
-  socketManager.on(MessageType.JobDone, handleJobDone);
-  socketManager.on(MessageType.JobDeactivate, handleJobDeactivate);
-  socketManager.on(MessageType.JobDelete, handleJobDelete);
-  socketManager.on(MessageType.JobDeleted, handleJobDeleted);
-  socketManager.on(MessageType.JobProgress, handleJobProgress);
-  socketManager.on(MessageType.ChannelOnline, handleChannelOnline);
-  socketManager.on(MessageType.ChannelOffline, handleChannelOffline);
-  socketManager.on(MessageType.ChannelThumbnail, handleChannelThumbnail);
-  socketManager.on(MessageType.ChannelStart, handleChannelStart);
+  on(MessageType.JobStart, handleJobStart);
+  on(MessageType.JobCreate, handleJobCreate);
+  on(MessageType.JobDone, handleJobDone);
+  on(MessageType.JobDeactivate, handleJobDeactivate);
+  on(MessageType.JobDelete, handleJobDelete);
+  on(MessageType.JobDeleted, handleJobDeleted);
+  on(MessageType.JobProgress, handleJobProgress);
+  on(MessageType.ChannelOnline, handleChannelOnline);
+  on(MessageType.ChannelOffline, handleChannelOffline);
+  on(MessageType.ChannelThumbnail, handleChannelThumbnail);
+  on(MessageType.ChannelStart, handleChannelStart);
 });
 
 onUnmounted(() => {
-  socketManager.close();
+  close();
 });
 </script>

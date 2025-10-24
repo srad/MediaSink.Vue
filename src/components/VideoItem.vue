@@ -1,4 +1,9 @@
 <template>
+  <VideoEnhancementModal
+    :show="showEnhancementModal"
+    :recording="props.recording"
+    @close="showEnhancementModal = false" />
+
   <div style="z-index: 10" class="card bg-light border position-relative shadow-sm bg-light mark p-0 rounded-top-2" :class="{ 'border-info': !checked, 'animate__animated animate__zoomOut': destroyed, 'border-2 border-danger': checked }">
     <div v-if="busy" class="bg-dark opacity-50 position-absolute w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 100">
       <div class="loader"></div>
@@ -32,13 +37,14 @@
         </h6>
       </div>
     </div>
-    <VideoInfo :disable-buttons="props.job !== null" :duration="props.recording.duration" :size="props.recording.size" :url="downloadApiUrl" :bit-rate="props.recording.bitRate" :bookmark="props.recording.bookmark" :created-at="props.recording.createdAt" :data="recording" :width="props.recording.width" :height="props.recording.height" @convert="convert" @bookmarked="bookmark" @preview="generatePreview" @destroy="destroyRecording" />
+    <VideoInfo :disable-buttons="props.job !== null" :duration="props.recording.duration" :size="props.recording.size" :url="downloadApiUrl" :bit-rate="props.recording.bitRate" :bookmark="props.recording.bookmark" :created-at="props.recording.createdAt" :data="recording" :width="props.recording.width" :height="props.recording.height" @convert="convert" @bookmarked="bookmark" @preview="generatePreview" @destroy="destroyRecording" @enhance="showEnhancementModal = true" />
   </div>
 </template>
 
 <script setup lang="ts">
 import VideoInfo from "./VideoInfo.vue";
 import VideoPreview from "./VideoPreview.vue";
+import VideoEnhancementModal from "./VideoEnhancementModal.vue";
 import type { DatabaseRecording as RecordingResponse } from "../services/api/v1/MediaSinkClient";
 import { inject, ref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -75,6 +81,7 @@ const props = defineProps<{
 const checked = ref(props.check);
 const busy = ref(false);
 const destroyed = ref(false);
+const showEnhancementModal = ref(false);
 
 const apiUrl = inject("apiUrl") as string;
 const fileUrl = inject("fileUrl") as string;

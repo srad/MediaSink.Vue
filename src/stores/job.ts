@@ -1,7 +1,8 @@
-import { type DatabaseJob as Job, DatabaseJobOrder } from "../services/api/v1/MediaSinkClient";
-import { DatabaseJobStatus } from "../services/api/v1/MediaSinkClient";
+import { type DatabaseJob, type DatabaseJob as Job, DatabaseJobOrder, DatabaseJobStatus } from "../services/api/v1/MediaSinkClient";
 import { defineStore } from "pinia";
 import { createClient } from "../services/api/v1/ClientFactory";
+import type { JobTableItem } from "@/components/JobTable.vue";
+import { fromNow } from "@/utils/datetime.ts";
 
 export type JobMessage<T> = {
   data: T;
@@ -43,6 +44,13 @@ export const useJobStore = defineStore("job", {
     };
   },
   getters: {
+    withTime: (state: JobState): JobTableItem[] =>
+      state.jobs.sort((a, b) => (+b.active) - (+a.active)).map((job: DatabaseJob) => ({
+        ...job,
+        createdAtFromNow: fromNow(Date.parse(job.createdAt)),
+        startedFromNow: job.startedAt ? fromNow(Date.parse(job.startedAt)) : "-",
+        completedAtFromNow: job.completedAt ? fromNow(Date.parse(job.completedAt)) : "-",
+      })),
     all: (state: JobState): Job[] => {
       return state.jobs || [];
     },
@@ -55,14 +63,14 @@ export const useJobStore = defineStore("job", {
     },
   },
   actions: {
-    async load() {
+    async load(states: DatabaseJobStatus[] = [DatabaseJobStatus.StatusJobOpen], sortOrder: DatabaseJobOrder = DatabaseJobOrder.JobOrderASC) {
       const client = createClient();
 
       const response = await client.jobs.listCreate({
         skip: 0,
         take: 100,
-        states: [DatabaseJobStatus.StatusJobOpen],
-        sortOrder: DatabaseJobOrder.JobOrderASC,
+        states,
+        sortOrder,
       });
 
       if (response.jobs) {
