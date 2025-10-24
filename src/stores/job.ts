@@ -1,8 +1,8 @@
 import { type DatabaseJob, type DatabaseJob as Job, DatabaseJobOrder, DatabaseJobStatus } from "../services/api/v1/MediaSinkClient";
 import { defineStore } from "pinia";
 import { createClient } from "../services/api/v1/ClientFactory";
-import type { JobTableItem } from "@/components/JobTable.vue";
-import { fromNow } from "@/utils/datetime.ts";
+import type { JobTableItem } from "../components/JobTable.vue";
+import { fromNow } from "../utils/datetime";
 
 export type JobMessage<T> = {
   data: T;
