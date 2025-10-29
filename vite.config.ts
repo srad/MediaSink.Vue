@@ -9,10 +9,36 @@ import nightwatchPlugin from "vite-plugin-nightwatch";
 // https://vite.dev/config/
 export default defineConfig({
   build: {
-    sourcemap: true,
+    sourcemap: false, // Disable source maps in production - saves ~3MB
+    minify: "terser", // Minify JS with terser for better compression
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log in production
+      },
+    },
+    rollupOptions: {
+      output: {
+        // Manual chunk configuration for better code splitting
+        manualChunks: {
+          vendor: ["vue", "vue-router", "pinia"],
+          bootstrap: ["bootstrap"],
+        },
+      },
+    },
   },
   css: {
-    devSourcemap: true,
+    devSourcemap: false, // Disable CSS source maps in production
+    postcss: {
+      plugins: [],
+    },
+    preprocessorOptions: {
+      scss: {
+        // Suppress Dart Sass deprecation warnings for @import
+        // Bootstrap uses @import which is deprecated but still functional
+        silenceDeprecations: ["import"],
+        quietDeps: true,
+      },
+    },
   },
   plugins: [
     vue(),

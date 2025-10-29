@@ -1,19 +1,25 @@
 import { createRouter, createWebHistory } from "vue-router";
-import StreamView from "../views/StreamsView.vue";
-import FilterView from "../views/FilterView.vue";
-import BookmarkView from "../views/BookmarksView.vue";
-import VideoView from "../views/VideoView.vue";
-import LogView from "../views/LogsView.vue";
-import JobView from "../views/JobView.vue";
-import AdminView from "../views/AdminView.vue";
-import RandomView from "../views/RandomView.vue";
-import ChannelView from "@/views/ChannelView.vue";
+import { defineAsyncComponent } from "vue";
+import { useAuthStore } from "../stores/auth";
+
+// Lazy load views with code splitting for better performance
+// Login/Register load eagerly since they're shown first
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
-import { useAuthStore } from "../stores/auth";
-import ChannelsView from "../views/ChannelsView.vue";
-import InfoView from "@/views/InfoView.vue";
-import MonitoringView from "@/views/MonitoringView.vue";
+
+// All other views are lazy loaded - reduces initial bundle size
+const StreamView = import("../views/StreamsView.vue");
+const FilterView = defineAsyncComponent(() => import("../views/FilterView.vue"));
+const BookmarkView = defineAsyncComponent(() => import("../views/BookmarksView.vue"));
+const VideoView = defineAsyncComponent(() => import("../views/VideoView.vue"));
+const LogView = defineAsyncComponent(() => import("../views/LogsView.vue"));
+const JobView = defineAsyncComponent(() => import("../views/JobView.vue"));
+const AdminView = defineAsyncComponent(() => import("../views/AdminView.vue"));
+const RandomView = defineAsyncComponent(() => import("../views/RandomView.vue"));
+const ChannelView = defineAsyncComponent(() => import("@/views/ChannelView.vue"));
+const ChannelsView = defineAsyncComponent(() => import("../views/ChannelsView.vue"));
+const InfoView = defineAsyncComponent(() => import("@/views/InfoView.vue"));
+const MonitoringView = defineAsyncComponent(() => import("@/views/MonitoringView.vue"));
 
 const routes = [
   { path: "", redirect: "/streams" },
