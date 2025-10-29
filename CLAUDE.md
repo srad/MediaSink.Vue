@@ -317,3 +317,15 @@ export const useMyStore = defineStore("storeName", {
 - App configuration injected at build time via window globals
 - Port configuration: typically runs on `http://localhost:5173` in dev
 - CORS and API URL configured via `APP_APIURL` window variable
+
+### Core BASH Tools (NO EXCEPTIONS)
+
+# Pattern Search - USE 'rg' ONLY
+rg -n "pattern" --glob '!node_modules/*'
+rg -l "pattern"              # List matching files
+rg -t py "pattern"           # Search Python files only
+
+# File Finding - USE 'fd' ONLY
+fd filename                  # Find by name
+fd -e py                     # Find Python files
+fd -H .env                   # Include hidden

@@ -13,7 +13,7 @@ dist
 dist-ssr
 coverage
 *.local
-.claude
+.claude/settings.local.json
 /cypress/videos/
 /cypress/screenshots/
 

@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm run lint)",
+      "Bash(pnpm run test:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run test:*)",
+    ],
+    "deny": [
+      "Bash(curl:*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)"
+    ]
+  },
+  "hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"command":"bash .claude/scripts/validate-bash.sh"}]}]},
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "0",
+    "OTEL_METRICS_EXPORTER": "otlp"
+  }
+}

@@ -480,11 +480,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-
         globPatterns: ["**/*.{js,css,html,json,ico,jpg,png,svg}"],
-        clientsClaim: true, // Ensures the app is immediately controlled by the new SW
-        skipWaiting: false, // Forces the SW to activate immediately
-        maximumFileSizeToCacheInBytes: 3000000
+        clientsClaim: true, // New SW immediately controls all clients
+        skipWaiting: true, // New SW activates immediately without waiting for old SW to be unused
+        maximumFileSizeToCacheInBytes: 3000000,
       },
     }),
   ],
