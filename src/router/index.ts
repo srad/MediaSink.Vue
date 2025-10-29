@@ -6,20 +6,60 @@ import { useAuthStore } from "../stores/auth";
 // Login/Register load eagerly since they're shown first
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
+import RouteLoadingIndicator from "../components/RouteLoadingIndicator.vue";
+import StreamsView from "../views/StreamsView.vue";
 
-// All other views are lazy loaded - reduces initial bundle size
-const StreamView = import("../views/StreamsView.vue");
-const FilterView = defineAsyncComponent(() => import("../views/FilterView.vue"));
-const BookmarkView = defineAsyncComponent(() => import("../views/BookmarksView.vue"));
-const VideoView = defineAsyncComponent(() => import("../views/VideoView.vue"));
-const LogView = defineAsyncComponent(() => import("../views/LogsView.vue"));
-const JobView = defineAsyncComponent(() => import("../views/JobView.vue"));
-const AdminView = defineAsyncComponent(() => import("../views/AdminView.vue"));
-const RandomView = defineAsyncComponent(() => import("../views/RandomView.vue"));
-const ChannelView = defineAsyncComponent(() => import("@/views/ChannelView.vue"));
-const ChannelsView = defineAsyncComponent(() => import("../views/ChannelsView.vue"));
-const InfoView = defineAsyncComponent(() => import("@/views/InfoView.vue"));
-const MonitoringView = defineAsyncComponent(() => import("@/views/MonitoringView.vue"));
+// Configure async component loading with loading indicator
+const asyncComponentConfig = {
+  loadingComponent: RouteLoadingIndicator,
+  delay: 200, // Show loading indicator after 200ms
+  timeout: 10000, // Timeout after 10 seconds
+};
+
+const FilterView = defineAsyncComponent({
+  loader: () => import("../views/FilterView.vue"),
+  ...asyncComponentConfig,
+});
+const BookmarkView = defineAsyncComponent({
+  loader: () => import("../views/BookmarksView.vue"),
+  ...asyncComponentConfig,
+});
+const VideoView = defineAsyncComponent({
+  loader: () => import("../views/VideoView.vue"),
+  ...asyncComponentConfig,
+});
+const LogView = defineAsyncComponent({
+  loader: () => import("../views/LogsView.vue"),
+  ...asyncComponentConfig,
+});
+const JobView = defineAsyncComponent({
+  loader: () => import("../views/JobView.vue"),
+  ...asyncComponentConfig,
+});
+const AdminView = defineAsyncComponent({
+  loader: () => import("../views/AdminView.vue"),
+  ...asyncComponentConfig,
+});
+const RandomView = defineAsyncComponent({
+  loader: () => import("../views/RandomView.vue"),
+  ...asyncComponentConfig,
+});
+const ChannelView = defineAsyncComponent({
+  loader: () => import("@/views/ChannelView.vue"),
+  ...asyncComponentConfig,
+});
+const ChannelsView = defineAsyncComponent({
+  loader: () => import("../views/ChannelsView.vue"),
+  ...asyncComponentConfig,
+});
+const InfoView = defineAsyncComponent({
+  loader: () => import("@/views/InfoView.vue"),
+  ...asyncComponentConfig,
+});
+const MonitoringView = defineAsyncComponent({
+  loader: () => import("@/views/MonitoringView.vue"),
+  ...asyncComponentConfig,
+});
 
 const routes = [
   { path: "", redirect: "/streams" },
@@ -43,7 +83,7 @@ const routes = [
   {
     path: "/streams/:tab/tab/:tag?",
     name: "Streams",
-    component: StreamView,
+    component: StreamsView,
     meta: { title: "Stream" },
   },
   { path: "/filter", name: "Filter", component: FilterView, meta: { title: "Latest" } },
