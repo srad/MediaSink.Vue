@@ -19,11 +19,15 @@
     <template #header-recordingsCount>Count ({{ totalCount }})</template>
 
     <template #cell-createdAt="{ row }">
-      {{ new Date(row.createdAt as Date).toDateString() }}
+      {{ fromNow(row.createdAt as number) }}
     </template>
 
     <template #cell-preview="{ row }">
       <img alt="preview" :src="row.preview as string" class="rounded" loading="lazy" style="height: 50px; width: auto" />
+    </template>
+
+    <template #cell-size="{ row }">
+      <span>{{(row.size as number).toFixed(1)}} GB</span>
     </template>
 
     <template #cell-displayName="{ row }">
@@ -57,6 +61,7 @@ import ChannelFavButton from "../../components/controls/ChannelFavButton.vue";
 import type { ServicesChannelInfo } from "../../services/api/v1/MediaSinkClient";
 import { computed, inject } from "vue";
 import DataTable from "../DataTable.vue";
+import { fromNow } from "../../utils/datetime";
 
 const props = defineProps<{
   channels: ServicesChannelInfo[];
@@ -67,12 +72,12 @@ const channels = computed(() =>
     ...channel,
     preview: `${fileUrl}/${channel.preview}`,
     link: `/channel/${channel.channelId}/${channel.channelName}`,
-    size: `${(channel.recordingsSize / 1024 / 1024 / 1024).toFixed(1)}GB`,
+    size: (channel.recordingsSize / 1024 / 1024 / 1024),
     createdAt: new Date(channel.createdAt),
   })),
 );
 
-const fileUrl = inject("fileUrl") as string;
+const fileUrl = inject<string>("fileUrl");
 
 // --------------------------------------------------------------------------------------
 // Computes

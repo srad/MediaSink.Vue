@@ -381,9 +381,9 @@ const onPageSizeChange = () => {
     border-top: 1px solid bootstrap.$secondary;
   }
 
-  table th + th,
-  table td + td {
-    border-left: 1px solid bootstrap.$secondary;
+  table th,
+  table td {
+    border-right: 1px solid bootstrap.$secondary;
   }
 }
 
