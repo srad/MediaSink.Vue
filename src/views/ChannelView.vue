@@ -1,5 +1,20 @@
 <template>
-  <div>
+  <div
+    @drop.prevent="handleDrop"
+    @dragover.prevent="isDraggingOver = true"
+    @dragleave.prevent="isDraggingOver = false"
+    @dragend.prevent="isDraggingOver = false"
+    :class="{ 'drag-overlay-active': isDraggingOver }"
+    class="channel-view-container"
+  >
+    <!-- Drag and drop overlay -->
+    <div v-if="isDraggingOver" class="drag-overlay">
+      <div class="drag-overlay-content">
+        <i class="bi bi-cloud-arrow-up"></i>
+        <p>Drop video file to upload</p>
+      </div>
+    </div>
+
     <BusyOverlay :visible="busyOverlay" />
 
     <ChannelModal @save="saveEditChannel" @close="showEditModal = false" title="Edit Channel" :saving="editFormSaving" :is-paused="editFormIsPaused" :channel-disabled="true" :clear="false" :channel-id="editFormChannelId" :show="showEditModal" :channel-name="editFormChannelName" :display-name="editFormDisplayName" :url="editFormUrl" :min-duration="editFormMinDuration" :skip-start="editFormSkipStart" />
@@ -128,6 +143,7 @@ const channel = ref<ServicesChannelInfo | null>(null);
 const selectedRecordings = ref<RecordingResponse[]>([]);
 const uploadProgress = ref(0);
 const busyOverlay = ref(false);
+const isDraggingOver = ref(false);
 
 let uploadAbortController: AbortController | null = null;
 
@@ -358,6 +374,32 @@ const saveEditChannel = async (formData: ChannelUpdate) => {
   }
 };
 
+const handleDrop = (event: DragEvent) => {
+  isDraggingOver.value = false;
+
+  // Get files from drag and drop
+  const files = event.dataTransfer?.files;
+  if (!files || files.length === 0) {
+    return;
+  }
+
+  // Filter for video files
+  const videoFile = Array.from(files).find((file) => {
+    return file.type.startsWith("video/");
+  });
+
+  if (!videoFile) {
+    toastStore.info({
+      title: "Invalid file",
+      message: "Please drop a video file",
+    });
+    return;
+  }
+
+  // Upload the video file
+  fileSelected(videoFile);
+};
+
 // --------------------------------------------------------------------------------------
 // Hooks
 // --------------------------------------------------------------------------------------
@@ -394,3 +436,47 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped lang="scss">
+.channel-view-container {
+  position: relative;
+  min-height: 100vh;
+}
+
+.drag-overlay-active {
+  background-color: rgba(91, 124, 250, 0.05);
+}
+
+.drag-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(91, 124, 250, 0.1);
+  border: 3px dashed #5b7cfa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
+
+  .drag-overlay-content {
+    text-align: center;
+    font-size: 2rem;
+    color: #5b7cfa;
+    font-weight: 600;
+
+    i {
+      display: block;
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+  }
+}
+</style>
