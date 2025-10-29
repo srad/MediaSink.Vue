@@ -2,11 +2,14 @@
   <div class="table-responsive">
     <!-- DataTable Component -->
     <DataTable :columns="columns" :data="props.jobs as unknown as TableRow[]" :pageSize="pageSize" :showPagination="true" :showPageSizeSelector="true" @page-change="handlePageChange" @page-size-change="handlePageSizeChange">
-      <template v-slot:cell-pid="{ value, row }">
+      <template v-slot:cell-active="{ row }">
         <div v-if="row.active" style="width: 1rem; height: 1rem" class="spinner-border text-success" role="status">
           <span class="visually-hidden">{{ t("jobTable.loading") }}</span>
         </div>
-        {{ value }}
+      </template>
+
+      <template #cell-task="{value, row}">
+        <span class="badge bg-warning">{{value}}</span>
       </template>
 
       <template #cell-channelName="{ value, row }">
@@ -39,8 +42,16 @@
         </div>
       </template>
 
-      <template v-slot:cell-createdAt="{ value }">
-        {{ value }}
+      <template #cell-createdAtFromNow="{ value }">
+        <span class="text-ellipsis text-nowrap">{{ value }}</span>
+      </template>
+
+      <template #cell-startedFromNow="{ value }">
+        <span class="text-ellipsis text-nowrap">{{ value }}</span>
+      </template>
+
+      <template #cell-completedAtFromNow="{ value }">
+        <span class="text-ellipsis text-nowrap">{{ value }}</span>
       </template>
 
       <template v-slot:cell-destroy="{ row }">
@@ -81,7 +92,7 @@ const pageSize = 10; // Adjust as needed
 
 // Define columns with width properties
 const columns: Column[] = [
-  { key: "pid", label: t("jobTable.col.pid"), width: "7%" },
+  { key: "active", label: t("jobTable.col.active"), width: "5%" },
   { key: "channelName", label: t("jobTable.col.channel"), sortable: true, type: "string", width: "7%" },
   //{ key: "filename", label: t("jobTable.col.file"), sortable: true, type: "string", width: "5%" },
   { key: "task", label: t("jobTable.col.task"), sortable: true, type: "string", width: "10%", class: "d-none d-lg-table-cell" },

@@ -1,6 +1,6 @@
 export default {
   col: {
-    pid: "PID",
+    active: "Active",
     channel: "Channel",
     file: "File",
     task: "Task",
