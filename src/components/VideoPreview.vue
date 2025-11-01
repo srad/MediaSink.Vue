@@ -4,25 +4,26 @@
       <i class="bi fs-4 text-danger blink bi-record-fill pulse" v-if="props.isRecording"></i>
     </span>
 
-    <img class="w-100 h-auto rounded-top-2" alt="preview" loading="lazy" :src="props.previewImage" v-if="!props.previewVideo || props.previewVideo?.endsWith('null')" />
+    <img v-if="!props.previewFrames || props.previewFrames?.length===0" class="w-100 h-auto rounded-top-2" alt="preview" loading="lazy" :src="props.previewImage" />
+    <template v-else>
+      <div class="position-relative" @mouseenter="paused = false" @mouseleave="paused = true">
+        <img class="w-100 h-auto rounded-top-2" alt="preview" loading="lazy" :src="props.previewImage" />
+        <div class="position-absolute top-0 start-0 w-100 h-100" v-if="!paused">
+          <ImageFramePlayer :frames="props.previewFrames!" :pause="paused" :duration="1" :fps="4" />
+        </div>
+      </div>
+    </template>
 
-    <video v-else ref="video" loop muted playsinline class="w-100 h-auto" style="user-select: none; z-index: 0" :poster="props.previewImage" @click="emit('selected', props.data)" @contextmenu="context($event)" @error="errorLoadImage" @mouseleave="leaveVideo()" @mouseover="hoverVideo()" @touchend="leaveVideo()" @touchstart="hoverVideo()">
-      <source :src="previewVideo" />
-    </video>
     <div v-if="isRecording" class="recording-time-overlay bg-danger position-absolute badge rounded-2 opacity-75 text-white">{{ minutes }}:{{ seconds }}min</div>
     <div class="channel-info-overlay bg-dark position-absolute badge rounded-2 opacity-75 text-white" v-if="props.recordingsSize && props.recordingsCount">{{ (props.recordingsSize / 1024 / 1024 / 1024).toFixed(1) }}GB ({{ props.recordingsCount }})</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef, ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import ImageFramePlayer from "../components/ImageFramePlayer.vue";
 
-const emit = defineEmits<{ (e: "selected", value: string | number): void }>();
-
-const video = useTemplateRef<HTMLVideoElement>("video");
 const thread = ref<null | ReturnType<typeof setTimeout>>(null);
-
-const errorLoad = ref(false);
 
 const props = defineProps<{
   minRecording?: number;
@@ -30,31 +31,19 @@ const props = defineProps<{
   recordingsCount?: number;
   isRecording?: boolean;
   data: string | number;
-  previewImage?: string;
-  previewVideo?: string;
+  previewImage: string;
+  previewFrames?: string[];
 }>();
 
 const secRecording = ref((props.minRecording || 0) * 60);
+
+const paused = ref(true);
 
 const minutes = computed(() => (secRecording.value / 60).toFixed(0));
 const seconds = computed(() => {
   const x = (secRecording.value % 60).toFixed(0);
   return x.length < 2 ? "0" + String(x) : x;
 });
-
-const context = (e: Event) => e.preventDefault();
-
-const hoverVideo = async () => {
-  if (video.value) {
-    video.value.playbackRate = 16;
-    await video.value.play();
-    video.value?.removeAttribute("poster");
-  }
-};
-
-const leaveVideo = () => video.value?.pause();
-
-const errorLoadImage = () => (errorLoad.value = true);
 
 // --------------------------------------------------------------------------------------
 // Hooks
@@ -87,11 +76,6 @@ onUnmounted(() => {
   height: auto;
   vertical-align: middle;
   z-index: -1;
-}
-
-video.missing {
-  filter: blur(4px);
-  clip-path: inset(0);
 }
 
 .recording-indicator {

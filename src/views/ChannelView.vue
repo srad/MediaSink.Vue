@@ -1,12 +1,5 @@
 <template>
-  <div
-    @drop.prevent="handleDrop"
-    @dragover.prevent="isDraggingOver = true"
-    @dragleave.prevent="isDraggingOver = false"
-    @dragend.prevent="isDraggingOver = false"
-    :class="{ 'drag-overlay-active': isDraggingOver }"
-    class="channel-view-container"
-  >
+  <div @drop.prevent="handleDrop" @dragover.prevent="isDraggingOver = true" @dragleave.prevent="isDraggingOver = false" @dragend.prevent="isDraggingOver = false" :class="{ 'drag-overlay-active': isDraggingOver }" class="channel-view-container">
     <!-- Drag and drop overlay -->
     <div v-if="isDraggingOver" class="drag-overlay">
       <div class="drag-overlay-content">
@@ -26,7 +19,7 @@
       <template v-slot:body>
         <ul class="list-unstyled">
           <li :key="recording.recordingId" v-for="recording in selectedRecordings" class="list-group-item d-flex justify-content-between mb-2">
-            <img class="img-thumbnail w-20 me-2" :alt="recording.filename" loading="lazy" :src="`${fileUrl}/${recording.previewCover || recording.channelName + '/.previews/live.jpg'}`" />
+            <img class="img-thumbnail w-20 me-2" :alt="recording.filename" loading="lazy" :src="fileUrl + videoCover(recording)" />
             <div class="w-80">
               <div>{{ recording.filename }}</div>
               <div>{{ (recording.duration / 60).toFixed(1) }}min - {{ Math.fround(recording.size / 1024 / 1024 / 1024).toFixed(1) }}GB</div>
@@ -42,7 +35,7 @@
         <template #body>
           <ul class="list-unstyled">
             <li :key="recording.recordingId" v-for="recording in selectedRecordings" class="list-group-item d-flex justify-content-between mb-2">
-              <img class="img-thumbnail w-20 me-2" :alt="recording.filename" loading="lazy" :src="`${fileUrl}/${recording.previewCover || recording.channelName + '/.previews/live.jpg'}`" />
+              <img class="img-thumbnail w-20 me-2" :alt="recording.filename" loading="lazy" :src="`${fileUrl}/${recording.videoPreview?.previewPath || recording.channelName + '/.previews/live.jpg'}`" />
               <div class="w-80">
                 <div>{{ recording.filename }}</div>
                 <div>{{ (recording.duration / 60).toFixed(1) }}min - {{ Math.fround(recording.size / 1024 / 1024 / 1024).toFixed(1) }}GB</div>
@@ -53,12 +46,12 @@
       </ModalConfirmDialog>
 
       <ModalWindow :show="showVideoUploadModal">
-        <template #header>Video upload</template>
+        <template #header>Video Upload</template>
         <template #body>
-          <h5>Progress: {{ (uploadProgress * 100).toFixed(0) }}%</h5>
           <div class="progress">
-            <div class="progress-bar progress-bar-animated progress-bar-striped bg-primary" role="progressbar" :style="{ width: `${uploadProgress * 100}%` }" aria-valuemax="1" aria-valuemin="0" aria-valuenow="0.4"></div>
+            <div class="progress-bar progress-bar-animated progress-bar-striped bg-info" role="progressbar" :style="{ width: `${uploadProgress * 100}%` }" aria-valuemax="1" aria-valuemin="0" aria-valuenow="0.4"></div>
           </div>
+          <span class="text-center fs-6">{{ (uploadProgress * 100).toFixed(0) }}%</span>
         </template>
         <template #footer>
           <button type="button" class="btn btn-danger" @click="cancelUpload">Cancel Upload</button>
@@ -99,7 +92,14 @@
 
       <div class="row mb-5">
         <div v-for="recording in recordings" :key="recording.recordingId" class="mb-3 col-lg-6 col-xl-6 col-xxl-4 col-md-8 col-sm-8">
-          <VideoItem :job="jobStore.isProcessing(recording.recordingId)" @destroyed="destroyRecording" :check="selectedRecordings.some((x: RecordingResponse) => x.recordingId === recording.recordingId)" @checked="selectRecording" :show-selection="true" :recording="recording" :show-title="false" />
+          <VideoItem
+            @destroyed="destroyRecording"
+            @checked="selectRecording"
+            :job="jobStore.isProcessing(recording.recordingId)"
+            :check="selectedRecordings.some((x: RecordingResponse) => x.recordingId === recording.recordingId)"
+            :show-selection="true"
+            :recording="recording"
+            :show-title="false" />
         </div>
       </div>
     </LoadIndicator>
@@ -125,6 +125,7 @@ import JsConfirmDialog from "@/components/modals/JsConfirmDialog.vue";
 import FavButton from "@/components/controls/FavButton.vue";
 import type { ChannelUpdate } from "@/types/channel";
 import ModalWindow from "@/components/modals/ModalWindow.vue";
+import { videoCover } from "@/utils/video.ts";
 
 // --------------------------------------------------------------------------------------
 // Declarations

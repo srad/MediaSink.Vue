@@ -3,11 +3,11 @@
     <table class="table table-sm bg-white table-bordered border-dark table-hover">
       <thead>
         <tr>
-          <th class="text-center px-2">{{ t("videoView.segment.start") }}</th>
-          <th class="text-center px-2">{{ t("videoView.segment.end") }}</th>
+          <th class="text-center px-2 bg-light">{{ t("videoView.segment.start") }}</th>
+          <th class="text-center px-2 bg-light">{{ t("videoView.segment.end") }}</th>
           <th class="bg-light text-center px-2">{{ t("videoView.segment.duration") }}</th>
-          <th class="bg-light text-center px-2" v-if="showDestroy">
-            <i class="bi bi-trash3 text-danger"></i>
+          <th class="bg-light text-center px-2" v-if="showDestroy" @click="removeAll">
+            <i class="bi bi-trash3 text-danger" style="cursor: pointer"></i>
           </th>
         </tr>
       </thead>
@@ -84,6 +84,10 @@ const markingsOverview = computed(() => {
       };
     });
 });
+
+const removeAll = () => {
+  markingsOverview.value.forEach((s) => emit("destroy", s.marking));
+};
 
 const markingsDuration = computed(() => {
   const totalSeconds = props.markings.reduce((acc, current) => acc + (current.timeend - current.timestart), 0);

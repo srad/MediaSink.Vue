@@ -1,12 +1,24 @@
 <template>
-  <div ref="stripeContainer" @mousedown.stop="startSelection" class="position-relative h-100 whitespace-nowrap overflow-x-scroll user-select-none" draggable="false" style="min-height: 100px">
-    <div class="position-absolute bottom-0">
-      <VideoTimeIndex v-if="imageLoaded && props.loaded" :duration="props.duration" :width="stripeImage!.width" />
+  <div ref="stripeContainer" @mousedown.stop="startSelection" class="position-relative h-100 user-select-none overflow-x-auto" draggable="false" style="min-height: 100px">
+    <div ref="imageRowContainer" draggable="false" class="d-flex flex-nowrap h-100">
+      <img v-for="(frame, i) in frames" :key="frame" draggable="false" loading="lazy" :alt="String(i)" @load="updateWidth" :src="frame" style="height: 100%; display: block" :style="{ width: imageWidth > 0 ? imageWidth + 'px' : 'auto' }" />
     </div>
 
-    <img draggable="false" alt="stripe" class="stripe position-absolute" ref="stripeImage" :src="src" style="height: 100%" />
+    <div class="position-absolute bottom-0" style="pointer-events: none">
+      <VideoTimeIndex v-if="imageLoaded && props.loaded" :duration="props.duration" :width="width" />
+    </div>
 
-    <div :key="selection.start" @click="select(i)" class="marking position-absolute" v-for="(selection, i) in drawSelections" :style="{ transform: `translateX(${selection.start}px)`, width: selection.end - selection.start + 'px' }">
+    <div
+      :key="selection.start"
+      @click="select(i)"
+      class="marking position-absolute"
+      v-for="(selection, i) in drawSelections"
+      :style="{
+        transform: `translateX(${selection.start}px)`,
+        width: selection.end - selection.start + 'px',
+        height: '100%',
+        top: 0,
+      }">
       <div class="selection w-100 h-100" style="pointer-events: none" :class="{ selected: selection.selected }"></div>
       <div v-if="(currentSelection !== null && hasMinSelection) || !currentSelection" class="handle handle-left position-absolute" @mousedown.stop="startResize(selection, 'left')"></div>
       <div v-if="(currentSelection !== null && hasMinSelection) || !currentSelection" class="handle handle-right position-absolute" @mousedown.stop="startResize(selection, 'right')"></div>
@@ -14,12 +26,12 @@
       <button type="button" v-if="currentSelection !== selection" @click.stop="destroy(i)" class="text-white btn btn-danger p-1 bi bi-x op-100 marking-destroy position-absolute"></button>
     </div>
 
-    <div v-if="showBar" class="timecode position-absolute" :style="{ transform: `translateX(${barLeft}px)` }"></div>
+    <div v-if="showBar" class="timecode position-absolute" :style="{ transform: `translateX(${barLeft}px)`, zIndex: 40 }"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch, nextTick } from "vue";
 import { animateScrollLeft } from "../utils/animations";
 import VideoTimeIndex from "./VideoTimeIndex.vue";
 import BigNumber from "bignumber.js";
@@ -38,7 +50,7 @@ export type Selection = {
 
 const props = defineProps<{
   loaded: boolean;
-  src: string;
+  frames: string[];
   timecode: number;
   duration: number;
   paused: boolean;
@@ -66,13 +78,17 @@ const currentSelection = ref<Selection | null>(null);
 const isResizing = ref<boolean>(false);
 const resizeDirection = ref<"left" | "right" | null>(null);
 const showBar = ref(true);
-const stripeImage = ref<HTMLImageElement>();
+
+const imageRowContainer = ref<HTMLElement | null>(null);
 const stripeContainer = ref<HTMLElement>();
+
 const width = ref(0);
 const barLeft = ref(0);
 const imageLoaded = ref(false);
+const imageWidth = ref(0); // Width of each individual image in pixels
 
 let seekedThroughStripeClick = false;
+let rafPending = false; // RequestAnimationFrame throttle flag
 
 const minDuration = 1;
 
@@ -92,25 +108,36 @@ const hasMinSelection = computed<boolean>(() => dT.value > minDuration);
 const drawSelections = computed(() => (currentSelection.value ? selections.value.concat(currentSelection.value) : selections.value));
 
 // --------------------------------------------------------------------------------------
+// Methods - Defined before watchers to avoid hoisting issues
+// --------------------------------------------------------------------------------------
+
+const updateWidth = () => {
+  if (imageRowContainer.value) {
+    width.value = imageRowContainer.value.scrollWidth;
+    if (width.value > 0 && !imageLoaded.value) {
+      imageLoaded.value = true;
+    }
+  }
+};
+
+// --------------------------------------------------------------------------------------
 // Watchers
 // --------------------------------------------------------------------------------------
 
-// The user clicked on the seek-bar in the video element.
 watch(
   () => props.seeked,
   (timeIndex: number) => {
-    if (props.disabled || !stripeImage.value || !stripeContainer.value) {
+    if (props.disabled || !imageLoaded.value || !stripeContainer.value) {
       return;
     }
 
-    // The problem is that seeked is also triggered
     if (seekedThroughStripeClick) {
       seekedThroughStripeClick = false;
       return;
     }
 
     const timeOffset = timeIndex / props.duration;
-    barLeft.value = new BigNumber(timeOffset).multipliedBy(stripeImage.value.width).toNumber();
+    barLeft.value = new BigNumber(timeOffset).multipliedBy(width.value).toNumber();
 
     const scrollLeft = barLeft.value - stripeContainer.value.getBoundingClientRect().width / 2;
     animateScrollLeft(stripeContainer.value, scrollLeft, 1000);
@@ -121,8 +148,9 @@ watch(
   () => props.timecode,
   (timecode) => {
     requestAnimationFrame(() => {
+      if (!imageLoaded.value || width.value === 0) return;
       const timeOffset = timecode / props.duration;
-      barLeft.value = new BigNumber(timeOffset).multipliedBy(stripeImage.value!.width).toNumber();
+      barLeft.value = new BigNumber(timeOffset).multipliedBy(width.value).toNumber();
     });
   },
 );
@@ -132,10 +160,9 @@ watch(
 // --------------------------------------------------------------------------------------
 
 onMounted(() => {
-  stripeContainer.value?.addEventListener("wheel", resizePreview, true);
-  if (stripeImage.value) {
-    stripeImage.value.onload = load;
-  }
+  // --- ADDED: Wheel event listener for zooming ---
+  stripeContainer.value?.addEventListener("wheel", resizePreview, { passive: false });
+
   window.addEventListener("mousemove", updateResize);
   window.addEventListener("mouseup", endResize);
   window.addEventListener("mousemove", updateSelection);
@@ -143,22 +170,21 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  stripeContainer.value?.removeEventListener("wheel", resizePreview, true);
+  stripeContainer.value?.removeEventListener("wheel", resizePreview);
+
   window.removeEventListener("mousemove", updateResize);
   window.removeEventListener("mouseup", endResize);
-  window.removeEventListener("mouseup", updateSelection);
+  window.removeEventListener("mousemove", updateSelection);
   window.removeEventListener("mouseup", endSelection);
 });
 
 // --------------------------------------------------------------------------------------
-// Methods
+// More Methods
 // --------------------------------------------------------------------------------------
 
 const getCurrentTimeIndex = (): BigNumber => {
-  const offset = new BigNumber(barLeft.value).dividedBy(stripeImage.value!.width);
-  const timeOffset = offset.multipliedBy(props.duration);
-
-  return timeOffset;
+  const offset = new BigNumber(barLeft.value).dividedBy(width.value);
+  return offset.multipliedBy(props.duration);
 };
 
 const emitCurrentTimeIndex = (): void => {
@@ -166,14 +192,12 @@ const emitCurrentTimeIndex = (): void => {
 };
 
 const seek = (event: MouseEvent): void => {
-  if (props.disabled || !stripeImage.value || !stripeContainer.value) {
+  if (props.disabled || !imageLoaded.value || !stripeContainer.value) {
     return;
   }
-  seekedThroughStripeClick = true; // Prevents twice handling seek event.
-
+  seekedThroughStripeClick = true;
   barLeft.value = stripeContainer.value.scrollLeft + getX(event);
   showBar.value = true;
-
   emitCurrentTimeIndex();
 };
 
@@ -183,7 +207,6 @@ const startResize = (selection: Selection, direction: "left" | "right") => {
   currentSelection.value = selection;
 };
 
-// End resize when mouse is released
 const endResize = () => {
   if (isSelecting.value) {
     return;
@@ -197,9 +220,7 @@ const updateResize = (event: MouseEvent) => {
   if (!isResizing.value || !currentSelection.value) {
     return;
   }
-
   const x = getMouseX(event);
-
   if (resizeDirection.value === "left") {
     currentSelection.value.start = Math.min(x, currentSelection.value.end);
     currentSelection.value.timestart = convertToTime(x);
@@ -216,11 +237,6 @@ const formatDuration = (selection: Selection) => {
   return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
 };
 
-const load = () => {
-  width.value = stripeImage.value!.clientWidth;
-  imageLoaded.value = true;
-};
-
 const destroy = (index: number): void => {
   if (props.disabled) {
     return;
@@ -233,11 +249,13 @@ const getMouseX = (event: MouseEvent): number => {
   if (!stripeContainer.value) {
     return 0;
   }
+  // This is the mouse position relative to the *entire scrolled content*
   return event.clientX - stripeContainer.value.getBoundingClientRect().left + stripeContainer.value.scrollLeft;
 };
 
 const getX = (event: MouseEvent): number => {
   const bounds = stripeContainer.value!.getBoundingClientRect();
+  // This is the mouse position relative to the *visible viewport*
   return event.clientX - bounds.left;
 };
 
@@ -245,7 +263,10 @@ const startSelection = (event: MouseEvent): void => {
   if (isResizing.value) {
     return;
   }
-
+  const target = event.target as HTMLElement;
+  if (target.classList.contains("handle") || target.classList.contains("selection") || target.classList.contains("marking-destroy")) {
+    return;
+  }
   isSelecting.value = true;
   const posX = getMouseX(event);
   const selection = {
@@ -264,14 +285,9 @@ const updateSelection = (event: MouseEvent) => {
   if (!isSelecting.value || !currentSelection.value) {
     return;
   }
-
   const endX = stripeContainer.value!.scrollLeft + getX(event);
-
-  // Update selection bounds.
   currentSelection.value.end = Math.max(endX, currentSelection.value.start);
-  currentSelection.value.end = Math.min(stripeImage.value!.width, currentSelection.value.end); // Guard
-
-  // Update time index.
+  currentSelection.value.end = Math.min(width.value, currentSelection.value.end); // Guard
   currentSelection.value.timestart = convertToTime(currentSelection.value.start);
   currentSelection.value.timeend = convertToTime(currentSelection.value.end);
 };
@@ -280,7 +296,6 @@ const endSelection = (event: MouseEvent): void => {
   if (!isSelecting.value || !currentSelection.value) {
     return;
   }
-
   if (currentSelection.value && dT.value < minDuration) {
     seek(event);
   } else {
@@ -292,81 +307,109 @@ const endSelection = (event: MouseEvent): void => {
   emit("marking", selections.value);
 };
 
-/**
- * Checks if a selection has an overlap.
- * Right now overlaps are allowed for creative purposes, this allows to make join repeated recordings segments.
- * However, in case overlaps shall be forbidden, this function can check the marking for overlaps.
- * @param selectionStart
- * @param selectionEnd
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const overlaps = (selectionStart: number, selectionEnd: number) => {
-  // No markings yet.
-  if (!isSelecting.value) {
-    return false;
-  }
-
+  if (!isSelecting.value) return false;
   const sorted = selections.value.sort((a, b) => a.start - b.start).sort((a, b) => a.end - b.end);
-
-  // Smaller than first marking.
-  if (selectionStart < sorted[0]!.start && selectionEnd < sorted[0]!.end) {
-    return false;
-  }
-
-  // Traverse all markings and make sure there is no overlap.
+  if (selectionStart < sorted[0]!.start && selectionEnd < sorted[0]!.end) return false;
   for (let i = 0; i < sorted.length; i++) {
     const start = sorted[i]!.start;
     const end = sorted[i]!.end;
-
-    // Multiple cases:
-    // |----******----| -> start >= selectionStart && selectionEnd <= end
-    // ****|****------| -> selectionStart <= start && end >= selectionStart && end <= selectionEnd
-    //|-------***|****  -> selectionStart >= start && selectionStart <= end && selectionEnd >= end
-    //****|*****|*****  -> selectionStart => start && selectionEnd <= end
-
     const overlaps = (start >= selectionStart && selectionEnd <= end) || (selectionStart <= start && end >= selectionStart && end <= selectionEnd) || (start && selectionStart <= end && selectionEnd >= end) || (selectionStart <= start && selectionEnd >= end);
-
-    if (overlaps) {
-      return true;
-    }
+    if (overlaps) return true;
   }
   return false;
 };
 
 const select = (index: number): void => {
-  // catch event order from stripe before the delete button
   if (props.disabled || !selections.value[index]) {
     return;
   }
-
   selections.value.map((x) => (x.selected = false));
   selections.value[index].selected = true;
 };
 
+// ---
+// ADDED: The complete, working resizePreview function
+// ---
 const resizePreview = (event: WheelEvent): void => {
-  const imgElement = stripeImage.value!;
-
-  const resizeBy = event.deltaY * 3;
-  const oldWidth = imgElement.width;
-
-  imgElement.width += resizeBy;
-
-  if (imgElement.width < (window.innerWidth * 3) / 4) {
-    imgElement.width = oldWidth;
+  // Check if this is a horizontal scroll event (e.g., Shift+Wheel or trackpad)
+  if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+    // Let the browser handle its native horizontal scrolling
     return;
   }
 
-  const factor = imgElement.width / oldWidth;
-  width.value = imgElement.width;
+  // If we are here, it's a vertical scroll. Prevent default page scroll.
+  event.preventDefault();
+  event.stopPropagation();
 
-  // Linear transformation on all x coordinates
-  barLeft.value *= factor;
-  stripeContainer.value!.scrollLeft *= factor; // Prevents that
-  selections.value.forEach((m) => {
-    m.start *= factor;
-    m.end *= factor;
+  // Throttle to one update per animation frame
+  if (rafPending) return;
+
+  if (!stripeContainer.value || !imageRowContainer.value) return;
+
+  const oldWidth = width.value;
+  if (oldWidth === 0) return;
+
+  // --- Capture initial image width on first resize ---
+  if (imageWidth.value === 0) {
+    const firstImage = imageRowContainer.value.querySelector("img");
+    if (firstImage) {
+      imageWidth.value = firstImage.clientWidth;
+    } else {
+      return; // No images loaded yet
+    }
+  }
+
+  const oldImageWidth = imageWidth.value;
+
+  // Get mouse position relative to *full content*
+  const mouseX = getMouseX(event);
+  // Get mouse position relative to *visible viewport*
+  const mouseXInViewport = getX(event);
+
+  // --- Calculate new image width ---
+  const resizeBy = event.deltaY * 1; // Increased sensitivity for faster response
+  let newImageWidth = oldImageWidth + resizeBy;
+  const minImageWidth = 20;
+  const maxImageWidth = 500;
+  newImageWidth = Math.max(minImageWidth, Math.min(maxImageWidth, newImageWidth));
+
+  if (newImageWidth === oldImageWidth) return;
+
+  // --- Apply new image width ---
+  imageWidth.value = newImageWidth;
+
+  // Set RAF throttle flag
+  rafPending = true;
+
+  // --- Update on next animation frame ---
+  requestAnimationFrame(() => {
+    // Wait for Vue to update the DOM with new image widths
+    nextTick(() => {
+      // Get new width after images resize
+      updateWidth();
+      const newWidth = width.value;
+
+      if (newWidth !== oldWidth && newWidth > 0) {
+        // Calculate scaling factor
+        const factor = newWidth / oldWidth;
+
+        // Scale all pixel-based coordinates
+        barLeft.value *= factor;
+        selections.value.forEach((m) => {
+          m.start *= factor;
+          m.end *= factor;
+        });
+
+        // Set new scroll position to keep mouse centered
+        const newMouseX = mouseX * factor;
+        stripeContainer.value!.scrollLeft = newMouseX - mouseXInViewport;
+      }
+
+      // Release RAF throttle flag
+      rafPending = false;
+    });
   });
-  //emit('scroll', event);
 };
 </script>
 
@@ -375,13 +418,14 @@ const resizePreview = (event: WheelEvent): void => {
   height: 100%;
 }
 
+/* z-index fix */
 .selection {
   position: absolute;
   top: 0;
   height: 100%;
   background: rgba(0, 123, 255, 0.35);
-  /*border: 1px solid #007bff;*/
   cursor: pointer;
+  z-index: 10;
 }
 
 .handle {
@@ -393,6 +437,7 @@ const resizePreview = (event: WheelEvent): void => {
   background: #007bff;
   cursor: ew-resize;
   user-select: none;
+  z-index: 20; /* Handles on top of selection */
 }
 
 .selected {
@@ -410,6 +455,7 @@ const resizePreview = (event: WheelEvent): void => {
   padding: 2px 5px;
   font-size: 12px;
   border-radius: 3px;
+  z-index: 30; /* Text on top */
 }
 
 .marking-destroy {
@@ -417,6 +463,7 @@ const resizePreview = (event: WheelEvent): void => {
   top: 4px;
   line-height: 18px;
   margin: 0;
+  z-index: 30; /* Button on top */
 }
 
 .timecode {
@@ -424,11 +471,20 @@ const resizePreview = (event: WheelEvent): void => {
   height: 100%;
   background: greenyellow;
   user-select: none;
+  pointer-events: none;
+  top: 0; /* Explicitly set top */
+  /* z-index is set inline in the template (zIndex: 40) */
 }
 
 img {
   user-select: none;
-  image-rendering: optimizeQuality;
+  image-rendering: optimizeSpeed;
+  -webkit-user-drag: none;
+  user-drag: none;
+  /* Performance optimizations */
+  will-change: width;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .handle-left {

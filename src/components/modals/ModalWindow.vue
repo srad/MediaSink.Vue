@@ -2,7 +2,7 @@
   <Transition name="modal">
     <div v-if="props.show" ref="container" class="modal-mask d-flex align-items-center p-3">
       <div class="modal-container">
-        <div class="modal-header d-flex justify-content-between px-4 py-2">
+        <div class="modal-header d-flex justify-content-between px-3 py-2">
           <slot name="header">default header</slot>
           <button type="button" class="btn-close btn-close-white" @click="emit('close')"></button>
         </div>

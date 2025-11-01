@@ -27,7 +27,7 @@
     </template>
 
     <template #cell-size="{ row }">
-      <span>{{(row.size as number).toFixed(1)}} GB</span>
+      <span>{{ (row.size as number).toFixed(1) }} GB</span>
     </template>
 
     <template #cell-displayName="{ row }">
@@ -72,7 +72,7 @@ const channels = computed(() =>
     ...channel,
     preview: `${fileUrl}/${channel.preview}`,
     link: `/channel/${channel.channelId}/${channel.channelName}`,
-    size: (channel.recordingsSize / 1024 / 1024 / 1024),
+    size: channel.recordingsSize / 1024 / 1024 / 1024,
     createdAt: new Date(channel.createdAt),
   })),
 );

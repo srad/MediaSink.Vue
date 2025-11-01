@@ -45,12 +45,20 @@ export const useJobStore = defineStore("job", {
   },
   getters: {
     withTime: (state: JobState): JobTableItem[] =>
-      state.jobs.sort((a, b) => (+b.active) - (+a.active)).map((job: DatabaseJob) => ({
-        ...job,
-        createdAtFromNow: fromNow(Date.parse(job.createdAt)),
-        startedFromNow: job.startedAt ? fromNow(Date.parse(job.startedAt)) : "-",
-        completedAtFromNow: job.completedAt ? fromNow(Date.parse(job.completedAt)) : "-",
-      })),
+      state.jobs
+        .sort((a, b) => +b.active - +a.active)
+        .map(function (job: DatabaseJob) {
+          const dT = Date.now() - Date.parse(job.startedAt);
+          const diffMinutes = (dT / (1000 * 60)).toFixed(1);
+
+          return {
+            ...job,
+            createdAtFromNow: fromNow(Date.parse(job.createdAt)),
+            wokingDuration: !job.completedAt && job.startedAt ? (diffMinutes + "min") : "-",
+            startedFromNow: job.startedAt ? fromNow(Date.parse(job.startedAt)) : "-",
+            completedAtFromNow: job.completedAt ? fromNow(Date.parse(job.completedAt)) : "-",
+          };
+        }),
     all: (state: JobState): Job[] => {
       return state.jobs || [];
     },

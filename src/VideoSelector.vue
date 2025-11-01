@@ -1,7 +1,6 @@
 <template>
   <div class="timeline-container" ref="timelineRef" @mousedown="startSelection">
     <div class="timeline-scroll" ref="scrollRef">
-      <img :src="imageSrc" class="timeline-image" draggable="false" ref="imageRef" @load="onImageLoad" />
       <div v-for="(selection, index) in selections" :key="index" class="selection" :style="selectionStyle(selection)">
         <span class="selection-duration">{{ formatDuration(selection) }}</span>
         <button class="remove-btn" @mousedown.stop @click.stop="removeSelection(index)">×</button>
@@ -23,7 +22,7 @@ type Selection = {
   endTime: number;
 };
 
-const props = defineProps<{ imageSrc: string; duration: number }>();
+const props = defineProps<{ duration: number }>();
 const emit = defineEmits<{ (event: "updateSelections", selections: Selection[]): void }>();
 
 const timelineRef = ref<HTMLDivElement | null>(null);
@@ -36,15 +35,6 @@ const currentSelection = ref<Selection | null>(null);
 const resizeDirection = ref<"left" | "right" | null>(null);
 
 const imageNaturalWidth = ref(0); // Variable to store the image's actual width
-
-// This method is called when the image is loaded to get its actual width
-const onImageLoad = () => {
-  if (imageRef.value) {
-    imageNaturalWidth.value = imageRef.value.naturalWidth;
-  }
-};
-
-const timelineWidth = computed(() => timelineRef.value?.clientWidth || 1); // Use the viewport width
 
 // Convert pixel to time based on the actual width of the image
 const convertToTime = (pixel: number) => (pixel / imageNaturalWidth.value) * props.duration;
@@ -215,13 +205,6 @@ onMounted(() => {
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
-}
-
-.timeline-image {
-  display: block;
-  height: 100%;
-  width: auto;
-  user-select: none;
 }
 
 .selection {

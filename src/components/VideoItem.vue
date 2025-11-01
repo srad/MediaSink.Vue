@@ -1,8 +1,5 @@
 <template>
-  <VideoEnhancementModal
-    :show="showEnhancementModal"
-    :recording="props.recording"
-    @close="showEnhancementModal = false" />
+  <VideoEnhancementModal :show="showEnhancementModal" :recording="props.recording" @close="showEnhancementModal = false" />
 
   <div style="z-index: 10" class="card bg-light border position-relative shadow-sm bg-light mark p-0 rounded-top-2" :class="{ 'border-info': !checked, 'animate__animated animate__zoomOut': destroyed, 'border-2 border-danger': checked }">
     <div v-if="busy" class="bg-dark opacity-50 position-absolute w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 100">
@@ -25,7 +22,12 @@
       </div>
       <span v-if="props.recording.videoType === 'cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
       <RouterLink class="d-flex" :to="link">
-        <VideoPreview class="card-img-top" :data="recording.recordingId" :preview-video="previewVideoUrl" :preview-image="previewCoverUrl" />
+        <VideoPreview
+          class="card-img-top"
+          :data="recording.recordingId"
+          :preview-frames="previewFrames"
+          :preview-video="previewVideoUrl"
+          :preview-image="previewCoverUrl" />
       </RouterLink>
     </div>
     <div v-if="props.showTitle" class="card-body">
@@ -46,10 +48,12 @@ import VideoInfo from "./VideoInfo.vue";
 import VideoPreview from "./VideoPreview.vue";
 import VideoEnhancementModal from "./VideoEnhancementModal.vue";
 import type { DatabaseRecording as RecordingResponse } from "../services/api/v1/MediaSinkClient";
-import { inject, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { createClient } from "../services/api/v1/ClientFactory";
+import { mapVideoFrames, videoCover } from "../utils/video";
+import { useToastStore } from "../stores/toast";
 
 // --------------------------------------------------------------------------------------
 // Emits
@@ -86,11 +90,12 @@ const showEnhancementModal = ref(false);
 const apiUrl = inject("apiUrl") as string;
 const fileUrl = inject("fileUrl") as string;
 
-const previewVideoUrl = `${fileUrl}/${props.recording.previewVideo}`;
-// TODO: Pass a default image from the server, if the preview image is missing.
-const previewCoverUrl = `${fileUrl}/${props.recording.previewCover || props.recording.channelName + "/.previews/live.jpg"}`;
-const downloadApiUrl = `${apiUrl}/videos/${props.recording.recordingId}/download`;
+const toast = useToastStore();
 
+const previewVideoUrl = `${fileUrl}/${props.recording.videoPreview?.previewPath}/0.jpg`;
+const previewCoverUrl = fileUrl + "/" + videoCover(props.recording);
+const downloadApiUrl = `${apiUrl}/videos/${props.recording.recordingId}/download`;
+const previewFrames = computed(() => mapVideoFrames(fileUrl, props.recording));
 const { t } = useI18n();
 
 const link = `/recordings/${props.recording.recordingId}`;
@@ -172,8 +177,10 @@ const destroyRecording = async (recording: RecordingResponse) => {
     await client.videos.videosDelete({ id: recording.recordingId });
     destroyed.value = true;
     setTimeout(() => emit("destroyed", recording), 1000);
-  } catch (ex) {
-    alert(ex);
+  } catch (ex: unknown) {
+    const e = ex as Response;
+    toast.error({ title: e.statusText, message: await e.text() });
+    alert(await e.text());
   } finally {
     busy.value = false;
   }

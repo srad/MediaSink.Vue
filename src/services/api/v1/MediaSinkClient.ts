@@ -71,6 +71,7 @@ export interface DatabaseJob {
   jobId: number;
   /** Additional information */
   pid?: number;
+  priority: DatabaseJobPriority;
   progress?: string;
   recordingId: number;
   startedAt: string;
@@ -84,6 +85,15 @@ export enum DatabaseJobOrder {
   JobOrderDESC = "DESC",
 }
 
+export enum DatabaseJobPriority {
+  /** Fast jobs: preview frames */
+  PriorityHigh = 1,
+  /** Medium jobs: cut, merge */
+  PriorityNormal = 3,
+  /** Slow jobs: enhance, convert */
+  PriorityLow = 5,
+}
+
 export enum DatabaseJobStatus {
   StatusJobCompleted = "completed",
   StatusJobOpen = "open",
@@ -93,9 +103,7 @@ export enum DatabaseJobStatus {
 
 export enum DatabaseJobTask {
   TaskConvert = "convert",
-  TaskPreviewCover = "preview-cover",
-  TaskPreviewStrip = "preview-stripe",
-  TaskPreviewVideo = "preview-video",
+  TaskPreviewFrames = "preview-frames",
   TaskCut = "cut",
   TaskMerge = "merge",
   TaskEnhanceVideo = "enhance-video",
@@ -114,14 +122,24 @@ export interface DatabaseRecording {
   /** Total number of video packets/frames. */
   packets: number;
   pathRelative: string;
-  previewCover?: string;
-  previewStripe?: string;
-  previewVideo?: string;
   /** @min 0 */
   recordingId: number;
   size: number;
+  videoPreview?: DatabaseVideoPreview;
   videoType: string;
   width: number;
+}
+
+export interface DatabaseVideoPreview {
+  createdAt: string;
+  frameCount: number;
+  frameInterval: number;
+  previewPath: string;
+  /** @min 0 */
+  recordingId: number;
+  updatedAt: string;
+  /** @min 0 */
+  videoPreviewId: number;
 }
 
 export interface DownloadDetailParams {
@@ -481,6 +499,13 @@ export interface ServicesProcessInfo {
   output?: string;
   path?: string;
   pid?: number;
+}
+
+export interface ServicesRegenerationProgress {
+  current?: number;
+  currentVideo?: string;
+  isRunning?: boolean;
+  total?: number;
 }
 
 export interface StopCreateParams {
@@ -1051,6 +1076,43 @@ export namespace Jobs {
   }
 }
 
+export namespace Previews {
+  /**
+   * @description Get the current progress of preview frame regeneration
+   * @tags previews
+   * @name RegenerateList
+   * @summary Get preview regeneration progress
+   * @request GET:/previews/regenerate
+   * @response `200` `ServicesRegenerationProgress` OK
+   * @response `500` `any` Error message
+   */
+  export namespace RegenerateList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServicesRegenerationProgress;
+  }
+
+  /**
+   * @description Delete and regenerate preview frames for all recordings. Runs in background and provides progress updates via WebSocket.
+   * @tags previews
+   * @name RegenerateCreate
+   * @summary Regenerate all preview frames
+   * @request POST:/previews/regenerate
+   * @response `200` `any` OK
+   * @response `409` `any` Regeneration already in progress
+   * @response `500` `any` Error message
+   */
+  export namespace RegenerateCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+}
+
 export namespace Processes {
   /**
    * @description Return a list of streaming processes
@@ -1210,23 +1272,6 @@ export namespace Videos {
     export type RequestBody = RequestsVideoFilterRequest;
     export type RequestHeaders = {};
     export type ResponseBody = ResponsesVideoFilterResponse;
-  }
-
-  /**
-   * @description Generate poster/cover images for all videos in the system
-   * @tags videos
-   * @name GeneratePostersCreate
-   * @summary Generate cover images for all videos
-   * @request POST:/videos/generate/posters
-   * @response `200` `any` OK
-   * @response `500` `any` Error message
-   */
-  export namespace GeneratePostersCreate {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = any;
   }
 
   /**
@@ -2363,6 +2408,46 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
         ...params,
       }),
   };
+  previews = {
+    /**
+     * @description Get the current progress of preview frame regeneration
+     *
+     * @tags previews
+     * @name RegenerateList
+     * @summary Get preview regeneration progress
+     * @request GET:/previews/regenerate
+     * @response `200` `ServicesRegenerationProgress` OK
+     * @response `500` `any` Error message
+     */
+    regenerateList: (params: RequestParams = {}) =>
+      this.http.request<ServicesRegenerationProgress, any>({
+        path: `/previews/regenerate`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Delete and regenerate preview frames for all recordings. Runs in background and provides progress updates via WebSocket.
+     *
+     * @tags previews
+     * @name RegenerateCreate
+     * @summary Regenerate all preview frames
+     * @request POST:/previews/regenerate
+     * @response `200` `any` OK
+     * @response `409` `any` Regeneration already in progress
+     * @response `500` `any` Error message
+     */
+    regenerateCreate: (params: RequestParams = {}) =>
+      this.http.request<any, any>({
+        path: `/previews/regenerate`,
+        method: "POST",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
   processes = {
     /**
      * @description Return a list of streaming processes
@@ -2538,25 +2623,6 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
         path: `/videos/filter`,
         method: "POST",
         body: VideoFilterRequest,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Generate poster/cover images for all videos in the system
-     *
-     * @tags videos
-     * @name GeneratePostersCreate
-     * @summary Generate cover images for all videos
-     * @request POST:/videos/generate/posters
-     * @response `200` `any` OK
-     * @response `500` `any` Error message
-     */
-    generatePostersCreate: (params: RequestParams = {}) =>
-      this.http.request<any, any>({
-        path: `/videos/generate/posters`,
-        method: "POST",
         type: ContentType.Json,
         format: "json",
         ...params,

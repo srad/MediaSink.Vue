@@ -1,65 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { defineAsyncComponent } from "vue";
 import { useAuthStore } from "../stores/auth";
 
 // Lazy load views with code splitting for better performance
 // Login/Register load eagerly since they're shown first
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
-import RouteLoadingIndicator from "../components/RouteLoadingIndicator.vue";
 import StreamsView from "../views/StreamsView.vue";
-
-// Configure async component loading with loading indicator
-const asyncComponentConfig = {
-  loadingComponent: RouteLoadingIndicator,
-  delay: 200, // Show loading indicator after 200ms
-  timeout: 10000, // Timeout after 10 seconds
-};
-
-const FilterView = defineAsyncComponent({
-  loader: () => import("../views/FilterView.vue"),
-  ...asyncComponentConfig,
-});
-const BookmarkView = defineAsyncComponent({
-  loader: () => import("../views/BookmarksView.vue"),
-  ...asyncComponentConfig,
-});
-const VideoView = defineAsyncComponent({
-  loader: () => import("../views/VideoView.vue"),
-  ...asyncComponentConfig,
-});
-const LogView = defineAsyncComponent({
-  loader: () => import("../views/LogsView.vue"),
-  ...asyncComponentConfig,
-});
-const JobView = defineAsyncComponent({
-  loader: () => import("../views/JobView.vue"),
-  ...asyncComponentConfig,
-});
-const AdminView = defineAsyncComponent({
-  loader: () => import("../views/AdminView.vue"),
-  ...asyncComponentConfig,
-});
-const RandomView = defineAsyncComponent({
-  loader: () => import("../views/RandomView.vue"),
-  ...asyncComponentConfig,
-});
-const ChannelView = defineAsyncComponent({
-  loader: () => import("@/views/ChannelView.vue"),
-  ...asyncComponentConfig,
-});
-const ChannelsView = defineAsyncComponent({
-  loader: () => import("../views/ChannelsView.vue"),
-  ...asyncComponentConfig,
-});
-const InfoView = defineAsyncComponent({
-  loader: () => import("@/views/InfoView.vue"),
-  ...asyncComponentConfig,
-});
-const MonitoringView = defineAsyncComponent({
-  loader: () => import("@/views/MonitoringView.vue"),
-  ...asyncComponentConfig,
-});
 
 const routes = [
   { path: "", redirect: "/streams" },
@@ -69,28 +15,28 @@ const routes = [
   {
     path: "/channel/:id/:channelName",
     name: "Channel",
-    component: ChannelView,
+    component: () => import("@/views/ChannelView.vue"),
     props: true,
     meta: { title: "Channel" },
   },
-  { path: "/channels", name: "Channels", component: ChannelsView, meta: { title: "Channels" } },
-  { path: "/admin", name: "Admin", component: AdminView, meta: { title: "Admin" } },
-  { path: "/info", name: "Info", component: InfoView, meta: { title: "Info" } },
-  { path: "/monitoring", name: "Monitoring", component: MonitoringView, meta: { title: "Monitoring" } },
+  { path: "/channels", name: "Channels", component: () => import("../views/ChannelsView.vue"), meta: { title: "Channels" } },
+  { path: "/admin", name: "Admin", component: () => import("../views/AdminView.vue"), meta: { title: "Admin" } },
+  { path: "/info", name: "Info", component: () => import("../views/InfoView.vue"), meta: { title: "Info" } },
+  { path: "/monitoring", name: "Monitoring", component: () => import("../views/MonitoringView.vue"), meta: { title: "Monitoring" } },
 
   { path: "/jobs", redirect: "/jobs/open" },
-  { path: "/jobs/:tab", name: "Job", component: JobView, meta: { title: "Jobs" } },
+  { path: "/jobs/:tab", name: "Job", component: () => import("../views/JobView.vue"), meta: { title: "Jobs" } },
   {
     path: "/streams/:tab/tab/:tag?",
     name: "Streams",
     component: StreamsView,
     meta: { title: "Stream" },
   },
-  { path: "/filter", name: "Filter", component: FilterView, meta: { title: "Latest" } },
-  { path: "/random", name: "Random", component: RandomView, meta: { title: "Random" } },
-  { path: "/recordings/:id", name: "Video", component: VideoView, meta: { layout: "fullscreen" } },
-  { path: "/logs", name: "Log", component: LogView, meta: { title: "Logs" } },
-  { path: "/bookmarks", name: "Bookmark", component: BookmarkView, meta: { title: "Favourites" } },
+  { path: "/filter", name: "Filter", component: () => import("../views/FilterView.vue"), meta: { title: "Latest" } },
+  { path: "/random", name: "Random", component: () => import("../views/RandomView.vue"), meta: { title: "Random" } },
+  { path: "/recordings/:id", name: "Video", component: () => import("../views/VideoView.vue"), meta: { layout: "fullscreen" } },
+  { path: "/logs", name: "Log", component: () => import("../views/LogsView.vue"), meta: { title: "Logs" } },
+  { path: "/bookmarks", name: "Bookmark", component: () => import("../views/BookmarksView.vue"), meta: { title: "Favourites" } },
   { path: "/:pathMatch(.*)*", redirect: "/streams/live/tab" },
 ];
 

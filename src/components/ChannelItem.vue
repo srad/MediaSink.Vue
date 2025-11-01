@@ -4,9 +4,17 @@
       <div class="loader"></div>
     </div>
 
-    <RouterLink class="text-decoration-none" :to="`/channel/${props.channel.channelId}/${props.channel.channelName}`">
-      <VideoPreview :min-recording="props.channel.minRecording" :recordings-count="props.channel.recordingsCount" :recordings-size="props.channel.recordingsSize" :is-recording="props.channel.isRecording" :data="props.channel.channelId" :preview-image="previewImage" @selected="viewFolder(props.channel.channelId!, props.channel.channelName)" />
+    <RouterLink class="text-decoration-none" :to="channelLink">
+      <VideoPreview
+        :min-recording="props.channel.minRecording"
+        :recordings-count="props.channel.recordingsCount"
+        :recordings-size="props.channel.recordingsSize"
+        :is-recording="props.channel.isRecording"
+        :data="props.channel.channelId"
+        :preview-image="previewImage"
+        @selected="viewFolder(props.channel.channelId!, props.channel.channelName)" />
     </RouterLink>
+
     <div class="card-body">
       <div class="card-title py-2 px-3 m-0" :class="{ 'bg-primary': !props.channel.isRecording, 'bg-danger': props.channel.isRecording }">
         <h6 class="p-0 m-0 text-white">
@@ -22,14 +30,17 @@
 </template>
 
 <script setup lang="ts">
+import { inject, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
+
+import { createClient } from "../services/api/v1/ClientFactory";
+import type { ServicesChannelInfo as ChannelInfo } from "../services/api/v1/MediaSinkClient";
+
 import StreamInfo from "./StreamInfo.vue";
 import VideoPreview from "./VideoPreview.vue";
-import type { ServicesChannelInfo as ChannelInfo } from "../services/api/v1/MediaSinkClient";
-import { computed, inject, ref } from "vue";
-import { useRouter } from "vue-router";
+
 import { useChannelStore } from "../stores/channel";
-import { useI18n } from "vue-i18n";
-import { createClient } from "../services/api/v1/ClientFactory";
 
 // --------------------------------------------------------------------------------------
 // Emits
@@ -52,12 +63,13 @@ const { t } = useI18n();
 
 const router = useRouter();
 
-const fileUrl = inject("fileUrl") as string;
+const fileUrl = inject<string>("fileUrl");
 
 const destroyed = ref(false);
 const busy = ref(false);
 
-const previewImage = computed(() => fileUrl + "/" + props.channel.preview);
+const channelLink = `/channel/${props.channel.channelId}/${props.channel.channelName}`;
+const previewImage = `${fileUrl}/${props.channel.preview}`;
 
 // --------------------------------------------------------------------------------------
 // Methods

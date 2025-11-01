@@ -74,7 +74,7 @@
     <template #footer>
       <div class="d-flex gap-2">
         <button type="button" class="btn btn-secondary" @click="onCancel">Cancel</button>
-        <busy-button :busy="busy" @click="onConfirm" caption="Confirm" button-type="button" position="left"/>
+        <busy-button :busy="busy" @click="onConfirm" caption="Confirm" button-type="button" position="left" />
       </div>
     </template>
   </ModalWindow>

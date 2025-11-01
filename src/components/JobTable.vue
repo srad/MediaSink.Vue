@@ -3,13 +3,14 @@
     <!-- DataTable Component -->
     <DataTable :columns="columns" :data="props.jobs as unknown as TableRow[]" :pageSize="pageSize" :showPagination="true" :showPageSizeSelector="true" @page-change="handlePageChange" @page-size-change="handlePageSizeChange">
       <template v-slot:cell-active="{ row }">
-        <div v-if="row.active" style="width: 1rem; height: 1rem" class="spinner-border text-success" role="status">
+        <span v-if="row.active" style="width: 1rem; height: 1rem" class="spinner-border text-success" role="status">
           <span class="visually-hidden">{{ t("jobTable.loading") }}</span>
-        </div>
+        </span>
+        <span v-else></span>
       </template>
 
-      <template #cell-task="{value, row}">
-        <span class="badge bg-warning">{{value}}</span>
+      <template #cell-task="{ value, row }">
+        <span class="badge bg-warning">{{ value }}</span>
       </template>
 
       <template #cell-channelName="{ value, row }">
@@ -46,6 +47,10 @@
         <span class="text-ellipsis text-nowrap">{{ value }}</span>
       </template>
 
+      <template #cell-wokingDuration="{ value }">
+        <span class="text-ellipsis text-nowrap">{{ value }}</span>
+      </template>
+
       <template #cell-startedFromNow="{ value }">
         <span class="text-ellipsis text-nowrap">{{ value }}</span>
       </template>
@@ -68,11 +73,13 @@ import { type DatabaseJob } from "../services/api/v1/MediaSinkClient";
 import { useI18n } from "vue-i18n";
 import DataTable from "./DataTable.vue";
 import type { Column, TableRow } from "./DataTable.vue";
+import { fromNow } from "../utils/datetime";
 
 export type JobTableItem = DatabaseJob & {
   createdAtFromNow: string;
   startedFromNow?: string;
   completedAtFromNow?: string;
+  wokingDuration: string;
 };
 
 const { t } = useI18n();
@@ -95,13 +102,14 @@ const columns: Column[] = [
   { key: "active", label: t("jobTable.col.active"), width: "5%" },
   { key: "channelName", label: t("jobTable.col.channel"), sortable: true, type: "string", width: "7%" },
   //{ key: "filename", label: t("jobTable.col.file"), sortable: true, type: "string", width: "5%" },
-  { key: "task", label: t("jobTable.col.task"), sortable: true, type: "string", width: "10%", class: "d-none d-lg-table-cell" },
+  { key: "task", label: t("jobTable.col.task"), sortable: true, type: "string", width: "5%", class: "d-none d-lg-table-cell" },
   //{ key: "status", label: t("jobTable.col.status"), sortable: true, type: "string", width: "5%", class: "d-none d-lg-table-cell" },
   { key: "command", label: "Command", sortable: false, type: "string", width: "15%", class: "d-none d-lg-table-cell" },
   { key: "progress", label: t("jobTable.col.progress"), sortable: false, type: "string", width: "10%" },
-  { key: "createdAtFromNow", label: t("jobTable.col.createdAt"), sortable: false, type: "string", width: "10%" },
-  { key: "startedFromNow", label: t("jobTable.col.startedAt"), sortable: false, type: "string", width: "10%" },
-  { key: "completedAtFromNow", label: t("jobTable.col.completedAt"), sortable: false, type: "string", width: "10%" },
+  { key: "createdAtFromNow", label: t("jobTable.col.createdAt"), sortable: false, type: "string", width: "5%" },
+  { key: "startedFromNow", label: t("jobTable.col.startedAt"), sortable: false, type: "string", width: "5%" },
+  { key: "completedAtFromNow", label: t("jobTable.col.completedAt"), sortable: false, type: "string", width: "5%" },
+  { key: "wokingDuration", label: t("jobTable.col.duration"), sortable: true, type: "number", width: "5%" },
   { key: "destroy", label: t("jobTable.col.destroy"), sortable: false, type: "string", width: "5%" },
 ];
 

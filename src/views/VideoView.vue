@@ -78,16 +78,6 @@
             </div>
 
             <div class="d-flex">
-              <!-- zoom buttons -->
-              <div v-if="false" class="me-2 d-flex">
-                <button class="btn btn-info me-1" @click="back" type="button">
-                  <i class="bi bi-zoom-out"></i>
-                </button>
-                <button class="btn btn-info me-1" @click="back" type="button">
-                  <i class="bi bi-zoom-in"></i>
-                </button>
-              </div>
-
               <!-- back forth buttons -->
               <div class="d-flex">
                 <button class="btn btn-info btn-sm me-1" @click="back" type="button">
@@ -122,8 +112,7 @@
 
       <!-- Video Stripe: Fixed height, always visible -->
       <div class="w-100 flex-shrink-0 bg-light position-relative" style="height: 20vh; max-height: 100px">
-        <VideoSelector v-if="false" :image-src="stripeUrl" :duration="duration" />
-        <VideoStripe :loaded="isLoaded" :src="stripeUrl" :disabled="playingCut" :seeked="seeked" :paused="pause" :timecode="timeCode" :duration="duration" :markings="markings" @selecting="() => (pause = true)" @marking="(m) => (markings = m)" @seek="seek" />
+        <VideoStripe :loaded="isLoaded" :frames="videoFrames" :disabled="playingCut" :seeked="seeked" :paused="pause" :timecode="timeCode" :duration="duration" :markings="markings" @selecting="() => (pause = true)" @marking="(m) => (markings = m)" @seek="seek" />
       </div>
     </div>
   </template>
@@ -142,9 +131,9 @@ import { useToastStore } from "@/stores/toast";
 import { useJobStore } from "@/stores/job";
 import { createClient } from "@/services/api/v1/ClientFactory";
 import { useSettingsStore } from "@/stores/settings.ts";
-import VideoSelector from "@/VideoSelector.vue";
 import RecordingFavButton from "@/components/controls/RecordingFavButton.vue";
 import ModalWindow from "@/components/modals/ModalWindow.vue";
+import { mapVideoFrames } from "@/utils/video.ts";
 
 // --------------------------------------------------------------------------------------
 // Declarations
@@ -160,7 +149,7 @@ const settingsStore = useSettingsStore();
 const video = ref<HTMLVideoElement | null>(null);
 
 const fileUrl = inject("fileUrl") as string;
-const stripeUrl = ref("");
+const videoFrames = ref<string[]>([]);
 const videoUrl = ref("");
 
 const showInfo = ref(false);
@@ -229,66 +218,9 @@ watch(playbackSpeed, (val) => {
 const back = () => (video.value!.currentTime = (video.value?.currentTime || 0) - skipSeconds);
 const forward = () => (video.value!.currentTime = (video.value?.currentTime || 0) + skipSeconds);
 
-const stopCut = () => {
-  pause.value = true;
-  playingCut.value = false;
-  // Clean up event listener
-  if (playCutTimeUpdateListener && video.value) {
-    video.value.removeEventListener("timeupdate", playCutTimeUpdateListener);
-    playCutTimeUpdateListener = null;
-  }
-};
-
 const volumeChanged = (event: Event) => {
   isMuted.value = video.value!.muted;
   settingsStore.updateVolume(video.value!.volume);
-};
-
-const playCut = () => {
-  if (markings.value.length == 0) {
-    return;
-  }
-
-  // Clean up any existing listener first
-  if (playCutTimeUpdateListener && video.value) {
-    video.value.removeEventListener("timeupdate", playCutTimeUpdateListener);
-    playCutTimeUpdateListener = null;
-  }
-
-  let i = 0;
-
-  const timeUpdate = () => {
-    if (i >= markings.value.length) {
-      if (video.value && playCutTimeUpdateListener) {
-        video.value.removeEventListener("timeupdate", playCutTimeUpdateListener);
-        playCutTimeUpdateListener = null;
-      }
-      pause.value = true;
-      playingCut.value = false;
-      return;
-    }
-
-    if (video.value!.currentTime >= markings.value[i].timeend) {
-      i++;
-      if (markings.value[i]) {
-        timeCode.value = markings.value[i].timestart;
-      }
-      return;
-    }
-  };
-
-  if (i >= markings.value.length) {
-    pause.value = true;
-    playingCut.value = false;
-    return;
-  }
-
-  // Store the listener reference for cleanup
-  playCutTimeUpdateListener = timeUpdate;
-  timeCode.value = markings.value[i].timestart;
-  video.value!.addEventListener("timeupdate", timeUpdate);
-  playingCut.value = true;
-  pause.value = false;
 };
 
 const resetSelection = () => {
@@ -452,7 +384,7 @@ onMounted(async () => {
   id.value = Number(route.params.id);
   const data = await client.videos.videosDetail({ id: id.value });
   recording.value = data;
-  stripeUrl.value = fileUrl + "/" + recording.value?.previewStripe;
+  videoFrames.value = mapVideoFrames(fileUrl, recording.value);
   videoUrl.value = fileUrl + "/" + recording.value?.pathRelative;
 
   window.removeEventListener("orientationchange", rotate); // Ensure no duplicate listeners
