@@ -38,6 +38,12 @@
                 </RouterLink>
               </li>
               <li class="dropdown-item d-inline d-lg-none">
+                <RouterLink to="/processes" class="nav-link d-flex gap-2 bg-transparent" @click="showNav = false">
+                  <i class="bi bi-cpu-fill"></i>
+                  <span>Processes</span>
+                </RouterLink>
+              </li>
+              <li class="dropdown-item d-inline d-lg-none">
                 <RouterLink to="/info" class="nav-link d-flex gap-2 bg-transparent" @click="showNav = false">
                   <i class="bi bi-info-circle-fill"></i>
                   <span>System Info</span>

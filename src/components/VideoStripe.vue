@@ -1,7 +1,41 @@
 <template>
   <div ref="stripeContainer" @mousedown.stop="startSelection" class="position-relative h-100 user-select-none overflow-x-auto" draggable="false" style="min-height: 100px">
-    <div ref="imageRowContainer" draggable="false" class="d-flex flex-nowrap h-100">
+    <div ref="imageRowContainer" draggable="false" class="d-flex flex-nowrap h-100 position-relative">
       <img v-for="(frame, i) in frames" :key="frame" draggable="false" loading="lazy" :alt="String(i)" @load="updateWidth" :src="frame" style="height: 100%; display: block" :style="{ width: imageWidth > 0 ? imageWidth + 'px' : 'auto' }" />
+
+      <!-- Scene Boundaries Overlay - positioned inside scrollable content -->
+      <div v-if="props.scenes && props.scenes.length > 0 && width > 0" class="position-absolute top-0 start-0 h-100" :style="{ width: width + 'px', pointerEvents: 'none' }">
+        <div
+          v-for="(scene, index) in props.scenes"
+          :key="`scene-${index}`"
+          class="position-absolute border-start border-2 scene-boundary"
+          :style="{
+            left: (scene.startTime / props.duration) * width + 'px',
+            height: '100%',
+            borderColor: getSceneColor(scene.changeIntensity),
+            opacity: 0.8
+          }"
+          :title="`Scene ${index + 1}: ${scene.startTime.toFixed(1)}s - ${scene.endTime.toFixed(1)}s\nIntensity: ${scene.changeIntensity.toFixed(2)}`">
+        </div>
+      </div>
+
+      <!-- Highlight Markers Overlay - positioned inside scrollable content -->
+      <div v-if="props.highlights && props.highlights.length > 0 && width > 0" class="position-absolute top-0 start-0 h-100" :style="{ width: width + 'px', pointerEvents: 'none' }">
+        <div
+          v-for="(highlight, index) in props.highlights"
+          :key="`highlight-${index}`"
+          class="position-absolute highlight-marker"
+          :style="{
+            left: (highlight.timestamp / props.duration) * width + 'px',
+            bottom: '0',
+            width: '3px',
+            height: getHighlightHeight(highlight.intensity),
+            backgroundColor: getHighlightColor(highlight.intensity),
+            opacity: 0.7
+          }"
+          :title="`Motion at ${highlight.timestamp.toFixed(1)}s\nIntensity: ${highlight.intensity.toFixed(2)}\nType: ${highlight.type}`">
+        </div>
+      </div>
     </div>
 
     <div class="position-absolute bottom-0" style="pointer-events: none">
@@ -56,6 +90,8 @@ const props = defineProps<{
   paused: boolean;
   disabled?: boolean;
   seeked: number;
+  scenes?: Array<{ startTime: number; endTime: number; changeIntensity: number }>;
+  highlights?: Array<{ timestamp: number; intensity: number; type: string }>;
 }>();
 
 // --------------------------------------------------------------------------------------
@@ -331,6 +367,36 @@ const select = (index: number): void => {
 // ---
 // ADDED: The complete, working resizePreview function
 // ---
+/**
+ * Get color for scene boundary based on change intensity
+ */
+const getSceneColor = (intensity: number): string => {
+  if (intensity < 0.3) return "#ffd700"; // Gold - subtle
+  if (intensity < 0.6) return "#ff8c00"; // DarkOrange - moderate
+  if (intensity < 0.85) return "#ff4500"; // OrangeRed - significant
+  return "#ff0000"; // Red - dramatic
+};
+
+/**
+ * Get color for highlight marker based on motion intensity
+ */
+const getHighlightColor = (intensity: number): string => {
+  if (intensity < 0.2) return "#00ff00"; // Green - minimal
+  if (intensity < 0.5) return "#ffff00"; // Yellow - low-moderate
+  if (intensity < 0.75) return "#ffa500"; // Orange - moderate-high
+  return "#ff0000"; // Red - very high
+};
+
+/**
+ * Get height for highlight marker based on motion intensity
+ */
+const getHighlightHeight = (intensity: number): string => {
+  const minHeight = 20;
+  const maxHeight = 60;
+  const height = minHeight + (maxHeight - minHeight) * intensity;
+  return `${height}%`;
+};
+
 const resizePreview = (event: WheelEvent): void => {
   // Check if this is a horizontal scroll event (e.g., Shift+Wheel or trackpad)
   if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
@@ -493,5 +559,22 @@ img {
 
 .handle-right {
   right: 0;
+}
+
+/* Analysis overlay styles */
+.scene-boundary {
+  transition: opacity 0.2s;
+}
+
+.scene-boundary:hover {
+  opacity: 1 !important;
+}
+
+.highlight-marker {
+  transition: opacity 0.2s;
+}
+
+.highlight-marker:hover {
+  opacity: 1 !important;
 }
 </style>

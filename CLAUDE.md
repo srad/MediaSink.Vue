@@ -257,6 +257,34 @@ export const useMyStore = defineStore("storeName", {
 - Always run `pnpm lint` and `pnpm format` before committing
 - Run tests (`pnpm test:unit`, `pnpm test:e2e`) to verify changes
 
+## Key Features
+
+### Video Analysis (Scenes & Highlights)
+
+The app displays automated scene and motion detection analysis on videos:
+
+**Components:**
+- `src/components/VideoStripe.vue` - Timeline with scene boundaries (colored lines) and motion highlights (colored bars)
+- `src/views/VideoView.vue` - Video player with analysis controls
+
+**Analysis Controls in VideoView:**
+1. **Mode Toggle** - Switch between "Highlights" and "Scenes" display
+2. **Navigation** - Previous/Next buttons to jump between points
+3. **Index Selector** - Dropdown to directly select any scene or highlight (shows position, timestamp, and intensity percentage)
+
+**How it Works:**
+- Scene boundaries rendered as vertical colored lines (based on `changeIntensity`: gold/orange/red)
+- Motion highlights rendered as vertical colored bars (based on intensity: green/yellow/orange/red)
+- Both are positioned inside the scrollable `VideoStripe` container and scale with zoom
+- Default mode: "Highlights"
+- Overlay positioned inside `imageRowContainer` to scroll with video frames
+- All overlays have `pointer-events: none` to not interfere with user interactions
+
+**Related API:**
+- Endpoint: `GET /api/v1/analysis/{recordingId}` (auto-queried on VideoView mount)
+- Response includes `scenes[]` and `highlights[]` arrays with timing and intensity data
+- Status field indicates: `null` (not analyzed), `"pending"`, `"processing"`, or `"completed"`
+
 ## Key Files to Know
 
 - `src/App.vue` - Root component with layout routing
@@ -268,9 +296,11 @@ export const useMyStore = defineStore("storeName", {
 - `src/components/modals/ChannelModal.vue` - Example modal with validation pattern
 - `src/components/VideoEnhancementModal.vue` - Self-contained modal component for video enhancement
 - `src/components/DataTable.vue` - Example of a complex, feature-rich component
+- `src/components/VideoStripe.vue` - Video timeline with frames, analysis overlays, and selection markers
 - `src/layouts/DefaultLayout.vue` - Main layout with socket event listeners (register/unregister handlers on mount)
 - `src/router/index.ts` - Route definitions and auth guards
 - `src/utils/socket.ts` - WebSocket manager implementation
+- `src/views/VideoView.vue` - Video player and editor with analysis controls
 - `vite.config.ts` - Build and plugin configuration
 
 ## Testing

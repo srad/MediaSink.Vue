@@ -22,12 +22,7 @@
       </div>
       <span v-if="props.recording.videoType === 'cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
       <RouterLink class="d-flex" :to="link">
-        <VideoPreview
-          class="card-img-top"
-          :data="recording.recordingId"
-          :preview-frames="previewFrames"
-          :preview-video="previewVideoUrl"
-          :preview-image="previewCoverUrl" />
+        <VideoPreview class="card-img-top" :data="recording.recordingId" :preview-frames="previewFrames" :preview-video="previewVideoUrl" :preview-image="previewCoverUrl" />
       </RouterLink>
     </div>
     <div v-if="props.showTitle" class="card-body">
@@ -39,7 +34,7 @@
         </h6>
       </div>
     </div>
-    <VideoInfo :disable-buttons="props.job !== null" :duration="props.recording.duration" :size="props.recording.size" :url="downloadApiUrl" :bit-rate="props.recording.bitRate" :bookmark="props.recording.bookmark" :created-at="props.recording.createdAt" :data="recording" :width="props.recording.width" :height="props.recording.height" @convert="convert" @bookmarked="bookmark" @preview="generatePreview" @destroy="destroyRecording" @enhance="showEnhancementModal = true" />
+    <VideoInfo :disable-buttons="props.job !== null" :duration="props.recording.duration" :size="props.recording.size" :url="downloadApiUrl" :bit-rate="props.recording.bitRate" :bookmark="props.recording.bookmark" :created-at="props.recording.createdAt" :data="recording" :width="props.recording.width" :height="props.recording.height" @convert="convert" @bookmarked="bookmark" @preview="generatePreview" @destroy="destroyRecording" @analysis="analyze" @enhance="showEnhancementModal = true" />
   </div>
 </template>
 
@@ -120,6 +115,13 @@ watch(checked, (val) => {
 // --------------------------------------------------------------------------------------
 // Methods
 // --------------------------------------------------------------------------------------
+
+const analyze = async (recording: RecordingResponse) => {
+  if (window.confirm("Run video analysis job?")) {
+    const client = createClient();
+    client.analysis.analysisCreate({ id: recording.recordingId }).catch((err) => alert(err.error));
+  }
+};
 
 const bookmark = async (recording: RecordingResponse, yesNo: boolean) => {
   try {

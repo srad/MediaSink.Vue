@@ -20,3 +20,8 @@ import moment from "moment";
 export function fromNow(date: number): string {
   return moment(date).fromNow();
 }
+
+export function humanizeMs(ms: number): string {
+  const tempTime = moment.duration(ms);
+  return  tempTime.humanize()
+}

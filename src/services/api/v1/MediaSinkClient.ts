@@ -10,6 +10,16 @@
  * ---------------------------------------------------------------
  */
 
+export interface AnalysisCreateParams {
+  /** recording id */
+  id: number;
+}
+
+export interface AnalysisDetailParams {
+  /** recording id */
+  id: number;
+}
+
 export interface ChannelsDeleteParams {
   /** Channel id */
   id: number;
@@ -56,6 +66,14 @@ export interface DatabaseChannel {
   url: string;
 }
 
+export interface DatabaseHighlightInfo {
+  /** 0-1, higher = more activity */
+  intensity?: number;
+  timestamp?: number;
+  /** "motion", "sceneChange", "transition" */
+  type?: string;
+}
+
 export interface DatabaseJob {
   active: boolean;
   args?: string;
@@ -63,8 +81,10 @@ export interface DatabaseJob {
   /** Unique entry, this is the actual primary key */
   channelName: string;
   command?: string;
-  completedAt: string;
+  completedAt?: string;
   createdAt: string;
+  /** Duration in milliseconds */
+  durationMs?: number;
   filename: string;
   filepath: string;
   info?: string;
@@ -74,7 +94,7 @@ export interface DatabaseJob {
   priority: DatabaseJobPriority;
   progress?: string;
   recordingId: number;
-  startedAt: string;
+  startedAt?: string;
   status: DatabaseJobStatus;
   /** Default values only not to break migrations. */
   task: DatabaseJobTask;
@@ -88,7 +108,7 @@ export enum DatabaseJobOrder {
 export enum DatabaseJobPriority {
   /** Fast jobs: preview frames */
   PriorityHigh = 1,
-  /** Medium jobs: cut, merge */
+  /** Medium jobs: cut, merge, analyze */
   PriorityNormal = 3,
   /** Slow jobs: enhance, convert */
   PriorityLow = 5,
@@ -104,6 +124,7 @@ export enum DatabaseJobStatus {
 export enum DatabaseJobTask {
   TaskConvert = "convert",
   TaskPreviewFrames = "preview-frames",
+  TaskAnalyzeFrames = "analyze-frames",
   TaskCut = "cut",
   TaskMerge = "merge",
   TaskEnhanceVideo = "enhance-video",
@@ -128,6 +149,13 @@ export interface DatabaseRecording {
   videoPreview?: DatabaseVideoPreview;
   videoType: string;
   width: number;
+}
+
+export interface DatabaseSceneInfo {
+  /** 0-1, higher = more change */
+  changeIntensity?: number;
+  endTime?: number;
+  startTime?: number;
 }
 
 export interface DatabaseVideoPreview {
@@ -367,6 +395,14 @@ export enum RequestsVideoSortColumn {
   SortColumnDuration = "duration",
 }
 
+export interface ResponsesAnalysisResponse {
+  analysisId: number;
+  highlights?: DatabaseHighlightInfo[];
+  recordingId: number;
+  scenes?: DatabaseSceneInfo[];
+  status: string;
+}
+
 export interface ResponsesCRFDescription {
   approxRatio: number;
   description: string;
@@ -598,6 +634,51 @@ export namespace Admin {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = ResponsesServerInfoResponse;
+  }
+}
+
+export namespace Analysis {
+  /**
+   * @description Get the analysis results (scenes and highlights) for a recording
+   * @tags analysis
+   * @name AnalysisDetail
+   * @summary Get video analysis result
+   * @request GET:/analysis/{id}
+   * @response `200` `ResponsesAnalysisResponse` OK
+   * @response `400` `any` Invalid recording id
+   * @response `404` `any` No analysis found
+   * @response `500` `any` Error message
+   */
+  export namespace AnalysisDetail {
+    export type RequestParams = {
+      /** recording id */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ResponsesAnalysisResponse;
+  }
+
+  /**
+   * @description Analyze preview frames to detect scenes and highlights. Runs in background as a job.
+   * @tags analysis
+   * @name AnalysisCreate
+   * @summary Analyze video frames for scenes and highlights
+   * @request POST:/analysis/{id}
+   * @response `200` `any` OK
+   * @response `400` `any` Invalid recording id
+   * @response `500` `any` Error message
+   */
+  export namespace AnalysisCreate {
+    export type RequestParams = {
+      /** recording id */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
   }
 }
 
@@ -1862,6 +1943,54 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       this.http.request<ResponsesServerInfoResponse, any>({
         path: `/admin/version`,
         method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  analysis = {
+    /**
+     * @description Get the analysis results (scenes and highlights) for a recording
+     *
+     * @tags analysis
+     * @name AnalysisDetail
+     * @summary Get video analysis result
+     * @request GET:/analysis/{id}
+     * @response `200` `ResponsesAnalysisResponse` OK
+     * @response `400` `any` Invalid recording id
+     * @response `404` `any` No analysis found
+     * @response `500` `any` Error message
+     */
+    analysisDetail: (
+      { id, ...query }: AnalysisDetailParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ResponsesAnalysisResponse, any>({
+        path: `/analysis/${id}`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Analyze preview frames to detect scenes and highlights. Runs in background as a job.
+     *
+     * @tags analysis
+     * @name AnalysisCreate
+     * @summary Analyze video frames for scenes and highlights
+     * @request POST:/analysis/{id}
+     * @response `200` `any` OK
+     * @response `400` `any` Invalid recording id
+     * @response `500` `any` Error message
+     */
+    analysisCreate: (
+      { id, ...query }: AnalysisCreateParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<any, any>({
+        path: `/analysis/${id}`,
+        method: "POST",
         type: ContentType.Json,
         format: "json",
         ...params,

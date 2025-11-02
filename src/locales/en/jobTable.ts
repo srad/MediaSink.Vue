@@ -1,5 +1,8 @@
 export default {
   col: {
+    load: "Load",
+    priority: "Priority",
+    info: "Info",
     active: "Active",
     channel: "Channel",
     file: "File",

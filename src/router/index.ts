@@ -22,9 +22,10 @@ const routes = [
   { path: "/channels", name: "Channels", component: () => import("../views/ChannelsView.vue"), meta: { title: "Channels" } },
   { path: "/admin", name: "Admin", component: () => import("../views/AdminView.vue"), meta: { title: "Admin" } },
   { path: "/info", name: "Info", component: () => import("../views/InfoView.vue"), meta: { title: "Info" } },
+  { path: "/processes", name: "Processes", component: () => import("../views/ProcessView.vue"), meta: { title: "Processes" } },
   { path: "/monitoring", name: "Monitoring", component: () => import("../views/MonitoringView.vue"), meta: { title: "Monitoring" } },
 
-  { path: "/jobs", redirect: "/jobs/open" },
+  { path: "/jobs", redirect: "/jobs/processing" },
   { path: "/jobs/:tab", name: "Job", component: () => import("../views/JobView.vue"), meta: { title: "Jobs" } },
   {
     path: "/streams/:tab/tab/:tag?",

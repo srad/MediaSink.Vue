@@ -70,11 +70,42 @@
 
           <!-- Controls: Fixed height -->
           <div class="d-flex align-items-center justify-content-between w-100 p-1 bg-dark flex-shrink-0 border-top border-white" style="height: 40px">
-            <div>
-              <button class="btn btn-danger btn-sm me-1" @click="destroy">
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-danger btn-sm" @click="destroy">
                 <span>Delete</span>
               </button>
               <RouterLink class="btn btn-sm btn-info" :to="`/channel/${recording.channelId}/${recording.channelName}`">Show Channel</RouterLink>
+
+              <!-- Analysis Controls -->
+              <template v-if="hasAnalysisData">
+                <div class="vr bg-white" style="opacity: 0.3"></div>
+
+                <!-- Mode Toggle Dropdown -->
+                <select v-model="analysisMode" class="form-select form-select-sm" style="width: auto; font-size: 0.8rem">
+                  <option value="highlights">Highlights</option>
+                  <option value="scenes">Scenes</option>
+                </select>
+
+                <!-- Navigation Controls -->
+                <div class="btn-group" role="group">
+                  <!-- Previous Button -->
+                  <button class="btn btn-secondary btn-sm" @click="goToPreviousAnalysisPoint" :disabled="currentAnalysisIndex === 0" type="button" :title="`Previous ${analysisMode === 'scenes' ? 'scene' : 'highlight'}`">
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+
+                  <!-- Index Selector Dropdown -->
+                  <select v-model.number="currentAnalysisIndex" class="btn btn-secondary btn-sm form-select-sm" style="width: auto; flex-grow: 0">
+                    <option v-for="(item, index) in analysisItems" :key="index" :value="index">
+                      {{ index + 1 }} &sol; {{ analysisItems.length }}
+                    </option>
+                  </select>
+
+                  <!-- Next Button -->
+                  <button class="btn btn-secondary btn-sm" @click="goToNextAnalysisPoint" :disabled="currentAnalysisIndex === analysisItems.length - 1" type="button" :title="`Next ${analysisMode === 'scenes' ? 'scene' : 'highlight'}`">
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
+                </div>
+              </template>
             </div>
 
             <div class="d-flex">
@@ -112,14 +143,14 @@
 
       <!-- Video Stripe: Fixed height, always visible -->
       <div class="w-100 flex-shrink-0 bg-light position-relative" style="height: 20vh; max-height: 100px">
-        <VideoStripe :loaded="isLoaded" :frames="videoFrames" :disabled="playingCut" :seeked="seeked" :paused="pause" :timecode="timeCode" :duration="duration" :markings="markings" @selecting="() => (pause = true)" @marking="(m) => (markings = m)" @seek="seek" />
+        <VideoStripe :loaded="isLoaded" :frames="videoFrames" :disabled="playingCut" :seeked="seeked" :paused="pause" :timecode="timeCode" :duration="duration" :scenes="analysisMode === 'scenes' ? videoAnalysis?.scenes : undefined" :highlights="analysisMode === 'highlights' ? videoAnalysis?.highlights : undefined" :markings="markings" @selecting="() => (pause = true)" @marking="(m) => (markings = m)" @seek="seek" />
       </div>
     </div>
   </template>
 </template>
 
 <script setup lang="ts">
-import type { DatabaseRecording } from "@/services/api/v1/MediaSinkClient";
+import type { DatabaseRecording, ResponsesAnalysisResponse } from "@/services/api/v1/MediaSinkClient";
 import VideoStripe, { type Selection } from "@/components/VideoStripe.vue";
 import BusyOverlay from "@/components/BusyOverlay.vue";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
@@ -170,6 +201,10 @@ const busy = ref(false);
 const showConfirmDialog = ref(false);
 const deleteFileAfterCut = ref(false);
 
+const videoAnalysis = ref<ResponsesAnalysisResponse | null>(null);
+const analysisMode = ref<"scenes" | "highlights">("highlights"); // Default to highlights
+const currentAnalysisIndex = ref<number>(0); // Track current position in scenes/highlights
+
 const playingCut = ref(false);
 
 const skipSeconds = 30;
@@ -182,6 +217,32 @@ let playCutTimeUpdateListener: (() => void) | null = null;
 // --------------------------------------------------------------------------------------
 
 const editMode = computed(() => markings.value.length > 0);
+
+const analysisItems = computed(() => {
+  if (!videoAnalysis.value) return [];
+
+  if (analysisMode.value === "scenes") {
+    return (
+      videoAnalysis.value.scenes?.map((scene, index) => ({
+        label: `Scene ${index + 1}: ${scene.startTime.toFixed(1)}s - ${scene.endTime.toFixed(1)}s`,
+        timestamp: scene.startTime,
+        intensity: scene.changeIntensity,
+      })) || []
+    );
+  } else {
+    return (
+      videoAnalysis.value.highlights?.map((highlight, index) => ({
+        label: `Highlight ${index + 1}: ${highlight.timestamp.toFixed(1)}s`,
+        timestamp: highlight.timestamp,
+        intensity: highlight.intensity,
+      })) || []
+    );
+  }
+});
+
+const hasAnalysisData = computed(() => {
+  return videoAnalysis.value && (videoAnalysis.value.scenes?.length || videoAnalysis.value.highlights?.length);
+});
 
 // --------------------------------------------------------------------------------------
 // Watchers
@@ -211,12 +272,45 @@ watch(playbackSpeed, (val) => {
   }
 });
 
+// Reset index when switching between scenes and highlights
+watch(analysisMode, () => {
+  currentAnalysisIndex.value = 0;
+});
+
+// Jump to video timestamp when index changes
+watch(currentAnalysisIndex, (newIndex) => {
+  const items = analysisItems.value;
+  if (items.length > 0 && video.value) {
+    video.value.currentTime = items[newIndex].timestamp;
+  }
+});
+
 // --------------------------------------------------------------------------------------
 // Function
 // --------------------------------------------------------------------------------------
 
 const back = () => (video.value!.currentTime = (video.value?.currentTime || 0) - skipSeconds);
 const forward = () => (video.value!.currentTime = (video.value?.currentTime || 0) + skipSeconds);
+
+const goToPreviousAnalysisPoint = () => {
+  const items = analysisItems.value;
+  if (items.length === 0) return;
+
+  currentAnalysisIndex.value = Math.max(0, currentAnalysisIndex.value - 1);
+  if (video.value) {
+    video.value.currentTime = items[currentAnalysisIndex.value].timestamp;
+  }
+};
+
+const goToNextAnalysisPoint = () => {
+  const items = analysisItems.value;
+  if (items.length === 0) return;
+
+  currentAnalysisIndex.value = Math.min(items.length - 1, currentAnalysisIndex.value + 1);
+  if (video.value) {
+    video.value.currentTime = items[currentAnalysisIndex.value].timestamp;
+  }
+};
 
 const volumeChanged = (event: Event) => {
   isMuted.value = video.value!.muted;
@@ -381,11 +475,14 @@ onUnmounted(() => {
 
 onMounted(async () => {
   const client = createClient();
+
   id.value = Number(route.params.id);
   const data = await client.videos.videosDetail({ id: id.value });
   recording.value = data;
   videoFrames.value = mapVideoFrames(fileUrl, recording.value);
   videoUrl.value = fileUrl + "/" + recording.value?.pathRelative;
+
+  videoAnalysis.value = await client.analysis.analysisDetail({ id: id.value });
 
   window.removeEventListener("orientationchange", rotate); // Ensure no duplicate listeners
   window.addEventListener("orientationchange", rotate);

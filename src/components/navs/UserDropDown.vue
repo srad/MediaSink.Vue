@@ -10,7 +10,7 @@
           <DarkModelToggleButton :checkbox="true" />
         </a>
       </li>
-      <li class="dropdown-item" v-for="link in links">
+      <li class="dropdown-item" v-for="link in links" :key="link.link">
         <RouterLink :to="link.link" class="nav-link d-flex bg-transparent justify-content-between" @click="isOpen = false">
           <span>{{ link.title }}</span>
           <i class="bi" :class="link.icon"></i>
@@ -37,6 +37,7 @@ const emit = defineEmits<{
 const links = [
   { title: "Admin", icon: "bi bi-sliders", link: "/admin" },
   { title: "System Info", icon: "bi bi-info-circle-fill", link: "/info" },
+  { title: "Processes", icon: "bi bi-cpu-fill", link: "/processes" },
   { title: "Monitoring", icon: "bi bi-binoculars-fill", link: "/monitoring" },
   { title: "Favourites", icon: "bi bi-heart-fill", link: "/bookmarks" },
 ];

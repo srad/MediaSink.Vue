@@ -1,8 +1,8 @@
 import { type DatabaseJob, type DatabaseJob as Job, DatabaseJobOrder, DatabaseJobStatus } from "../services/api/v1/MediaSinkClient";
 import { defineStore } from "pinia";
 import { createClient } from "../services/api/v1/ClientFactory";
-import type { JobTableItem } from "../components/JobTable.vue";
-import { fromNow } from "../utils/datetime";
+import type { JobTableItem } from "../views/JobView.vue";
+import { fromNow, humanizeMs } from "../utils/datetime";
 
 export type JobMessage<T> = {
   data: T;
@@ -48,13 +48,10 @@ export const useJobStore = defineStore("job", {
       state.jobs
         .sort((a, b) => +b.active - +a.active)
         .map(function (job: DatabaseJob) {
-          const dT = Date.now() - Date.parse(job.startedAt);
-          const diffMinutes = (dT / (1000 * 60)).toFixed(1);
-
           return {
             ...job,
             createdAtFromNow: fromNow(Date.parse(job.createdAt)),
-            wokingDuration: !job.completedAt && job.startedAt ? (diffMinutes + "min") : "-",
+            wokingDuration: job.durationMs ? humanizeMs(job.durationMs) : "-",
             startedFromNow: job.startedAt ? fromNow(Date.parse(job.startedAt)) : "-",
             completedAtFromNow: job.completedAt ? fromNow(Date.parse(job.completedAt)) : "-",
           };
@@ -71,7 +68,7 @@ export const useJobStore = defineStore("job", {
     },
   },
   actions: {
-    async load(states: DatabaseJobStatus[] = [DatabaseJobStatus.StatusJobOpen], sortOrder: DatabaseJobOrder = DatabaseJobOrder.JobOrderASC) {
+    async load(states: DatabaseJobStatus[] = [DatabaseJobStatus.StatusJobOpen], sortOrder: DatabaseJobOrder = DatabaseJobOrder.JobOrderASC, active?: boolean) {
       const client = createClient();
 
       const response = await client.jobs.listCreate({
@@ -82,7 +79,7 @@ export const useJobStore = defineStore("job", {
       });
 
       if (response.jobs) {
-        this.jobs = response.jobs;
+        this.jobs = active ? response.jobs.filter((x) => x.active === active) : response.jobs;
         this.jobsCount = response.totalCount; // Not the number of returned items, the total number in the database.
       }
     },

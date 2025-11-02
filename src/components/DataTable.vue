@@ -4,7 +4,7 @@
       <thead>
         <!-- Search Inputs/Checkboxes Row -->
         <tr class="align-middle">
-          <th class="user-select-none" v-for="column in columns" :key="column.key" :rowspan="column.isSearchable ? 1 : 2" :style="{ width: column.width }" :class="[column.headerClass, column.isSearchable ? 'searchable-column' : '', column.sortable ? 'cursor-pointer' : 'user-select-none']">
+          <th class="user-select-none" v-for="column in visibleColumns" :key="column.key" :rowspan="column.isSearchable ? 1 : 2" :style="{ width: column.width }" :class="[column.headerClass, column.isSearchable ? 'searchable-column' : '', column.sortable ? 'cursor-pointer' : 'user-select-none']">
             <!-- Search input for searchable columns -->
             <div v-if="column.isSearchable" class="search-container">
               <!-- Checkbox for boolean columns -->
@@ -26,7 +26,7 @@
 
         <!-- Column Titles Row -->
         <tr>
-          <template v-for="column in columns" :key="`header-${column.key}`">
+          <template v-for="column in visibleColumns" :key="`header-${column.key}`">
             <th class="user-select-none" v-if="column.isSearchable" :style="{ width: column.width }" :class="[column.headerClass, column.sortable ? 'cursor-pointer' : 'user-select-none', sortKey === column.key && sortedClass]" @click="column.sortable ? toggleSort(column.key) : undefined" :rowspan="column.sortable ? 1 : 2">
               <!-- Set rowspan for sortable columns -->
               <!-- Column title with sorting click event -->
@@ -43,10 +43,10 @@
       </thead>
       <tbody>
         <tr class="align-middle" v-if="currentPageRows.length === 0">
-          <td :colspan="columns.length">Empty</td>
+          <td :colspan="visibleColumns.length">Empty</td>
         </tr>
         <tr class="align-middle" v-else v-for="(row, rowIndex) in currentPageRows" :key="rowIndex">
-          <td v-for="column in columns" :key="column.key" :class="[column.rowClass, sortKey === column.key && sortedClass]">
+          <td v-for="column in visibleColumns" :key="column.key" :class="[column.rowClass, sortKey === column.key && sortedClass]">
             <slot :name="`cell-${column.key}`" :value="row[column.key]" :row="row">
               {{ row[column.key] }}
             </slot>
@@ -103,6 +103,7 @@ export type Column = {
   sortable?: boolean;
   isSearchable?: boolean;
   type?: "boolean" | "string" | "number" | "date";
+  show?: boolean; // Show/hide column (default: true)
 };
 
 export type TableRow = Record<string, unknown>;
@@ -119,6 +120,9 @@ const props = defineProps<{
   pageSize?: number; // Make pageSize optional
   storageKey?: string; // Optional key for localStorage
 }>();
+
+// Computed property for visible columns (show !== false defaults to true)
+const visibleColumns = computed(() => props.columns.filter((col) => col.show !== false));
 
 const emit = defineEmits<{
   (event: "page-change", page: number): void;
@@ -377,7 +381,7 @@ const onPageSizeChange = () => {
     border: 1px solid bootstrap.$secondary;
   }
 
-  table tbody td + td {
+  table tbody td {
     border-top: 1px solid bootstrap.$secondary;
   }
 

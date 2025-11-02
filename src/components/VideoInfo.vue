@@ -57,14 +57,17 @@
           <FavButton :data="data" :faved="bookmark" @fav="emit('bookmarked', props.data, false)" @unfav="emit('bookmarked', props.data, true)" />
         </div>
 
-        <div class="d-flex">
-          <button type="button" class="btn btn-sm p-0 px-2" @click="emit('preview', data)">
+        <div class="d-flex gap-3">
+          <button type="button" class="btn btn-sm p-0" @click="emit('analysis', data)">
+            <i class="bi bi-eye"></i>
+          </button>
+          <button type="button" class="btn btn-sm p-0" @click="emit('preview', data)">
             <i class="bi bi-film"></i>
           </button>
-          <button type="button" class="btn btn-sm p-0 px-2" @click="emit('enhance', data)">
+          <button type="button" class="btn btn-sm p-0" @click="emit('enhance', data)">
             <i class="bi bi-magic"></i>
           </button>
-          <button type="button" class="btn btn-sm p-0 px-2" @click="emit('destroy', data)">
+          <button type="button" class="btn btn-sm p-0" @click="emit('destroy', data)">
             <i class="bi bi-trash3-fill text-danger" />
           </button>
         </div>
@@ -91,6 +94,7 @@ const emit = defineEmits<{
   (e: "preview", value: RecordingResponse): void;
   (e: "enhance", value: RecordingResponse): void;
   (e: "destroy", value: RecordingResponse): void;
+  (e: "analysis", value: RecordingResponse): void;
   (e: "bookmarked", data: RecordingResponse, value: boolean): void;
   (e: "convert", value: { recording: RecordingResponse; mediaType: string }): void;
 }>();
