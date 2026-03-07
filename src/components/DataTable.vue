@@ -91,22 +91,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineEmits, defineProps, onMounted, ref, watch } from "vue";
-
-export type Column = {
-  key: string;
-  label: string;
-  width?: string;
-  headerClass?: string;
-  rowClass?: string;
-  class?: string;
-  sortable?: boolean;
-  isSearchable?: boolean;
-  type?: "boolean" | "string" | "number" | "date";
-  show?: boolean; // Show/hide column (default: true)
-};
-
-export type TableRow = Record<string, unknown>;
+import { computed, onMounted, ref, watch } from "vue";
+import type { Column, TableRow } from "../types/table";
 
 type SortOrder = "asc" | "desc" | null;
 
@@ -141,16 +127,14 @@ const loadSortState = () => {
       const isValidKey = storedKey && props.columns.some((col) => col.key === storedKey);
       return {
         sortKey: isValidKey ? storedKey : (props.defaultSortKey ?? null),
-        sortOrder: isValidKey ? storedOrder : (props.defaultSortOrder ?? null),
-      };
+        sortOrder: isValidKey ? storedOrder : (props.defaultSortOrder ?? null)};
     }
   } catch (error) {
     console.error("Error loading sort state from localStorage:", error);
   }
   return {
     sortKey: props.defaultSortKey ?? null,
-    sortOrder: props.defaultSortOrder ?? null,
-  };
+    sortOrder: props.defaultSortOrder ?? null};
 };
 
 const initialState = loadSortState();
@@ -170,8 +154,7 @@ watch([sortKey, sortOrder], () => {
       STORAGE_KEY,
       JSON.stringify({
         sortKey: sortKey.value,
-        sortOrder: sortOrder.value,
-      }),
+        sortOrder: sortOrder.value}),
     );
   } catch (error) {
     console.error("Error saving sort state to localStorage:", error);
@@ -465,3 +448,4 @@ const onPageSizeChange = () => {
   width: 100px;
 }
 </style>
+

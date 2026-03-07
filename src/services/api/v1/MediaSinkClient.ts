@@ -382,6 +382,17 @@ export interface RequestsMergeRequest {
   recordingIds: number[];
 }
 
+export interface RequestsSimilarityGroupRequest {
+  /** Include singleton groups (recordings without neighbors above threshold). */
+  includeSingletons?: boolean;
+  /** Hard cap on pairwise comparisons/edges considered. */
+  pairLimit?: number;
+  /** Optional subset. When empty, all recordings with frame vectors are considered. */
+  recordingIds?: number[];
+  /** Similarity threshold. Supports 0..1 and 0..100 (percent) formats. */
+  similarity?: number;
+}
+
 export interface RequestsVideoFilterRequest {
   skip?: number;
   sortColumn: RequestsVideoSortColumn;
@@ -493,6 +504,24 @@ export interface ResponsesServerInfoResponse {
   version: string;
 }
 
+export interface ResponsesSimilarVideoGroup {
+  groupId?: number;
+  maxSimilarity?: number;
+  videos?: DatabaseRecording[];
+}
+
+export interface ResponsesSimilarVideoMatch {
+  bestTimestamp?: number;
+  recording?: DatabaseRecording;
+  similarity?: number;
+}
+
+export interface ResponsesSimilarityGroupsResponse {
+  groupCount?: number;
+  groups?: ResponsesSimilarVideoGroup[];
+  similarityThreshold?: number;
+}
+
 export interface ResponsesVideoFilterResponse {
   skip: number;
   take: number;
@@ -500,9 +529,27 @@ export interface ResponsesVideoFilterResponse {
   videos?: DatabaseRecording[];
 }
 
+export interface ResponsesVisualSearchResponse {
+  limit?: number;
+  results?: ResponsesSimilarVideoMatch[];
+  similarityThreshold?: number;
+}
+
 export interface ResumeCreateParams {
   /** Channel id */
   id: number;
+}
+
+export interface SearchImageCreatePayload {
+  /**
+   * Query image file
+   * @format binary
+   */
+  file: File;
+  /** Max results (1..200), default 50 */
+  limit?: number;
+  /** Similarity threshold (0..1 or 0..100), default 0.8 */
+  similarity?: number;
 }
 
 export interface ServicesChannelInfo {
@@ -638,6 +685,42 @@ export namespace Admin {
 }
 
 export namespace Analysis {
+  /**
+   * @description Build similarity clusters from analyzed frame vectors.
+   * @tags analysis
+   * @name GroupCreate
+   * @summary Group visually similar videos
+   * @request POST:/analysis/group
+   * @response `200` `ResponsesSimilarityGroupsResponse` OK
+   * @response `400` `any` Invalid input
+   * @response `500` `any` Error message
+   */
+  export namespace GroupCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = RequestsSimilarityGroupRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = ResponsesSimilarityGroupsResponse;
+  }
+
+  /**
+   * @description Upload a picture and return visually similar videos using frame embeddings.
+   * @tags analysis
+   * @name SearchImageCreate
+   * @summary Search visually similar videos by image
+   * @request POST:/analysis/search/image
+   * @response `200` `ResponsesVisualSearchResponse` OK
+   * @response `400` `any` Invalid input
+   * @response `500` `any` Error message
+   */
+  export namespace SearchImageCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = SearchImageCreatePayload;
+    export type RequestHeaders = {};
+    export type ResponseBody = ResponsesVisualSearchResponse;
+  }
+
   /**
    * @description Get the analysis results (scenes and highlights) for a recording
    * @tags analysis
@@ -1949,6 +2032,54 @@ export class MediaSinkClient<SecurityDataType extends unknown> {
       }),
   };
   analysis = {
+    /**
+     * @description Build similarity clusters from analyzed frame vectors.
+     *
+     * @tags analysis
+     * @name GroupCreate
+     * @summary Group visually similar videos
+     * @request POST:/analysis/group
+     * @response `200` `ResponsesSimilarityGroupsResponse` OK
+     * @response `400` `any` Invalid input
+     * @response `500` `any` Error message
+     */
+    groupCreate: (
+      request: RequestsSimilarityGroupRequest,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ResponsesSimilarityGroupsResponse, any>({
+        path: `/analysis/group`,
+        method: "POST",
+        body: request,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Upload a picture and return visually similar videos using frame embeddings.
+     *
+     * @tags analysis
+     * @name SearchImageCreate
+     * @summary Search visually similar videos by image
+     * @request POST:/analysis/search/image
+     * @response `200` `ResponsesVisualSearchResponse` OK
+     * @response `400` `any` Invalid input
+     * @response `500` `any` Error message
+     */
+    searchImageCreate: (
+      data: SearchImageCreatePayload,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ResponsesVisualSearchResponse, any>({
+        path: `/analysis/search/image`,
+        method: "POST",
+        body: data,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * @description Get the analysis results (scenes and highlights) for a recording
      *

@@ -75,7 +75,7 @@
 
 <script setup lang="ts">
 import Modal from "./ModalWindow.vue";
-import { computed, defineEmits, reactive, ref, watch } from "vue";
+import { computed,  reactive, ref, watch  } from "vue";
 import { randomString } from "../../utils/math";
 import AppAlert from "../AppAlert.vue";
 import { createValidator, type ValidationMessage } from "../../utils/validator";
@@ -116,8 +116,7 @@ const formState = reactive({
   myDisplayName: props.displayName || "",
   myChannelName: props.channelName || "",
   mySkipStart: props.skipStart || 0,
-  myMinDuration: props.minDuration || 15,
-});
+  myMinDuration: props.minDuration || 15});
 
 const isSaving = ref(false);
 
@@ -130,14 +129,12 @@ const validator = createValidator([
     name: validatorChannelName,
     validator: (val: string) => /^[_a-z0-9]+$/i.test(val),
     validMessage: "Channel name valid",
-    invalidMessage: "Channel name invalid",
-  },
+    invalidMessage: "Channel name invalid"},
   {
     name: validatorChannelDisplayName,
     validator: (val: string) => /^[^\s\\]+(\s[^\s\\]+)*$/i.test(val),
     validMessage: "Channel display name valid",
-    invalidMessage: "Channel display name invalid",
-  },
+    invalidMessage: "Channel display name invalid"},
   {
     name: validatorChannelUrl,
     validator: (val: string) => {
@@ -152,8 +149,7 @@ const validator = createValidator([
       return url.protocol === "http:" || url.protocol === "https:";
     },
     validMessage: "URL valid",
-    invalidMessage: "URL invalid",
-  },
+    invalidMessage: "URL invalid"},
 ]);
 
 const streamUrl = ref<HTMLInputElement | null>(null);
@@ -256,8 +252,7 @@ const formValid = (): { validations: ValidationMessage[]; isValid: boolean } => 
 
   return {
     validations: results,
-    isValid,
-  };
+    isValid};
 };
 
 const save = () => {
@@ -269,8 +264,7 @@ const save = () => {
     if (!validationResult.isValid) {
       validations.value = validationResult.validations.map(({ message, isValid }) => ({
         message: message,
-        checked: isValid,
-      }));
+        checked: isValid}));
       return;
     }
 
@@ -282,8 +276,7 @@ const save = () => {
       url: formState.myUrl,
       displayName: formState.myDisplayName,
       skipStart: formState.mySkipStart,
-      minDuration: formState.myMinDuration,
-    });
+      minDuration: formState.myMinDuration});
   } catch (error) {
     console.error(error);
     alert(error);
@@ -294,3 +287,4 @@ const save = () => {
 </script>
 
 <style scoped></style>
+

@@ -143,7 +143,21 @@
 
       <!-- Video Stripe: Fixed height, always visible -->
       <div class="w-100 flex-shrink-0 bg-light position-relative" style="height: 20vh; max-height: 100px">
-        <VideoStripe :loaded="isLoaded" :frames="videoFrames" :disabled="playingCut" :seeked="seeked" :paused="pause" :timecode="timeCode" :duration="duration" :scenes="analysisMode === 'scenes' ? videoAnalysis?.scenes : undefined" :highlights="analysisMode === 'highlights' ? videoAnalysis?.highlights : undefined" :markings="markings" @selecting="() => (pause = true)" @marking="(m) => (markings = m)" @seek="seek" />
+        <VideoStripe
+          :loaded="isLoaded"
+          :frames="videoFrames"
+          :disabled="playingCut"
+          :seeked="seeked"
+          :paused="pause"
+          :timecode="timeCode"
+          :duration="duration"
+          :scenes="(analysisMode === 'scenes' ? videoAnalysis?.scenes : undefined) as any"
+          :highlights="(analysisMode === 'highlights' ? videoAnalysis?.highlights : undefined) as any"
+          :markings="markings"
+          @selecting="() => (pause = true)"
+          @marking="(m) => (markings = m)"
+          @seek="seek"
+        />
       </div>
     </div>
   </template>
@@ -224,17 +238,17 @@ const analysisItems = computed(() => {
   if (analysisMode.value === "scenes") {
     return (
       videoAnalysis.value.scenes?.map((scene, index) => ({
-        label: `Scene ${index + 1}: ${scene.startTime.toFixed(1)}s - ${scene.endTime.toFixed(1)}s`,
-        timestamp: scene.startTime,
-        intensity: scene.changeIntensity,
+        label: `Scene ${index + 1}: ${scene.startTime!.toFixed(1)}s - ${scene.endTime!.toFixed(1)}s`,
+        timestamp: scene.startTime!,
+        intensity: scene.changeIntensity!,
       })) || []
     );
   } else {
     return (
       videoAnalysis.value.highlights?.map((highlight, index) => ({
-        label: `Highlight ${index + 1}: ${highlight.timestamp.toFixed(1)}s`,
-        timestamp: highlight.timestamp,
-        intensity: highlight.intensity,
+        label: `Highlight ${index + 1}: ${highlight.timestamp!.toFixed(1)}s`,
+        timestamp: highlight.timestamp!,
+        intensity: highlight.intensity!,
       })) || []
     );
   }
@@ -281,7 +295,7 @@ watch(analysisMode, () => {
 watch(currentAnalysisIndex, (newIndex) => {
   const items = analysisItems.value;
   if (items.length > 0 && video.value) {
-    video.value.currentTime = items[newIndex].timestamp;
+    video.value.currentTime = items[newIndex].timestamp!;
   }
 });
 
@@ -298,7 +312,7 @@ const goToPreviousAnalysisPoint = () => {
 
   currentAnalysisIndex.value = Math.max(0, currentAnalysisIndex.value - 1);
   if (video.value) {
-    video.value.currentTime = items[currentAnalysisIndex.value].timestamp;
+    video.value.currentTime = items[currentAnalysisIndex.value].timestamp!;
   }
 };
 
@@ -308,7 +322,7 @@ const goToNextAnalysisPoint = () => {
 
   currentAnalysisIndex.value = Math.min(items.length - 1, currentAnalysisIndex.value + 1);
   if (video.value) {
-    video.value.currentTime = items[currentAnalysisIndex.value].timestamp;
+    video.value.currentTime = items[currentAnalysisIndex.value].timestamp!;
   }
 };
 

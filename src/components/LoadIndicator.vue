@@ -15,7 +15,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from "vue";
 
 const props = defineProps<{
   busy: boolean;
@@ -29,3 +28,4 @@ const props = defineProps<{
   min-height: calc(100vh - 4rem);
 }
 </style>
+

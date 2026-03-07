@@ -7,7 +7,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from "vue";
 
 const props = defineProps<{
   visible: boolean;
@@ -15,3 +14,4 @@ const props = defineProps<{
 </script>
 
 <style scoped></style>
+

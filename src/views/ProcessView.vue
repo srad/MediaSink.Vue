@@ -7,10 +7,11 @@
 </template>
 
 <script setup lang="ts">
-import { type ServicesProcessInfo } from "@/services/api/v1/MediaSinkClient";
+import { type ServicesProcessInfo } from "../services/api/v1/MediaSinkClient";
 import { onMounted, ref } from "vue";
-import { createClient } from "@/services/api/v1/ClientFactory";
-import DataTable, { type Column } from "@/components/DataTable.vue";
+import { createClient } from "../services/api/v1/ClientFactory";
+import DataTable from "../components/DataTable.vue";
+import type { Column } from "../types/table";
 
 const processesCols: Column[] = [
   { label: "PID", key: "pid", width: "10%" },

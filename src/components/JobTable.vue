@@ -5,8 +5,7 @@
 import { type DatabaseJob } from "../services/api/v1/MediaSinkClient";
 import { useI18n } from "vue-i18n";
 import DataTable from "./DataTable.vue";
-import type { Column } from "./DataTable.vue";
-import type { TableRow } from "@/components/DataTable.vue";
+import type { Column, TableRow } from "../types/table";
 import { computed } from "vue";
 
 

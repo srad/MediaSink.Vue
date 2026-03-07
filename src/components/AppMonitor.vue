@@ -47,7 +47,7 @@
 //   return s.substr(s.length - size);
 // }
 
-import { computed, defineProps } from "vue";
+import { computed} from "vue";
 
 const props = defineProps<{
   cpu: number;
@@ -85,3 +85,4 @@ const netOutputMB = computed(() => (props.netOutput / 1024 / 1024).toFixed(1));
   margin: 0;
 }
 </style>
+

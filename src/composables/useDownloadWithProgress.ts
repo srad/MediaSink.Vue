@@ -110,7 +110,7 @@ export function useDownloadWithProgress() {
 
       // Only trigger download if not aborted
       if (!abortController.signal.aborted) {
-        const blob = new Blob(chunks);
+        const blob = new Blob(chunks as any[]);
         const effectiveFilename = filename || url.substring(url.lastIndexOf("/") + 1) || "downloaded-file";
         triggerDownload(blob, effectiveFilename);
       }

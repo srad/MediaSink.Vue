@@ -115,14 +115,14 @@
 </template>
 
 <script setup lang="ts">
-import { DatabaseJobOrder, DatabaseJobStatus } from "@/services/api/v1/MediaSinkClient";
-import { useJobStore } from "@/stores/job";
-import ModalConfirmDialog from "@/components/modals/ModalConfirmDialog.vue";
+import { DatabaseJobOrder, DatabaseJobStatus } from "../services/api/v1/MediaSinkClient";
+import { useJobStore } from "../stores/job";
+import ModalConfirmDialog from "../components/modals/ModalConfirmDialog.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { createClient } from "@/services/api/v1/ClientFactory";
-import DataTable from "@/components/DataTable.vue";
-import type { Column } from "../components/DataTable.vue";
+import { createClient } from "../services/api/v1/ClientFactory";
+import DataTable from "../components/DataTable.vue";
+import type { Column, TableRow } from "../types/table";
 import { useI18n } from "vue-i18n";
 import { type DatabaseJob } from "../services/api/v1/MediaSinkClient";
 
@@ -255,7 +255,7 @@ const destroy = (id: number) => {
     client.jobs
       .jobsDelete({ id })
       .then(() => jobStore.destroy(id))
-      .catch((res) => alert(res));
+      .catch((res: any) => alert(res));
   }
 };
 
@@ -267,7 +267,7 @@ const toggleWorker = () => {
     .then(() => {
       processingJobs.value = !processingJobs.value;
     })
-    .catch((res) => alert((<{ error: string }>res).error))
+    .catch((res: any) => alert((<{ error: string }>res).error))
     .finally(() => (showConfirmToggleWorkerDialog.value = false));
 };
 </script>
