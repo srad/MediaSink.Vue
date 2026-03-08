@@ -1,17 +1,17 @@
 <template>
   <ul class="list-group list-group-flush videoinfo-list">
-    <li class="list-group-item d-flex justify-content-evenly gap-1">
-      <div style="min-width: 0; overflow: hidden; white-space: nowrap">
+    <li class="list-group-item d-flex justify-content-evenly gap-1 px-1 text-muted small">
+      <div class="d-flex align-items-center" style="min-width: 0; overflow: hidden; white-space: nowrap" title="Duration">
         <i class="bi bi-stopwatch-fill me-1" />
         <span class="text-truncate">{{ t("recording.durationMinutes", [durationFormatted]) }}</span>
       </div>
 
-      <div style="min-width: 0; overflow: hidden; white-space: nowrap">
+      <div class="d-flex align-items-center" style="min-width: 0; overflow: hidden; white-space: nowrap" title="Size">
         <i class="bi bi-sd-card-fill me-1" />
         <span class="text-truncate">{{ (size / 1024 / 1024 / 1024).toFixed(1) }}GB</span>
       </div>
 
-      <div style="min-width: 0; overflow: hidden; white-space: nowrap">
+      <div class="d-flex align-items-center" style="min-width: 0; overflow: hidden; white-space: nowrap" title="Upload time">
         <i class="bi bi-calendar4-event me-1" />
         <span class="text-truncate">{{ ago }}</span>
       </div>

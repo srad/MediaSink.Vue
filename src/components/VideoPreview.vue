@@ -4,10 +4,10 @@
       <i class="bi fs-4 text-danger blink bi-record-fill pulse" v-if="props.isRecording"></i>
     </span>
 
-    <img v-if="!props.previewFrames || props.previewFrames?.length===0" class="w-100 h-auto rounded-top-2" alt="preview" loading="lazy" :src="props.previewImage" />
+    <img v-if="!props.previewFrames || props.previewFrames?.length===0" class="w-100 h-100 object-fit-cover rounded-top-2" alt="preview" loading="lazy" :src="props.previewImage" />
     <template v-else>
-      <div class="position-relative" @mouseenter="paused = false" @mouseleave="paused = true">
-        <img class="w-100 h-auto rounded-top-2" alt="preview" loading="lazy" :src="props.previewImage" />
+      <div class="position-relative w-100 h-100" @mouseenter="paused = false" @mouseleave="paused = true">
+        <img class="w-100 h-100 object-fit-cover rounded-top-2" alt="preview" loading="lazy" :src="props.previewImage" />
         <div class="position-absolute top-0 start-0 w-100 h-100" v-if="!paused">
           <ImageFramePlayer :frames="props.previewFrames!" :pause="paused" :duration="1" :fps="4" />
         </div>
@@ -73,7 +73,8 @@ onUnmounted(() => {
 .preview-container img,
 .preview-container video {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   vertical-align: middle;
   z-index: -1;
 }

@@ -1,11 +1,11 @@
 <template>
   <VideoEnhancementModal :show="showEnhancementModal" :recording="props.recording" @close="showEnhancementModal = false" />
 
-  <div style="z-index: 10" class="card bg-light border position-relative shadow-sm bg-light mark p-0 rounded-top-2" :class="{ 'border-info': !checked, 'animate__animated animate__zoomOut': destroyed, 'border-2 border-danger': checked }">
+  <div style="z-index: 10" class="card h-100 d-flex flex-column bg-light border position-relative shadow-sm mark p-0 rounded-top-2" :class="{ 'border-info': !checked, 'animate__animated animate__zoomOut': destroyed, 'border-2 border-danger': checked }">
     <div v-if="busy" class="bg-dark opacity-50 position-absolute w-100 h-100 d-flex align-items-center justify-content-center" style="z-index: 100">
       <div class="loader"></div>
     </div>
-    <div class="position-relative">
+    <div class="position-relative bg-dark rounded-top-2" style="aspect-ratio: 16/9; overflow: hidden;">
       <div class="position-absolute" style="padding: 10px; right: 0; top: 0; z-index: 10">
         <input v-if="props.showSelection" v-model="checked" type="checkbox" :checked="checked" style="width: 20px; height: 20px" />
       </div>
@@ -21,8 +21,8 @@
         <span>Job active</span>
       </div>
       <span v-if="props.recording.videoType === 'cut'" class="badge bg-warning position-absolute" style="user-select: none; z-index: 10; bottom: 10px; right: 10px">cut</span>
-      <RouterLink class="d-flex" :to="link">
-        <VideoPreview class="card-img-top" :data="recording.recordingId" :preview-frames="previewFrames" :preview-video="previewVideoUrl" :preview-image="previewCoverUrl" />
+      <RouterLink class="d-flex w-100 h-100" :to="link">
+        <VideoPreview class="card-img-top w-100 h-100" :data="recording.recordingId" :preview-frames="previewFrames" :preview-video="previewVideoUrl" :preview-image="previewCoverUrl" />
       </RouterLink>
     </div>
     <div v-if="props.showTitle" class="card-body">
